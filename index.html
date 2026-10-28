@@ -1,0 +1,2639 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>기사 도우미</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #1a56db; --m3: #c2410c;
+    --accent-bg: #e8f0fe;
+    --card: #f6f7f9;
+    --chip: #ffffff;
+    --red: #d93025;
+    --red-bg: #fdecea;
+    --green: #188038;
+    --green-bg: #e6f4ea;
+    --sun: #fff3c4;
+    --mark: #fff3a3;
+    --nav-h: 64px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d;
+      --text: #e8eaed;
+      --muted: #9aa0a6;
+      --line: #33373d;
+      --accent: #8ab4f8; --m3: #fdba74;
+      --accent-bg: #23314a;
+      --card: #202329;
+      --chip: #2a2e35;
+      --red: #f28b82;
+      --red-bg: #3c2422;
+      --green: #81c995;
+      --green-bg: #1e3326;
+      --sun: #3d3518;
+      --mark: #5c4d00;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+    min-height: 100vh;
+  }
+  .view { display: none; max-width: 640px; margin: 0 auto; padding: 24px 16px 32px; }
+  .view.on { display: block; }
+  /* 탭 넘어갈 때 옆으로 밀려 들어오는 효과 */
+  .view.in-r { animation: inR .28s cubic-bezier(.2,.7,.3,1); }
+  .view.in-l { animation: inL .28s cubic-bezier(.2,.7,.3,1); }
+  @keyframes inR { from { transform: translateX(40%); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes inL { from { transform: translateX(-40%); opacity: 0; } to { transform: none; opacity: 1; } }
+  body { overflow-x: hidden; }
+  @media (prefers-reduced-motion: reduce) { .view.in-r, .view.in-l { animation: none; } }
+  .login-screen { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; }
+  .login-screen.hidden, .who.hidden, #lg-main.hidden, #lg-change.hidden { display: none; }
+  .link-btn { border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; padding: 8px; margin-top: 6px; cursor: pointer; }
+  .login-box { max-width: 420px; margin: 0 auto; padding: 18vh 24px 40px; }
+  .login-box h2 { font-size: 28px; margin: 0 0 6px; letter-spacing: -0.5px; }
+  .login-sub { color: var(--muted); font-size: 15px; margin: 0 0 36px; }
+  .login-lab { display: block; font-size: 14px; font-weight: 700; margin: 0 0 8px; }
+  .login-in { display: block; width: 100%; box-sizing: border-box; height: 56px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: var(--text); font: inherit; font-size: 19px; padding: 0 16px; margin-bottom: 18px; }
+  .login-in:focus { outline: none; border-color: var(--accent); }
+  .pw-wrap { position: relative; }
+  .pw-wrap .login-in { padding-right: 56px; }
+  .pw-eye { position: absolute; top: 0; right: 0; width: 56px; height: 56px; border: 0; background: none; color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .pw-eye svg { width: 24px; height: 24px; }
+  .pw-eye .eye-off, .pw-eye.on .eye-on { display: none; }
+  .pw-eye.on .eye-off { display: block; }
+  .pw-eye.on { color: var(--accent); }
+  .login-err { min-height: 20px; margin: -6px 2px 8px; color: var(--red, #d92d20); font-size: 14px; font-weight: 600; }
+  .login-btn { width: 100%; height: 56px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+  .login-btn:disabled { opacity: .6; }
+  .login-btn.ok, .login-btn.ok:disabled { background: var(--green); opacity: 1; transition: background .2s; }
+  .login-screen.leaving { opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+  .login-screen.entering { animation: lgIn .3s ease; }
+  @keyframes lgIn { from { opacity: 0; } }
+  body.app-enter .view.on, body.app-enter .who { animation: appIn .5s cubic-bezier(.2, .7, .2, 1) both; }
+  body.app-enter .nav { animation: navIn .5s ease both; }
+  @keyframes appIn { from { opacity: 0; transform: translateY(18px); } }
+  @keyframes navIn { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .login-screen.leaving, .login-screen.entering, body.app-enter .view.on, body.app-enter .who, body.app-enter .nav { animation: none; transition: none; } }
+  .login-note { text-align: center; color: var(--muted); font-size: 13px; margin-top: 22px; }
+  .who { display: flex; justify-content: flex-end; align-items: center; gap: 8px; max-width: 1100px; margin: 0 auto; padding: 10px 16px 0; font-size: 14px; }
+  .who b { color: var(--text); }
+  .who button { border: 1px solid var(--line); background: var(--bg); color: var(--muted); font: inherit; font-size: 13px; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+  h1 { text-align: center; font-weight: 700; letter-spacing: -0.5px; }
+
+  /* ───── 하단 탭 ───── */
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    display: grid; grid-template-columns: 1fr 1fr;
+    height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--bg); border-top: 1px solid var(--line);
+  }
+  .nav button {
+    border: 0; background: none; color: var(--muted); cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    font: inherit; font-size: 13px; font-weight: 600;
+  }
+  .nav svg { width: 24px; height: 24px; }
+  .nav button.on { color: var(--accent); }
+
+  /* ───── 운행거리 ───── */
+  #dist { padding-top: 26vh; transition: padding-top .25s ease; }
+  #dist.searching { padding-top: 24px; }
+  #dist h1 { font-size: 30px; margin: 0 0 24px; }
+  .search {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 0 18px; height: 52px; background: var(--bg);
+    box-shadow: 0 1px 6px rgba(32,33,36,.12);
+  }
+  .search:focus-within { box-shadow: 0 1px 10px rgba(32,33,36,.24); border-color: transparent; }
+  .search svg { flex: none; width: 20px; height: 20px; color: var(--muted); }
+  .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 17px; height: 100%; }
+  .search input::-webkit-search-cancel-button { display: none; -webkit-appearance: none; }
+  .clear { flex: none; border: 0; background: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 0 2px; display: none; }
+  #dist.typing .clear { display: block; }
+  .status { text-align: center; color: var(--muted); font-size: 14px; margin: 16px 0 0; }
+  .today-btn { display: flex; align-items: center; gap: 8px; margin: 16px auto 0; height: 46px; padding: 0 20px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .today-btn svg { width: 19px; height: 19px; color: var(--accent); flex: none; }
+  .today-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .today-btn.on svg { color: #fff; }
+  .today-btn.hidden, #dist.typing .today-btn { display: none; }
+  #today-box.hidden { display: none; }
+  .vac-right { display: none; }
+  /* 펼친 폴더블·태블릿: 왼쪽 내 차·조별 현황, 오른쪽 신청란 (항상 펼침) */
+  @media (min-width: 680px) {
+    #vac { max-width: 1180px; }
+    .vac-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    .vac-right { display: block; position: sticky; top: 12px; max-height: calc(100vh - var(--nav-h, 64px) - 24px); overflow-y: auto; }
+    #vac #open-form { display: none; }
+    .sheet.inline { position: static; opacity: 1; pointer-events: auto; background: none; display: block; z-index: auto; transition: none; }
+    .sheet.inline .panel { transform: none; max-width: none; max-height: none; overflow: visible; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+    .sheet.inline #close { display: none; }
+    .form-empty { border: 1px dashed var(--line); border-radius: 16px; padding: 28px 18px; text-align: center; color: var(--muted); font-size: 16px; line-height: 1.6; }
+    .form-empty:empty { display: none; }
+  }
+  /* 펼친 폴더블·태블릿: 왼쪽 거리 검색, 오른쪽 금일 현장 (항상 펼침) */
+  @media (min-width: 680px) {
+    #dist { max-width: 1180px; padding-top: 24px; }
+    #dist.searching { padding-top: 24px; }
+    #dist h1 { margin-top: 8px; }
+    .dist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    #dist .today-btn { display: none; }
+    #today-box { position: sticky; top: 12px; max-height: calc(100vh - var(--nav-h, 64px) - 24px); overflow-y: auto; padding: 0 2px 12px; }
+    #today-box .daybar { margin-top: 4px; }
+    #today-box .total { margin-top: 12px; }
+  }
+  .daybar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 0 0; }
+  .daybar button { width: 52px; height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-size: 18px; cursor: pointer; flex: none; }
+  .daybar button:disabled { opacity: .3; cursor: default; }
+  .daybar .dl { flex: 1; text-align: center; font-size: 19px; font-weight: 800; }
+  .daybar .dl.other { color: var(--accent); }
+  .back-today { display: block; margin: 8px auto 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 4px; }
+  .total.other { background: var(--accent-bg); color: var(--accent); }
+  .results li.today { display: block; }
+  .results li.today .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .results li.today .rep { display: block; margin-top: 3px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .rep-btn { border: 0; background: none; padding: 2px 0; font: inherit; font-weight: 700; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .rep-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 4px; border-top: 1px solid var(--line); font-size: 17px; }
+  .rep-row:first-child { border-top: 0; }
+  .rep-row .k { color: var(--muted); font-size: 14px; }
+  .rep-row b { font-size: 19px; }
+  .rep-call { display: flex; align-items: center; justify-content: center; height: 52px; margin: 6px 0 10px; border-radius: 12px; background: var(--green); color: #fff; font-size: 18px; font-weight: 800; text-decoration: none; }
+  .results li.today .item { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 15px; color: var(--muted); }
+  .results li.today .qty { display: flex; align-items: center; gap: 8px; }
+  .results li.today .m3 { color: var(--m3); font-size: 19px; font-weight: 800; }
+  .results li.today .tm { line-height: 1.4; height: auto; font-size: 14px; font-weight: 700; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+  .total { display: flex; flex-direction: column; align-items: center; margin: 18px 0 12px; padding: 16px; border-radius: 14px; background: var(--accent); color: var(--bg); }
+  .total .lab { font-size: 15px; font-weight: 700; color: inherit; opacity: .9; }
+  .total .big { font-size: 38px; font-weight: 800; line-height: 1.15; letter-spacing: -.5px; }
+  .total .big small { font-size: 24px; margin-left: 3px; color: inherit; font-weight: 700; }
+  .total .tsub { font-size: 14px; font-weight: 600; color: inherit; opacity: .9; }
+  .results li.today .prod { font-weight: 600; color: var(--text); }
+  .results li.today .qty { white-space: nowrap; }
+  .count { color: var(--muted); font-size: 14px; margin: 20px 4px 8px; }
+  .results ul { list-style: none; margin: 0; padding: 0; }
+  .results li {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: 14px 16px; border-radius: 12px; background: var(--card); margin-bottom: 8px;
+  }
+  .name { font-size: 16px; line-height: 1.4; word-break: keep-all; overflow-wrap: anywhere; }
+  .dist { flex: none; font-size: 18px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .dist.na { font-size: 15px; font-weight: 600; color: var(--muted); }
+  mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1px; }
+  .empty { text-align: center; color: var(--muted); padding: 32px 0; }
+
+  /* ───── 휴가 ───── */
+  #vac h1 { font-size: 26px; margin: 8px 0 4px; }
+  .date { text-align: center; color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  .mine { border: 2px solid var(--accent); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+  .mine-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .mine-tag { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .link { border: 0; background: none; color: var(--muted); font-size: 13px; cursor: pointer; padding: 4px; text-decoration: underline; }
+  .mine-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .big { font-size: 28px; font-weight: 700; }
+  .big small { font-size: 16px; font-weight: 500; color: var(--muted); }
+  .pick { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 20px; text-align: center; font-size: 15px; color: var(--muted); line-height: 1.5; }
+  .pick b { color: var(--text); }
+  .tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; position: sticky; top: 0; background: var(--bg); padding: 8px 0; z-index: 2; }
+  .tab { border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 10px; height: 40px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (prefers-color-scheme: dark) { .tab.on { color: #16181d; } }
+  .row { background: var(--card); border-radius: 12px; margin-bottom: 6px; overflow: hidden; }
+  .row-btn { width: 100%; display: grid; grid-template-columns: 52px 76px 1fr 16px; align-items: center; gap: 8px; padding: 13px 14px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .row-btn .no { font-size: 18px; font-weight: 700; }
+  .row.me .row-btn .no { color: var(--accent); }
+  .next { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .next.has { color: var(--red); font-weight: 600; }
+  .chev { width: 16px; height: 16px; color: var(--muted); transition: transform .2s; }
+  .row.open .chev { transform: rotate(180deg); }
+  .detail { display: none; padding: 0 14px 14px; }
+  .row.open .detail { display: block; }
+  .badge { display: inline-block; font-size: 13px; font-weight: 700; padding: 5px 9px; border-radius: 999px; white-space: nowrap; text-align: center; }
+  .badge.ok { background: var(--green-bg); color: var(--green); }
+  .badge.zero { background: var(--red-bg); color: var(--red); }
+  .badge.lg { font-size: 15px; padding: 7px 12px; }
+  .label { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
+  .chips { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; margin-bottom: 12px; }
+  .chip { font-size: 15px; padding: 5px 9px; border-radius: 8px; background: var(--chip); border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .chip.summer { background: var(--sun); border-color: transparent; font-weight: 700; }
+  .chip.unused { color: var(--muted); }
+  .chip.future { color: var(--red); font-weight: 700; border-color: var(--red); }
+  .chip small, .perk-key { font-size: 11px; font-weight: 800; color: #a15c00; margin-left: 4px; }
+  .perk-key { margin-left: 0; }
+  @media (prefers-color-scheme: dark) { .chip small, .perk-key { color: #fdd663; } }
+  .none { font-size: 14px; color: var(--muted); }
+  .set-me { width: 100%; height: 42px; border: 1px solid var(--accent); background: var(--accent-bg); color: var(--accent); border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .legend { display: flex; justify-content: center; gap: 14px; font-size: 12px; color: var(--muted); margin-top: 18px; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+  .legend .l1::before { border: 1.5px solid var(--red); }
+  .legend .l2::before { background: var(--sun); }
+  .demo { background: var(--sun); border-radius: 10px; padding: 10px 12px; font-size: 13px; margin: 0 0 16px; text-align: center; }
+  .divider { height: 1px; background: var(--line); margin: 16px 0; }
+  .login .pin-row { display: flex; gap: 8px; }
+  .login input { flex: 1; min-width: 0; height: 46px; border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; font-size: 17px; background: var(--bg); color: var(--text); letter-spacing: 4px; }
+  .btn { height: 46px; padding: 0 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (prefers-color-scheme: dark) { .btn.primary { color: #16181d; } }
+  .btn.primary:disabled { opacity: .4; }
+  .btn.wide { width: 100%; }
+  .btn.small { height: 34px; padding: 0 12px; font-size: 14px; flex: none; }
+  .reqs { list-style: none; margin: 0; padding: 0; }
+  .reqs li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .reqs li:last-child { border-bottom: 0; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 4px; vertical-align: 1px; }
+  .pill.used { background: var(--accent-bg); color: var(--accent); }
+  .pill.ok { background: var(--green-bg); color: var(--green); }
+  .pill.wait { background: var(--sun); color: #a15c00; }
+  @media (prefers-color-scheme: dark) { .pill.wait { color: #fdd663; } }
+  .pill.zero { background: var(--red-bg); color: var(--red); }
+  .pill.off { background: var(--card); color: var(--muted); border: 1px solid var(--line); }
+
+  .sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .sheet.show { opacity: 1; pointer-events: auto; }
+  .panel { width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom)); transform: translateY(30px); transition: transform .2s; }
+  .sheet.show .panel { transform: none; }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; font-size: 18px; margin-bottom: 14px; }
+  .hours { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 6px; }
+  .hours button { height: 52px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; }
+  .hours button.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .hours-note { margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+  .segs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border-radius: 12px; padding: 4px; margin-bottom: 18px; }
+  .seg { height: 40px; border: 0; border-radius: 9px; background: none; color: var(--muted); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .seg.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .sub { font-size: 12px; color: var(--muted); font-weight: 400; }
+  .center { text-align: center; margin: 12px 0 0; }
+  .days { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px; }
+  .day { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; cursor: pointer; }
+  .day .d1 { font-size: 16px; font-weight: 700; }
+  .day .d2 { font-size: 12px; color: var(--muted); }
+  .day .d2.red { color: var(--red); }
+  .day .d3 { font-size: 12px; color: var(--green); font-weight: 600; }
+  .day.warn .d3 { color: #c26a00; }
+  .day:disabled { opacity: .4; cursor: default; }
+  .day:disabled .d3 { color: var(--muted); }
+  .day.on { border: 2px solid var(--accent); background: var(--accent-bg); }
+  .day.locked { background: var(--card); border-color: transparent; }
+  .day.locked .d1 { color: var(--muted); }
+  .day.locked .d3 { color: var(--text); font-weight: 700; }
+  .day .d4 { font-size: 10px; color: var(--muted); }
+  .day.soon { border-style: dashed; background: var(--card); }
+  .day.soon .d1 { color: var(--muted); }
+  .day.soon .d3 { color: var(--accent); font-size: 11px; line-height: 1.3; text-align: center; }
+  .time { width: 100%; height: 46px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; font-size: 17px; background: var(--bg); color: var(--text); margin-bottom: 12px; }
+  .form-note { font-size: 13px; color: #c26a00; margin: 0 0 12px; min-height: 0; }
+  .form-note:empty { display: none; }
+  .links { display: flex; justify-content: space-between; margin-top: 8px; }
+  .pw { width: 100%; height: 46px; border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; font-size: 18px; letter-spacing: 4px; background: var(--bg); color: var(--text); margin-bottom: 14px; }
+  .notice { border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.5; margin: 0 0 14px; }
+  .notice.red { background: var(--red-bg); color: var(--red); }
+  .notice.blue { background: var(--accent-bg); color: var(--accent); }
+  .mine-head .badges { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .badge.sum { background: var(--sun); color: #8a5a00; }
+  @media (prefers-color-scheme: dark) { .badge.sum { color: #fdd663; } }
+  .left-ok { color: #8a5a00; }
+  .left-zero { color: var(--red); }
+  @media (prefers-color-scheme: dark) { .left-ok { color: #fdd663; } }
+  .perk { font-size: 14px; margin: 0 0 12px; color: var(--text); }
+  .list-cap { font-size: 12px; color: var(--muted); margin: 0 4px 6px; }
+  .year-div { grid-column: 1 / -1; background: var(--red-bg); color: var(--red); font-size: 13px; text-align: center; padding: 8px; border-radius: 8px; }
+  .form-note { white-space: pre-line; }
+  .form-note.other { color: var(--red); font-weight: 700; }
+  .ask { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .ask.show { display: flex; }
+  .ask-box { width: 100%; max-width: 380px; background: var(--bg); border-radius: 16px; padding: 22px 18px 16px; }
+  .ask-box p { margin: 0 0 20px; font-size: 17px; line-height: 1.55; white-space: pre-line; text-align: center; font-weight: 600; }
+  .news-head { font-size: 19px; font-weight: 800; text-align: center; margin-bottom: 12px; }
+  .news-list { list-style: none; margin: 0 0 16px; padding: 0; max-height: 55vh; overflow-y: auto; }
+  .news-list li { padding: 12px 4px; border-top: 1px solid var(--line); font-size: 16px; line-height: 1.5; }
+  .news-list li:first-child { border-top: 0; }
+  .news-list .tag { display: inline-block; font-size: 13px; font-weight: 800; padding: 2px 8px; border-radius: 6px; margin-right: 6px; background: var(--card); color: var(--muted); }
+  .news-list .tag.ok { background: var(--green-bg); color: var(--green); }
+  .news-list .tag.bad { background: var(--red-bg); color: var(--red); }
+  .news-list .sub { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .ask-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ask-btns .btn { height: 52px; font-size: 17px; }
+  .warn-red { color: var(--red); font-size: 13px; font-weight: 700; text-align: center; margin: 12px 0 0; line-height: 1.4; }
+  .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); width: calc(100% - 32px); max-width: 480px; background: #323232; color: #fff; padding: 14px 16px; border-radius: 12px; font-size: 15px; line-height: 1.4; z-index: 30; opacity: 0; pointer-events: none; transition: all .25s; }
+  .toast.good { background: #137333; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<!-- ───── 로그인 ───── -->
+<div class="login-screen hidden" id="login-screen">
+ <form class="login-box" id="login-form" autocomplete="on">
+  <div id="lg-main">
+  <h2>로그인</h2>
+  <p class="login-sub">차량 호수와 비밀번호를 입력하세요</p>
+  <label class="login-lab" for="lg-id">아이디 (차량 호수)</label>
+  <input class="login-in" id="lg-id" name="username" type="text" inputmode="numeric" maxlength="4" placeholder="예: 214" autocomplete="username">
+  <label class="login-lab" for="lg-pw">비밀번호</label>
+  <div class="pw-wrap">
+   <input class="login-in" id="lg-pw" name="password" type="password" inputmode="numeric" maxlength="8" placeholder="비밀번호" autocomplete="current-password">
+   <button class="pw-eye" id="lg-eye" data-eye="lg-pw" type="button" aria-label="비밀번호 보기"><svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.5 4.8-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button>
+  </div>
+  <p class="login-err" id="lg-err"></p>
+  <button class="login-btn" id="lg-btn" type="button">로그인</button>
+  <p class="login-note">비밀번호를 잊으셨으면 관리자에게 문의하세요</p>
+  </div>
+  <div id="lg-change" class="hidden">
+  <h2>비밀번호 바꾸기</h2>
+  <p class="login-sub"><b id="ch-no"></b> 처음 받은 비밀번호는 다른 사람도 알 수 있어요.<br>나만 아는 숫자 4~8자리로 바꿔 주세요.</p>
+  <label class="login-lab" for="ch-new">새 비밀번호</label>
+  <div class="pw-wrap">
+   <input class="login-in" id="ch-new" type="password" inputmode="numeric" maxlength="8" placeholder="숫자 4~8자리" autocomplete="new-password">
+   <button class="pw-eye" data-eye="ch-new" type="button" aria-label="비밀번호 보기"><svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.5 4.8-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button>
+  </div>
+  <label class="login-lab" for="ch-new2">새 비밀번호 한 번 더</label>
+  <div class="pw-wrap">
+   <input class="login-in" id="ch-new2" type="password" inputmode="numeric" maxlength="8" placeholder="같은 번호 한 번 더" autocomplete="new-password">
+   <button class="pw-eye" data-eye="ch-new2" type="button" aria-label="비밀번호 보기"><svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.5 4.8-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button>
+  </div>
+  <p class="login-err" id="ch-err"></p>
+  <button class="login-btn" id="ch-btn" type="button" data-label="바꾸고 시작하기">바꾸고 시작하기</button>
+  <p class="login-note">같은 숫자 반복(1111)이나 호수와 같은 번호는 쓸 수 없어요<br><button class="link-btn" id="ch-out" type="button">나중에 하기 (로그아웃)</button></p>
+  </div>
+ </form>
+</div>
+<div class="who hidden" id="who"><b id="who-no"></b><button type="button" id="who-out">로그아웃</button></div>
+
+<!-- ───── 운행거리 화면 ───── -->
+<section class="view" id="dist">
+ <div class="dist-grid">
+ <div class="dist-left">
+  <h1>운행거리검색</h1>
+  <label class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="현장명을 입력하세요" autocomplete="off" enterkeyhint="search">
+    <button class="clear" id="clear" type="button" aria-label="지우기">×</button>
+  </label>
+  <button class="today-btn hidden" id="today-btn" type="button"></button>
+  <p class="status" id="status"></p>
+  <div class="results" id="results"></div>
+ </div>
+ <div class="dist-right results hidden" id="today-box"></div>
+ </div>
+</section>
+
+<!-- ───── 휴가 화면 ───── -->
+<section class="view" id="vac">
+ <div class="vac-grid">
+ <div class="vac-left">
+  <h1>휴가사용내역</h1>
+  <p class="date" id="checked">불러오는 중…</p>
+  <p class="demo" id="demo" style="display:none">체험 모드입니다. 신청 내용은 이 폰에만 저장돼요.</p>
+  <div id="mine"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="list"></div>
+  <div class="legend"><span class="l1">빨간 글씨 = 앞으로 쉬는 날</span><span class="l2">여름휴가</span></div>
+ </div>
+ <div class="vac-right" id="vac-right">
+  <div class="form-empty" id="form-empty"></div>
+ </div>
+ </div>
+</section>
+
+<!-- ───── 신청 화면 (아래에서 올라옴) ───── -->
+<div class="sheet" id="sheet">
+  <div class="panel">
+    <div class="panel-head"><b>신청하기</b><button class="link" id="close">닫기</button></div>
+    <div class="segs" id="types"></div>
+    <p class="label">날짜 선택 <span class="sub" id="day-hint"></span></p>
+    <div class="days" id="days"></div>
+    <div id="time-row" style="display:none">
+      <p class="label" id="time-label">시간</p>
+      <div class="hours" id="hours"></div>
+      <p class="hours-note">근무시간 8시~17시 · 1시간 단위</p>
+    </div>
+    <p class="form-note" id="form-note"></p>
+    <button class="btn primary wide" id="submit" disabled>신청하기</button>
+    <p class="warn-red" id="form-warn"></p>
+  </div>
+</div>
+<!-- ───── 비밀번호 변경 ───── -->
+<div class="sheet" id="pwsheet">
+  <div class="panel">
+    <div class="panel-head"><b>비밀번호 변경</b><button class="link" id="pw-close">닫기</button></div>
+    <p class="label">지금 비밀번호</p>
+    <input class="pw" id="pw-now" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password">
+    <p class="label">새 비밀번호 <span class="sub">· 숫자 4~8자리</span></p>
+    <input class="pw" id="pw-new" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password">
+    <p class="label">새 비밀번호 한 번 더</p>
+    <input class="pw" id="pw-new2" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password">
+    <p class="form-note" id="pw-note"></p>
+    <button class="btn primary wide" id="pw-save">비밀번호 바꾸기</button>
+    <p class="sub center">비밀번호를 잊으셨으면 관리자에게 초기화를 요청하세요</p>
+  </div>
+</div>
+<!-- ───── 확인창 ───── -->
+<!-- 영업 담당자 연락처 (오늘 물량표에서 이름을 누르면) -->
+<div class="ask" id="rep-pop">
+  <div class="ask-box">
+    <div class="news-head" id="rep-pop-name"></div>
+    <div id="rep-pop-body"></div>
+    <button class="btn wide" id="rep-pop-ok" style="height:50px;font-size:17px">닫기</button>
+  </div>
+</div>
+<!-- 새 소식 (확정·취소 알림) -->
+<div class="ask" id="news">
+  <div class="ask-box news-box">
+    <div class="news-head">새 소식</div>
+    <ul class="news-list" id="news-list"></ul>
+    <button class="btn primary wide" id="news-ok" style="height:52px;font-size:17px">확인</button>
+  </div>
+</div>
+<div class="ask" id="ask">
+  <div class="ask-box">
+    <p id="ask-msg"></p>
+    <div class="ask-btns"><button class="btn" id="ask-no">아니요</button><button class="btn primary" id="ask-ok">예</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ───── 하단 탭 ───── -->
+<nav class="nav">
+  <button data-view="dist">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+    운행거리
+  </button>
+  <button data-view="vac">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+    휴가
+  </button>
+</nav>
+
+<script>
+/* =========================================================
+   공통
+   ========================================================= */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const store = {
+  get(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } },
+  set(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} }
+};
+
+// 하단 탭 전환 (마지막에 본 화면 기억)
+const VIEW_ORDER = ["dist", "vac"];   // 아래 메뉴 순서 (왼쪽 → 오른쪽)
+let curView = "";
+function showView(v) {
+  const from = VIEW_ORDER.indexOf(curView), to = VIEW_ORDER.indexOf(v);
+  document.querySelectorAll(".view").forEach(el => {
+    el.classList.toggle("on", el.id === v);
+    el.classList.remove("in-r", "in-l");
+    // 처음 열 때와 같은 탭을 다시 누를 때는 효과 없음
+    if (el.id === v && curView && from !== to) { void el.offsetWidth; el.classList.add(to > from ? "in-r" : "in-l"); }
+  });
+  curView = v;
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+  store.set("lastView", v);
+  window.scrollTo(0, 0);
+}
+document.querySelector(".nav").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (b) showView(b.dataset.view);
+});
+
+/* =========================================================
+   운행거리
+   ========================================================= */
+// [현장명, 거리] — 숫자 = km, "실측" 등 글자는 그대로 표시
+let SITES = [];
+let REPS = [];      // 영업사원 연락처 [[이름, 전화번호, 무전기], ...]
+// 오늘 물량표에서 담당자 이름을 누르면 연락처 창
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-rep]"); if (!b) return;
+  const r = REPS.find(x => x[0] === b.dataset.rep);
+  document.getElementById("rep-pop-name").textContent = "담당 " + b.dataset.rep;
+  document.getElementById("rep-pop-body").innerHTML = r && (r[1] || r[2])
+    ? (r[1] ? '<div class="rep-row"><span class="k">전화번호</span><b>' + esc(r[1]) + '</b></div><a class="rep-call" href="tel:' + esc(r[1].replace(/[^\d]/g, "")) + '">전화 걸기</a>' : '') +
+      '<div class="rep-row"><span class="k">무전기 번호</span><b>' + (r[2] ? esc(r[2]) : '<span style="color:var(--muted);font-size:15px">없음</span>') + '</b></div>'
+    : '<p style="text-align:center;color:var(--muted);margin:10px 0 18px">등록된 연락처가 없습니다.<br>사무실에 문의해 주세요.</p>';
+  document.getElementById("rep-pop").classList.add("show");
+});
+document.getElementById("rep-pop-ok").addEventListener("click", () => document.getElementById("rep-pop").classList.remove("show"));
+document.getElementById("rep-pop").addEventListener("click", e => { if (e.target.id === "rep-pop") e.target.classList.remove("show"); });   // 로그인한 뒤 서버에서 받아옴 (이 폰에 저장해 두고 다음부터 바로 검색)
+
+const $q = document.getElementById("q");
+const $res = document.getElementById("results");
+const $dist = document.getElementById("dist");
+const $status = document.getElementById("status");
+const norm = s => String(s).toLowerCase().replace(/\s+/g, "");
+
+// 최신 현장 목록 불러오기: 구글 시트 '현장' 탭 (관리자 페이지에서 고친 내용)
+// 웹 앱 주소(API_URL)가 비어 있으면 체험 모드 — 관리자 체험 페이지에서 고친 목록을 씀
+async function loadSheet() {
+  try { const c = JSON.parse(localStorage.getItem(API_URL ? "sitesCache" : "demoSites") || "null"); if (c && c.length) { SITES = c; } } catch (e) {}
+  renderDist();
+  try { REPS = JSON.parse(localStorage.getItem(API_URL ? "repsCache" : "demoReps") || "[]") || []; } catch (e) { REPS = []; }
+  if (!API_URL) {                                     // 체험 모드: 관리자 체험 페이지에서 지정한 금일 현장
+    if (!SITES.length) $status.textContent = "체험 모드: 관리자 체험 페이지를 한 번 열면 현장 목록이 생깁니다.";
+    let T = [];
+    try { T = JSON.parse(localStorage.getItem("demoToday") || "[]"); } catch (e) {}
+    return setToday(todaySites(SITES, T, kstDay()), Array.from(new Set(T.map(r => r[0]))).sort());
+  }
+  try { const t = JSON.parse(localStorage.getItem("todayCache") || "null"); if (t && t.date === kstDay()) setToday(t.list, t.days); } catch (e) {}
+  if (!SITES.length) $status.textContent = "현장 목록 불러오는 중…";
+  try {
+    const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "sites", no: myCar, tok: myTok }) });
+    const r = await res.json();
+    if (r.auth) return logout(r.msg);
+    if (r.ok) {                                                           // 금일 현장
+      try { localStorage.setItem("todayCache", JSON.stringify({ date: r.date, list: r.today || [], days: r.days || [] })); } catch (e) {}
+      setToday(r.today || [], r.days || []);
+    }
+    if (!r.ok || !r.sites || !r.sites.length) throw new Error("empty");   // 현장 탭이 비어 있으면 저장된 목록 그대로
+    SITES = r.sites;
+    if (r.reps) { REPS = r.reps; try { localStorage.setItem("repsCache", JSON.stringify(REPS)); } catch (e) {} }
+    try { localStorage.setItem("sitesCache", JSON.stringify(SITES)); } catch (e) {}
+    $status.textContent = "";
+    renderDist();
+  } catch (err) {
+    $status.textContent = "최신 목록을 불러오지 못해 저장된 목록으로 검색합니다.";
+  }
+}
+
+function highlight(name, terms) {
+  const lower = name.toLowerCase();
+  const ranges = [];
+  terms.forEach(t => {
+    let i = lower.indexOf(t);
+    while (i >= 0) { ranges.push([i, i + t.length]); i = lower.indexOf(t, i + 1); }
+  });
+  if (!ranges.length) return esc(name);
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [ranges[0]];
+  for (const r of ranges.slice(1)) {
+    const last = merged[merged.length - 1];
+    if (r[0] <= last[1]) last[1] = Math.max(last[1], r[1]); else merged.push(r);
+  }
+  let out = "", pos = 0;
+  merged.forEach(([s, e]) => { out += esc(name.slice(pos, s)) + "<mark>" + esc(name.slice(s, e)) + "</mark>"; pos = e; });
+  return out + esc(name.slice(pos));
+}
+
+// 금일 현장 (관리자가 지정) — '오늘 현장 보기' 버튼을 눌렀을 때만 목록이 보임
+let TODAY_SITES = [], todayOpen = false;
+let viewDay = "", DAYS = [], DAY_CACHE = {}, dayLoading = false;   // 다른 날 물량표 보기
+const kstDay = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+const $todayBtn = document.getElementById("today-btn");
+const $todayBox = document.getElementById("today-box");
+const distCell = d => { const isNum = typeof d === "number" || /^\d+(\.\d+)?$/.test(d) || /^\d+\s*~\s*\d+$/.test(d);
+  return '<span class="dist' + (isNum ? '' : ' na') + '">' + (isNum ? esc(d) + ' km' : d === "-" || d === "" ? "거리 없음" : esc(d)) + '</span>'; };
+function setToday(list, days) {
+  TODAY_SITES = list || [];
+  DAY_CACHE[kstDay()] = TODAY_SITES;
+  if (days) DAYS = days;
+  $todayBtn.classList.remove("hidden");
+  renderDist();
+}
+const W_ = ["일", "월", "화", "수", "목", "금", "토"];
+function dayName(d) {
+  const t = kstDay(), diff = Math.round((Date.parse(d) - Date.parse(t)) / 864e5);
+  const md = (+d.slice(5, 7)) + "/" + (+d.slice(8)) + "(" + W_[new Date(d + "T00:00:00Z").getUTCDay()] + ")";
+  return (diff === 0 ? "오늘 " : diff === 1 ? "내일 " : diff === -1 ? "어제 " : "") + md;
+}
+// 물량표가 있는 날짜 + 오늘 사이를 오감
+function dayStep(dir) {
+  const all = Array.from(new Set(DAYS.concat([kstDay()]))).sort(), cur = viewDay || kstDay();
+  return dir < 0 ? all.filter(d => d < cur).pop() : all.filter(d => d > cur)[0];
+}
+async function goDay(d) {
+  if (!d) return;
+  viewDay = d;
+  if (!DAY_CACHE[d]) {
+    if (API_URL) {
+      dayLoading = true; renderDist();
+      try {
+        const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "siteDay", date: d, no: myCar, tok: myTok }) });
+        const r = await res.json();
+        if (r.ok) DAY_CACHE[d] = r.list;
+      } catch (e) {}
+      dayLoading = false;
+    } else {
+      let T = []; try { T = JSON.parse(localStorage.getItem("demoToday") || "[]"); } catch (e) {}
+      DAY_CACHE[d] = todaySites(SITES, T, d);
+    }
+  }
+  if (viewDay === d) renderDist();
+}
+function renderTodayBtn() {
+  const day = kstDay(), label = (+day.slice(5, 7)) + "/" + (+day.slice(8));
+  $todayBtn.classList.toggle("on", todayOpen);
+  $todayBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>' +
+    (todayOpen ? '오늘 현장 닫기' : '오늘(' + label + ') 현장 보기' + (TODAY_SITES.length ? ' · ' + TODAY_SITES.length + '곳' : ''));
+}
+$todayBtn.addEventListener("click", () => { todayOpen = !todayOpen; viewDay = kstDay(); renderDist(); if (todayOpen) window.scrollTo({ top: 0, behavior: "smooth" }); });
+$todayBox.addEventListener("click", e => { const b = e.target.closest("[data-day]"); if (b && !b.disabled) goDay(b.dataset.day); });
+
+const wideMQ = window.matchMedia("(min-width: 680px)");
+wideMQ.addEventListener ? wideMQ.addEventListener("change", () => renderDist()) : wideMQ.addListener(() => renderDist());
+function renderDist() {
+  const raw = $q.value.trim(), wide = wideMQ.matches;
+  $dist.classList.toggle("typing", raw.length > 0);
+  $dist.classList.toggle("searching", raw.length > 0 || todayOpen);
+  renderTodayBtn();
+  // 넓은 화면은 오른쪽에 항상, 좁은 화면은 버튼을 눌렀고 검색어가 없을 때만
+  const showToday = wide || (!raw && todayOpen);
+  $todayBox.classList.toggle("hidden", !showToday);
+  if (showToday) renderToday(); else $todayBox.innerHTML = "";
+  if (!wide && showToday) { $res.innerHTML = ""; return; }
+  renderSearch(raw);
+}
+function renderToday() {
+  const $res = $todayBox;
+  {
+    const qty = q => typeof q === "number" ? q.toLocaleString("en-US", { maximumFractionDigits: 3 }) : String(q || "");
+    const vd = viewDay || kstDay(), LIST = DAY_CACHE[vd] || [], prev = dayStep(-1), next = dayStep(1);
+    const isToday = vd === kstDay(), lab = isToday ? "오늘" : dayName(vd);
+    const bar = '<div class="daybar"><button data-day="' + (prev || "") + '"' + (prev ? '' : ' disabled') + ' aria-label="이전 날">◀</button>' +
+      '<span class="dl' + (isToday ? '' : ' other') + '">' + dayName(vd) + '</span>' +
+      '<button data-day="' + (next || "") + '"' + (next ? '' : ' disabled') + ' aria-label="다음 날">▶</button></div>' +
+      (isToday ? '' : '<button class="back-today" data-day="' + kstDay() + '">오늘로 돌아가기</button>');
+    if (dayLoading) { $res.innerHTML = bar + '<p class="empty">불러오는 중…</p>'; return; }
+    let total = 0; LIST.forEach(x => (x[2] || []).forEach(i => { if (typeof i[1] === "number") total += i[1]; }));
+    $res.innerHTML = bar + (LIST.length
+      ? '<div class="total' + (isToday ? '' : ' other') + '"><span class="lab">' + lab + ' 총 물량</span><span class="big">' + qty(Math.round(total * 1000) / 1000) + '<small>㎥</small></span>' +
+          '<span class="tsub">출하 현장 ' + LIST.length + '곳</span></div><ul>' +
+        LIST.map(([name, d, items, rep]) => '<li class="today"><div class="top"><span class="name">' + esc(name) + (rep ? '<span class="rep">담당 ' + String(rep).split(", ").map(n => '<button type="button" class="rep-btn" data-rep="' + esc(n) + '">' + esc(n) + '</button>').join(" ") + '</span>' : '') + '</span>' + distCell(d) + '</div>' +
+          (items || []).map(i => '<div class="item"><span class="prod">' + esc(i[0] || "") + '</span><span class="qty">' +
+            (i[2] ? '<span class="tm">' + esc(i[2]) + '</span>' : '') + (i[1] !== "" ? '<b class="m3">' + esc(qtyM3(i[0], i[1])) + '</b>' : '') + '</span></div>').join("") + '</li>').join("") + '</ul>'
+      : '<p class="empty">' + (isToday ? '오늘' : dayName(vd)) + ' 출하 현장이 ' + (vd > kstDay() ? '아직 등록되지 않았습니다' : '없습니다') + '</p>');
+  }
+}
+function renderSearch(raw) {
+  if (!raw) { $res.innerHTML = ""; return; }
+  const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+  const hits = SITES.filter(([name]) => { const n = norm(name); return terms.every(t => n.includes(t)); });
+  if (!hits.length) { $res.innerHTML = '<p class="empty">검색 결과가 없습니다</p>'; return; }
+  $res.innerHTML = '<p class="count">' + hits.length + '건</p><ul>' +
+    hits.map(([name, d]) => '<li><span class="name">' + highlight(name, terms) + '</span>' + distCell(d) + '</li>').join("") + '</ul>';
+}
+$q.addEventListener("input", renderDist);
+document.getElementById("clear").addEventListener("click", () => { $q.value = ""; renderDist(); $q.focus(); });
+
+/* =========================================================
+   휴가
+   ========================================================= */
+// 구글 시트 Apps Script "웹 앱" 주소를 따옴표 안에 넣으세요.
+// 비워두면 체험 모드(이 폰에만 저장, 실제 신청 안 됨)로 동작합니다.
+const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";
+
+const VAC_SEED = [];   // 체험 모드용 기존 데이터
+// 체험 모드 자료 버전: 바뀌면 이 브라우저에 쌓인 시험 기록·비밀번호·로그인을 모두 지우고 새 자료로 시작
+const DEMO_VER = "2026-10-28-latest";
+if (!API_URL) try {
+  if (localStorage.getItem("demoVer") !== DEMO_VER) {
+    Object.keys(localStorage).filter(k => /^(demo|seen_|myTok|myPin|myCar|sitesCache|todayCache)/.test(k)).forEach(k => localStorage.removeItem(k));
+    localStorage.setItem("demoVer", DEMO_VER);
+  }
+} catch (e) {}
+/* =========================================================
+   휴가 규칙 엔진 (구글 스크립트와 사이트 체험 모드에서 함께 사용)
+   ========================================================= */
+var RULES = {
+  LIMIT: 5,              // 하루 연차 최대 인원
+  SPECIAL_LIMIT: 5,      // 우선순위날(월·금·연휴 앞뒤 날) 하루 연차 최대 인원
+  OPEN_DAYS: 14,         // 휴가 날짜 14일 전부터 신청 가능 (실제로는 그 전날 OPEN_HOUR시에 열림)
+  OPEN_HOUR: 21,         // 새 날짜가 열리는 시각: 매일 오후 9시
+  LOCK_DAYS: 3,          // 3일 이내는 기사 본인 신청·취소 불가 (관리자만)
+  OFF_WEEKDAYS: [0, 6],  // 쉬는 요일 (0=일요일, 6=토요일)
+  SPECIAL_WEEKDAYS: [1, 5], // 후순위 대상 요일 (1=월, 5=금)
+  PRIORITY_AFTER: 2,     // 월·금·샌드위치데이 연차는 한 해에 이 횟수까지 일반 신청, 그 뒤로는 후순위
+  SUMMER_DEFAULT: 3      // '차량' 탭 여름휴가 칸이 비어 있으면 한 해 여름휴가 3일로 계산
+};
+// 관리자 '설정'에서 바꿀 수 있는 숫자들 (이름 → [설명, 최소, 최대])
+var SETTING_INFO = {
+  LIMIT: ["하루 연차 최대 인원", 1, 30],
+  SPECIAL_LIMIT: ["우선순위날 하루 연차 최대 인원 (월·금·연휴 앞뒤 날)", 0, 30],
+  OPEN_DAYS: ["며칠 뒤 날짜까지 신청 가능 (예: 14 → 15일 전 저녁에 열림)", 4, 60],
+  OPEN_HOUR: ["새 날짜가 열리는 시각 (0~23시)", 0, 23],
+  LOCK_DAYS: ["며칠 이내는 관리자만 신청·취소", 0, 10],
+  PRIORITY_AFTER: ["우선순위 횟수 (한 해 · 월·금·연휴 앞뒤 날 연차)", 0, 20],
+  SUMMER_DEFAULT: ["여름휴가 기본 일수 (차량에 따로 안 적었을 때)", 0, 30]
+};
+var DEFAULT_RULES = {};
+for (var _k in SETTING_INFO) DEFAULT_RULES[_k] = RULES[_k];
+// 시트 '설정' 탭 값을 규칙에 반영 (잘못된 값은 기본값 유지)
+function applySettings(st) {
+  for (var k in SETTING_INFO) {
+    var v = st.settings && st.settings[k], info = SETTING_INFO[k];
+    RULES[k] = v !== undefined && v !== "" && !isNaN(v) && +v >= info[1] && +v <= info[2] && Math.floor(+v) === +v ? +v : DEFAULT_RULES[k];
+  }
+  if (RULES.OPEN_DAYS <= RULES.LOCK_DAYS) RULES.OPEN_DAYS = RULES.LOCK_DAYS + 1;
+}
+// 시각을 말로: 21 → "오후 9시", 9 → "오전 9시", 0 → "밤 12시", 12 → "낮 12시"
+// 그날 연차 최대 인원: 날짜별로 따로 정한 값 > 우선순위날 인원 > 하루 인원
+function limitOn(st, d) {
+  var o = st.dayLimits && st.dayLimits[d];
+  if (o && o.n !== "" && o.n != null && !isNaN(o.n)) return +o.n;
+  return specialKind(st, d) ? RULES.SPECIAL_LIMIT : RULES.LIMIT;
+}
+function limitSource(st, d) {
+  var o = st.dayLimits && st.dayLimits[d];
+  if (o && o.n !== "" && o.n != null && !isNaN(o.n)) return { kind: "custom", text: "이 날만 따로 " + o.n + "명" + (o.memo ? " (" + o.memo + ")" : ""), memo: o.memo || "" };
+  return specialKind(st, d) ? { kind: "special", text: "우선순위날 기본 " + RULES.SPECIAL_LIMIT + "명" } : { kind: "base", text: "기본 " + RULES.LIMIT + "명" };
+}
+function hourText(h) { return h === 0 ? "밤 12시" : h < 12 ? "오전 " + h + "시" : h === 12 ? "낮 12시" : "오후 " + (h - 12) + "시"; }
+function rulesView() {
+  return { hours: workHours(), workStart: WORK_START, workEnd: WORK_END, limit: RULES.LIMIT, specialLimit: RULES.SPECIAL_LIMIT, openDays: RULES.OPEN_DAYS, openHour: RULES.OPEN_HOUR, openText: hourText(RULES.OPEN_HOUR),
+           lockDays: RULES.LOCK_DAYS, priorityAfter: RULES.PRIORITY_AFTER, summerDefault: RULES.SUMMER_DEFAULT };
+}
+
+var SELF_TYPES = ["연차", "조퇴", "지각", "결근"];
+// 근무시간 08:00~17:00 — 조퇴(퇴근 시각)·지각(출근 시각)은 9시~16시 정시로만
+var WORK_START = 8, WORK_END = 17;
+function workHours() { var h = []; for (var i = WORK_START + 1; i < WORK_END; i++) h.push(("0" + i).slice(-2) + ":00"); return h; }
+function hourOk(t) { return workHours().indexOf(String(t || "")) >= 0; }
+var HOUR_MSG = "시간은 " + (WORK_START + 1) + "시부터 " + (WORK_END - 1) + "시까지 정시(1시간 단위)로 골라 주세요.";
+function isTimed(type) { return type === "조퇴" || type === "지각"; }
+var SPECIAL_WORDS = "월요일·금요일·연휴 앞뒤 날";
+var ACTIVE = { "확정": 1, "후순위": 1, "대기": 1 };
+var PENDING = { "후순위": 1, "대기": 1 }; // 자리를 기다리는 상태 (연차 1일은 미리 잡아 둠)
+
+/* ---------- 날짜 도구 ---------- */
+function dParse(s) { var p = String(s).split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
+function dFmt(t) { var d = new Date(t); return d.getUTCFullYear() + "-" + ("0" + (d.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + d.getUTCDate()).slice(-2); }
+function dAdd(s, n) { return dFmt(dParse(s) + n * 86400000); }
+function dDiff(a, b) { return Math.round((dParse(a) - dParse(b)) / 86400000); } // a - b (일)
+function dWeekday(s) { return new Date(dParse(s)).getUTCDay(); }
+function dYear(s) { return String(s).slice(0, 4); }
+function dShort(s) { return (+s.slice(5, 7)) + "/" + (+s.slice(8, 10)); }
+function isValidDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s) && dFmt(dParse(s)) === s; }
+var WEEK = ["일", "월", "화", "수", "목", "금", "토"];
+// "11월 4일(수)" — 오늘과 다른 해의 날짜면 "2027년 1월 4일(월)"처럼 연도를 꼭 붙임
+function dLong(st, s) {
+  var y = dYear(s);
+  return (y !== dYear(st.today) ? y + "년 " : "") + (+s.slice(5, 7)) + "월 " + (+s.slice(8, 10)) + "일(" + WEEK[dWeekday(s)] + ")";
+}
+
+function isOffDay(st, s) { return RULES.OFF_WEEKDAYS.indexOf(dWeekday(s)) >= 0 || st.holidays.indexOf(s) >= 0; }
+// 이어지는 쉬는 날 수 (s부터 dir 방향으로: -1 = 앞으로, +1 = 뒤로)
+function offRun(st, s, dir) {
+  var n = 0;
+  while (n < 20 && isOffDay(st, s)) { n++; s = dAdd(s, dir); }
+  return n;
+}
+// 특혜 대상 날(월·금·샌드위치데이). 샌드위치데이는 두 가지:
+//  ① 쉬는 날 사이에 딱 하루 낀 근무일
+//  ② 3일 이상 이어지는 연휴(토·일에 공휴일·대체공휴일이 붙은 경우 등)의 바로 앞 근무일과 바로 다음 근무일
+function specialKind(st, s) {
+  if (isOffDay(st, s)) return "";
+  var before = offRun(st, dAdd(s, -1), -1), after = offRun(st, dAdd(s, 1), 1);
+  if (before && after) return "샌드위치데이(쉬는 날 사이에 낀 날)";
+  if (after >= 3) return "샌드위치데이(연휴 바로 앞날)";
+  if (before >= 3) return "샌드위치데이(연휴 바로 다음 날)";
+  var w = dWeekday(s);
+  if (RULES.SPECIAL_WEEKDAYS.indexOf(w) >= 0) return WEEK[w] + "요일";
+  return "";
+}
+
+// 지금 신청할 수 있는 가장 먼 날 (오늘 기준 며칠 뒤). 오후 9시가 지나면 하루 더 열림
+function openDays(st) {
+  var hh = Number(String(st.now || "").slice(11, 13)) || 0;
+  return RULES.OPEN_DAYS + (hh >= RULES.OPEN_HOUR ? 1 : 0);
+}
+// 어떤 휴가 날짜의 신청이 열리는 날 (그날 OPEN_HOUR시)
+function opensOn(date) { return dAdd(date, -(RULES.OPEN_DAYS + 1)); }
+
+/* ---------- 집계 ---------- */
+function confirmedOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정"; }).length;
+}
+function usedSpecial(st, no, year) {
+  return st.reqs.filter(function (r) {
+    return r.no === no && r.type === "연차" && r.status === "확정" && dYear(r.date) === year && specialKind(st, r.date);
+  }).length;
+}
+function leaveUsed(st, no, year, includePending) {
+  return st.reqs.filter(function (r) {
+    return r.no === no && r.type === "연차" && dYear(r.date) === year && (r.status === "확정" || (includePending && PENDING[r.status]));
+  }).length;
+}
+// 여름휴가: 연차와 별개로 셈 (한 해 일수 − 그해 확정된 여름휴가)
+function summerTotal(st, no) {
+  var v = st.cars[no] && st.cars[no].summer;
+  return v === null || v === undefined || v === "" || isNaN(v) ? RULES.SUMMER_DEFAULT : Number(v);
+}
+function summerUsed(st, no, year) {
+  return st.reqs.filter(function (r) { return r.no === no && r.type === "여름휴가" && r.status === "확정" && dYear(r.date) === year; }).length;
+}
+function summerRemain(st, no, year) { return summerTotal(st, no) - summerUsed(st, no, year); }
+
+/* ---------- 특혜 보유자 몫 자리 ---------- */
+// 그날(월·금·샌드위치데이)에 특혜가 남은 기사 수:
+// 그해 일반 신청 기회가 남았고, 연차도 남았고, 그날 아직 신청하지 않은 사람
+// ※ 특혜는 "확실히 쓴 것"만 셈 — 휴가 3일 전이 지나 본인이 취소할 수 없게 된 확정 연차만.
+//   그 전에는 신청·취소를 반복해도 다른 날짜의 남겨 둔 자리가 바뀌지 않음
+function perkHolders(st, date) {
+  var year = dYear(date), used = {}, leave = {}, busy = {};
+  st.reqs.forEach(function (r) {
+    if (r.type === "연차" && dYear(r.date) === year) {
+      if (r.status === "확정" || PENDING[r.status]) leave[r.no] = (leave[r.no] || 0) + 1;
+      if (r.status === "확정" && specialKind(st, r.date) && dDiff(r.date, st.today) <= RULES.LOCK_DAYS)
+        used[r.no] = (used[r.no] || 0) + 1;
+    }
+    if (r.date === date && ACTIVE[r.status]) busy[r.no] = 1;
+  });
+  return Object.keys(st.cars).filter(function (no) {
+    return !st.cars[no].off && (used[no] || 0) < RULES.PRIORITY_AFTER && st.cars[no].total - (leave[no] || 0) >= 1 && !busy[no];
+  }).length;
+}
+function pendingOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "후순위"; }).length;
+}
+// 특혜를 다 쓴 사람에게 지금 줄 수 있는 자리 = 하루 인원 − 확정 − 특혜 보유자 몫
+function lowOpenOn(st, date) {
+  var lim = limitOn(st, date), reserved = specialKind(st, date) ? Math.min(perkHolders(st, date), lim) : 0;
+  return Math.max(0, lim - confirmedOn(st, date) - reserved);
+}
+// 기다리는 후순위 신청을, 남는 자리만큼 신청 순서대로 바로 확정 (3일 이내는 매일 자동처리에서)
+function settleDate(st, date, res, skipId) {
+  if (dDiff(date, st.today) <= RULES.LOCK_DAYS) return;
+  var q = waitQueue(st, date).filter(function (x) { return PENDING[x.status]; });
+  for (var i = 0; i < q.length; i++) {
+    var x = q[i];
+    if (confirmedOn(st, date) >= limitOn(st, date)) break;                // 빈자리 없음
+    if (x.status === "후순위" && lowOpenOn(st, date) <= 0) continue;  // 남은 자리는 특혜 보유자 몫
+    var was = x.status;
+    x.status = "확정"; x.doneAt = st.now;
+    if (x.id === skipId) continue;
+    res.changes.push({ op: "update", id: x.id, status: "확정", doneAt: st.now });
+    res.logs.push({ no: x.no, type: x.type, date: x.date, action: "자동처리", result: "확정", detail: was === "대기" ? "대기 중 자리 남" : "자리 여유", by: "시스템" });
+  }
+}
+function settleAll(st, res, skipId) {
+  var dates = {};
+  st.reqs.forEach(function (r) { if (PENDING[r.status] && dDiff(r.date, st.today) > RULES.LOCK_DAYS) dates[r.date] = 1; });
+  Object.keys(dates).sort().forEach(function (d) { settleDate(st, d, res, skipId); });
+}
+
+function checkPin(st, no, pin) {
+  var c = st.cars[no];
+  if (!c) return "등록되지 않은 호수입니다.";
+  if (c.off) return "지금 운행하지 않는 차량으로 되어 있습니다. 관리자에게 문의하세요.";
+  if (!c.pin) return "비밀번호가 아직 등록되지 않았습니다. 관리자에게 문의하세요.";
+  // 시트에서 앞자리 0이 빠져 저장된 경우(0249 → 249)도 맞는 것으로 봄
+  var sp = String(c.pin), ip = String(pin);
+  if (sp !== ip && !(/^\d+$/.test(sp) && /^0+\d+$/.test(ip) && ip.replace(/^0+/, "") === sp && ip.length === 4)) return WRONG_PIN;
+  return "";
+}
+var WRONG_PIN = "비밀번호가 맞지 않습니다.";
+var KICKED_MSG = "다른 기기에서 로그인하여 이 기기는 로그아웃되었습니다. 본인이 아니면 관리자에게 알려 주세요.";
+var OUT_MSG = "로그아웃되었습니다. 다시 로그인해 주세요.";
+var MUST_MSG = "처음 받은 비밀번호를 먼저 바꿔 주세요.";
+// 처음 받은 비밀번호(0+호수)를 그대로 쓰거나, 관리자가 비밀번호를 새로 정해 준 경우 → 바꿔야 함
+function mustChangePin(st, no) { var c = st.cars[no]; return !!c && (!!c.mustChange || String(c.pin) === "0" + no); }
+// 기사 확인: 로그인한 뒤에는 출입증 번호(tok), 출입증이 없으면 비밀번호
+function checkAuth(st, no, p) {
+  if (!p.tok) return checkPin(st, no, p.pin);
+  var c = st.cars[no];
+  if (!c) return "등록되지 않은 호수입니다.";
+  if (c.off) return "지금 운행하지 않는 차량으로 되어 있습니다. 관리자에게 문의하세요.";
+  if (!c.sess) return OUT_MSG;
+  if (String(c.sess) !== String(p.tok)) return KICKED_MSG;
+  return "";
+}
+function authFail(msg) { return result(false, msg, { badPin: msg === WRONG_PIN, kicked: msg === KICKED_MSG || msg === OUT_MSG }); }
+// 비밀번호 확인 실패 응답 (틀린 경우 badPin 표시 → 서버에서 틀린 횟수 셈)
+function pinFail(msg) { return result(false, msg, { badPin: msg === WRONG_PIN }); }
+function result(ok, msg, extra) {
+  var r = { ok: ok, msg: msg, changes: [], logs: [] };
+  for (var k in extra) r[k] = extra[k];
+  return r;
+}
+
+/* ---------- 기사 신청 ---------- */
+function engineApply(st, p) {
+  var no = String(p.no), date = String(p.date), type = String(p.type), time = String(p.time || "");
+  var bad = checkAuth(st, no, p);
+  if (bad) return authFail(bad);
+  if (mustChangePin(st, no)) return result(false, MUST_MSG, { mustChange: true });
+  var fail = function (msg) {
+    var r = result(false, msg);
+    r.logs.push({ no: no, type: type, date: date, action: "신청", result: "실패", detail: msg, by: "기사" });
+    return r;
+  };
+  if (SELF_TYPES.indexOf(type) < 0) return fail("신청할 수 없는 구분입니다.");
+  if (isTimed(type) && !hourOk(time)) return fail(HOUR_MSG);
+  if (!isTimed(type)) time = "";
+  if (!isValidDate(date)) return fail("날짜가 올바르지 않습니다.");
+  var left = dDiff(date, st.today);
+  if (left < 0) return fail("지난 날짜는 신청할 수 없습니다.");
+  if (left <= RULES.LOCK_DAYS) return fail(RULES.LOCK_DAYS + "일 이내 날짜는 관리자에게 직접 신청해 주세요.");
+  if (left > openDays(st)) return fail(dLong(st, date) + "은 " + dLong(st, opensOn(date)) + " " + hourText(RULES.OPEN_HOUR) + "부터 신청할 수 있습니다.");
+  if (isOffDay(st, date)) return fail("쉬는 날에는 신청할 수 없습니다.");
+  var bk = type === "연차" ? blockOn(st, date) : null;
+  if (bk) return fail(blockRange(bk) + "은 연차를 신청할 수 없는 기간입니다" + (bk.memo ? " (" + bk.memo + ")" : "") + ". 조퇴·지각·결근은 신청할 수 있습니다.");
+  var dup = st.reqs.some(function (r) { return r.no === no && r.date === date && ACTIVE[r.status]; });
+  if (dup) return fail("이미 그 날짜에 신청돼 있습니다. 아래 '내 신청'에서 확인해 주세요.");
+
+  var status = "확정", msg;
+  if (type === "연차") {
+    var year = dYear(date);
+    if (st.cars[no].total - leaveUsed(st, no, year, true) < 1) return fail(year + "년 연차가 남아 있지 않습니다.");
+    var kind = specialKind(st, date);
+    if (kind && usedSpecial(st, no, year) >= RULES.PRIORITY_AFTER) {
+      status = "후순위";
+      msg = dLong(st, date) + " 연차는 후순위 대기로 접수됐습니다. " + year + "년 우선순위 " + RULES.PRIORITY_AFTER + "번을 모두 쓰셨기 때문입니다. " +
+            dLong(st, dAdd(date, -RULES.LOCK_DAYS)) + "에 자리가 남아 있으면 확정됩니다.";
+    } else if (confirmedOn(st, date) >= limitOn(st, date)) {
+      status = "대기";
+      var wl = kind ? "우선순위 대기" : "대기";
+      msg = dLong(st, date) + "은 자리가 다 차서 " + wl + "로 접수됐습니다. 확정된 분이 취소하면 " + wl + " 순서대로 자동으로 확정됩니다. " +
+            "휴가 " + RULES.LOCK_DAYS + "일 전(" + dLong(st, dAdd(date, -RULES.LOCK_DAYS)) + ")까지 자리가 나지 않으면 확정되지 않습니다.";
+    } else {
+      msg = dLong(st, date) + " 연차가 확정됐습니다. " + year + "년 연차에서 1일이 빠졌습니다.";
+      // 월·금·샌드위치데이 일반 신청 기회를 쓴 경우: 남은 횟수 또는 이후 후순위 안내
+      if (kind) {
+        var perkLeft = RULES.PRIORITY_AFTER - (usedSpecial(st, no, year) + 1);
+        msg += perkLeft > 0
+          ? " " + year + "년 우선순위가 " + perkLeft + "번 남았습니다."
+          : " " + year + "년 우선순위를 모두 쓰셨습니다. 앞으로 " + SPECIAL_WORDS + " 연차는 후순위로 접수됩니다.";
+      }
+    }
+  } else {
+    msg = type === "결근"
+      ? dLong(st, date) + " 결근 신청이 확정됐습니다. 연차는 줄지 않습니다."
+      : dLong(st, date) + " " + type + (time ? " (" + time + ")" : "") + " 신청이 확정됐습니다. 연차는 줄지 않습니다.";
+  }
+  var req = { id: uniqueId(st), no: no, date: date, type: type, status: status, time: time, createdAt: st.now, by: "기사", note: "", doneAt: st.now,
+              wait: status === "대기" ? "일반" : status === "후순위" ? "후순위" : "" };
+  st.reqs.push(req);
+  var r = result(true, msg, { status: status });
+  // 특혜 보유자 몫을 빼고도 자리가 남으면 후순위도 바로 확정 (먼저 기다린 사람부터)
+  settleAll(st, r, req.id);
+  if (status === "후순위" && req.status === "확정") {
+    status = "확정";
+    r.status = "확정";
+    r.msg = dLong(st, date) + " 연차가 확정됐습니다. 자리에 여유가 있어 바로 확정됐습니다. " + year + "년 연차에서 1일이 빠졌습니다.";
+  } else if (status === "후순위") {
+    r.msg += " 우선순위 대기하는 분들이 먼저 확정되고, 그다음 후순위 대기 순서대로 확정됩니다.";
+  }
+  if (r.status === "대기" || r.status === "후순위") {
+    r.rank = waitRank(st, req);
+    r.msg = r.msg.replace("접수됐습니다.", "접수됐습니다. (" + waitLabel(st, req) + " " + r.rank + "번째)");
+  }
+  r.changes.unshift({ op: "add", req: req });
+  r.logs.unshift({ no: no, type: type, date: date, action: "신청", result: status, detail: time, by: "기사" });
+  return r;
+}
+
+/* ---------- 기사 취소 ---------- */
+function engineCancel(st, p) {
+  var no = String(p.no);
+  var bad = checkAuth(st, no, p);
+  if (bad) return authFail(bad);
+  if (mustChangePin(st, no)) return result(false, MUST_MSG, { mustChange: true });
+  var req = st.reqs.filter(function (r) { return r.id === p.id && r.no === no; })[0];
+  if (!req || !ACTIVE[req.status]) return result(false, "이미 취소됐거나 취소할 수 없는 신청입니다. 아래 '내 신청'에서 확인해 주세요.");
+  if (req.type === "여름휴가" || req.type === "특별휴가") return result(false, req.type + "는 관리자에게 문의해 주세요.");
+  if (dDiff(req.date, st.today) <= RULES.LOCK_DAYS) {
+    var r0 = result(false, RULES.LOCK_DAYS + "일 이내 날짜는 관리자에게 직접 취소를 요청해 주세요.");
+    r0.logs.push({ no: no, type: req.type, date: req.date, action: "취소", result: "실패", detail: RULES.LOCK_DAYS + "일 이내", by: "기사" });
+    return r0;
+  }
+  var before = req.status;
+  req.status = "취소"; req.doneAt = st.now;
+  var y = dYear(req.date);
+  // 확정된 월·금·샌드위치데이 연차를 취소하면 일반 신청 기회 1번이 돌아옴
+  var regained = req.type === "연차" && before === "확정" && specialKind(st, req.date) &&
+                 usedSpecial(st, no, y) < RULES.PRIORITY_AFTER;
+  var r = result(true, dLong(st, req.date) + " " + req.type + " 신청을 취소했습니다." +
+                       (req.type === "연차" ? " " + y + "년 연차 1일이 다시 생겼습니다." : "") +
+                       (regained ? " " + y + "년 우선순위도 1번 다시 생겼습니다. (남은 우선순위 " +
+                                   (RULES.PRIORITY_AFTER - usedSpecial(st, no, y)) + "번)" : ""));
+  r.changes.push({ op: "update", id: req.id, status: "취소", doneAt: st.now });
+  r.logs.push({ no: no, type: req.type, date: req.date, action: "취소", result: "취소", detail: "이전 상태: " + before, by: "기사" });
+  settleAll(st, r); // 자리가 나면 기다리던 후순위부터 확정
+  return r;
+}
+
+/* ---------- 매일 자동 처리: 3일 전 후순위 확정/반려 ---------- */
+function engineDaily(st) {
+  var r = result(true, "");
+  var dates = {};
+  st.reqs.forEach(function (x) { if (PENDING[x.status] && dDiff(x.date, st.today) <= RULES.LOCK_DAYS) dates[x.date] = 1; });
+  var pend = [];
+  Object.keys(dates).sort().forEach(function (d) {
+    pend = pend.concat(waitQueue(st, d).filter(function (x) { return PENDING[x.status]; }));
+  });
+  pend.forEach(function (x) {
+    var ok = confirmedOn(st, x.date) < limitOn(st, x.date);
+    x.status = ok ? "확정" : "반려"; x.doneAt = st.now;
+    r.changes.push({ op: "update", id: x.id, status: x.status, doneAt: st.now });
+    r.logs.push({ no: x.no, type: x.type, date: x.date, action: "자동처리", result: x.status, detail: ok ? RULES.LOCK_DAYS + "일 전 자리 남음" : "자리 마감", by: "시스템" });
+  });
+  settleAll(st, r);
+  return r;
+}
+
+/* ---------- 후순위 대기 순번 ---------- */
+var WAIT = { "후순위": 1, "대기": 1, "반려": 1 };
+// 대기 종류: "일반" 또는 "후순위" (반려된 뒤에도 원래 줄을 기억)
+function waitKind(r) { return r.wait || (r.status === "후순위" ? "후순위" : "일반"); }
+// 화면에 보이는 이름: 내부 값 "일반" → "우선순위" (시트에 저장된 값은 그대로)
+function waitName(k) { return k === "일반" ? "우선순위" : k; }
+// 줄 이름: 월·금·연휴 앞뒤 날은 "우선순위 대기"/"후순위 대기", 화·수·목처럼 우선순위와 상관없는 날은 그냥 "대기"
+function waitLabel(st, r) { var k = waitKind(r); return k === "후순위" ? "후순위 대기" : specialKind(st, r.date) ? "우선순위 대기" : "대기"; }
+// 줄 순서: 우선순위 대기 전원이 먼저, 그다음 후순위 대기. 각 줄 안에서는 신청 시각(같으면 시트 순서)
+function waitQueue(st, date) {
+  return st.reqs.map(function (r, i) { return { r: r, i: i }; })
+    .filter(function (x) { return x.r.date === date && x.r.type === "연차" && WAIT[x.r.status]; })
+    .sort(function (a, b) {
+      var ka = waitKind(a.r) === "후순위" ? 1 : 0, kb = waitKind(b.r) === "후순위" ? 1 : 0;
+      if (ka !== kb) return ka - kb;
+      return a.r.createdAt < b.r.createdAt ? -1 : a.r.createdAt > b.r.createdAt ? 1 : a.i - b.i;
+    })
+    .map(function (x) { return x.r; });
+}
+// 순번은 같은 종류끼리 셈 ("우선순위 대기 1번째", "후순위 대기 1번째")
+function waitRank(st, req) {
+  var k = waitKind(req);
+  return waitQueue(st, req.date).filter(function (x) { return waitKind(x) === k; }).indexOf(req) + 1;
+}
+
+// 관리자용 '후순위' 탭에 그릴 표 (오늘 이후 날짜)
+function engineWaitlist(st) {
+  var dates = {};
+  st.reqs.forEach(function (r) { if (r.type === "연차" && WAIT[r.status] && r.date >= st.today) dates[r.date] = 1; });
+  var rows = [];
+  Object.keys(dates).sort().forEach(function (d) {
+    var conf = confirmedOn(st, d), open = conf < limitOn(st, d);
+    var q = waitQueue(st, d), firstRejected = q.filter(function (x) { return x.status === "반려"; })[0];
+    q.forEach(function (r) {
+      var note = "";
+      if (r.status === "대기") note = "자리 나면 자동 확정 · " + dShort(dAdd(d, -RULES.LOCK_DAYS)) + "까지 안 나면 반려";
+      if (r.status === "후순위") note = "우선순위 대기 다음 순서 · " + dShort(dAdd(d, -RULES.LOCK_DAYS)) + "에 남은 자리로 확정 또는 반려";
+      if (open && r === firstRejected) note = "자리 있음 → 이 분부터 확정";
+      rows.push([d, WEEK[dWeekday(d)], conf + "/" + limitOn(st, d) + "명", waitLabel(st, r), waitRank(st, r) + "번째", r.no, r.status, r.createdAt, note]);
+    });
+  });
+  return rows;
+}
+
+/* ---------- 조회 ---------- */
+function engineSummary(st) {
+  var year = dYear(st.today);
+  var cars = Object.keys(st.cars).filter(function (no) { return !st.cars[no].off; }).sort().map(function (no) {
+    var mine = st.reqs.filter(function (r) { return r.no === no && r.status === "확정" && dYear(r.date) === year; });
+    var pick = function (t) { return mine.filter(function (r) { return r.type === t; }).map(function (r) { return r.date; }).sort().map(dShort); };
+    // [호수, 남은 연차, 연차 날짜, 여름휴가 날짜, 남은 여름휴가]
+    // [5] 우선순위로 쓴 연차 날짜 (월·금·연휴 앞뒤 날에 확정된 연차)
+    var perk = mine.filter(function (r) { return r.type === "연차" && specialKind(st, r.date); }).map(function (r) { return r.date; }).sort().map(dShort);
+    return [no, st.cars[no].total - leaveUsed(st, no, year, false), pick("연차"), pick("여름휴가"), summerRemain(st, no, year), perk];
+  });
+  var days = [];
+  // 3일 이내 날짜: 신청은 못 하고 인원만 보여줌 (locked)
+  var maxDay = openDays(st);
+  for (var i = 1; i <= maxDay; i++) {
+    var d = dAdd(st.today, i);
+    days.push({ date: d, year: dYear(d), label: dShort(d), long: dLong(st, d), week: WEEK[dWeekday(d)], off: isOffDay(st, d), special: specialKind(st, d), taken: confirmedOn(st, d), limit: limitOn(st, d), locked: i <= RULES.LOCK_DAYS, block: blockOn(st, d) ? (blockOn(st, d).memo || "연차 불가") : "",
+                lowOpen: specialKind(st, d) && i > RULES.LOCK_DAYS ? Math.max(0, lowOpenOn(st, d) - pendingOn(st, d)) : null });
+  }
+  // 아직 신청이 열리지 않은 다음 근무일과, 그날 신청이 열리는 날짜
+  var nx = dAdd(st.today, maxDay + 1);
+  for (var k = 0; k < 14 && isOffDay(st, nx); k++) nx = dAdd(nx, 1);
+  var opens = opensOn(nx);
+  var next = { date: nx, year: dYear(nx), long: dLong(st, nx), opensLong: dLong(st, opens), label: dShort(nx), week: WEEK[dWeekday(nx)], special: specialKind(st, nx),
+               opens: opens, opensLabel: dShort(opens), opensWeek: WEEK[dWeekday(opens)], opensTime: hourText(RULES.OPEN_HOUR) };
+  return { ok: true, today: st.today, year: year, limit: RULES.LIMIT, cars: cars, days: days, next: next, rules: rulesView() };
+}
+function engineMine(st, p) {
+  var no = String(p.no);
+  var bad = checkAuth(st, no, p);
+  if (bad) return authFail(bad);
+  var year = dYear(st.today);
+  var list = st.reqs.filter(function (r) {
+    // 내 신청 목록: 취소한 것은 바로 빠지고, 지난 날짜는 3일 동안만 보임
+    return r.no === no && r.status !== "취소" && dDiff(r.date, st.today) >= -3;
+  }).sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (r) {
+    var left = dDiff(r.date, st.today);
+    return { id: r.id, date: r.date, label: dShort(r.date), long: dLong(st, r.date), week: WEEK[dWeekday(r.date)], type: r.type, status: r.status, time: r.time, by: r.by,
+             reason: r.type === "특별휴가" ? String(r.note || "").split(" · ")[0] : "",
+             rank: r.type === "연차" && WAIT[r.status] ? waitRank(st, r) : 0, wait: r.type === "연차" && WAIT[r.status] ? waitName(waitKind(r)) : "", label: r.type === "연차" && WAIT[r.status] ? waitLabel(st, r) : "",
+             left: left, canCancel: !!ACTIVE[r.status] && r.type !== "여름휴가" && r.type !== "특별휴가" && left > RULES.LOCK_DAYS };
+  });
+  var nextYear = String(+year + 1);
+  return { ok: true, no: no, total: st.cars[no].total, remain: st.cars[no].total - leaveUsed(st, no, year, true),
+           summerTotal: summerTotal(st, no), summerRemain: summerRemain(st, no, year),
+           thisYear: year, nextYear: nextYear,
+           remainNext: st.cars[no].total - leaveUsed(st, no, nextYear, true), usedSpecialNext: usedSpecial(st, no, nextYear),
+           usedSpecial: usedSpecial(st, no, year), priorityAfter: RULES.PRIORITY_AFTER, specialWords: SPECIAL_WORDS, list: list,
+           mustChange: mustChangePin(st, no) };
+}
+
+/* ---------- 비밀번호 변경 ---------- */
+function engineChangePin(st, p) {
+  var no = String(p.no), np = String(p.newPin || "");
+  // 보통은 지금 비밀번호로 확인. 처음 비밀번호를 바꿔야 하는 경우에는 로그인한 출입증 번호로도 됨
+  var viaTok = (p.pin === undefined || p.pin === "") && p.tok && mustChangePin(st, no);
+  var bad = viaTok ? checkAuth(st, no, p) : checkPin(st, no, p.pin);
+  if (bad) return authFail(bad);
+  if (!/^\d{4,8}$/.test(np)) return result(false, "새 비밀번호는 숫자 4~8자리로 정해 주세요.");
+  if (np === String(st.cars[no].pin)) return result(false, "지금 비밀번호와 다른 번호로 정해 주세요.");
+  if (np === "0" + no || np === no) return result(false, "호수와 같은 번호는 다른 사람이 알 수 있어요. 다른 번호로 정해 주세요.");
+  if (/^(\d)\1+$/.test(np)) return result(false, "같은 숫자만 반복되는 번호는 쓸 수 없어요.");
+  st.cars[no].pin = np; st.cars[no].mustChange = false;
+  var r = result(true, "비밀번호를 바꿨습니다. 다음부터 새 비밀번호로 확인해 주세요.");
+  r.changes.push({ op: "pin", no: no, pin: np, must: false });
+  r.logs.push({ no: no, type: "-", date: "", action: "비밀번호 변경", result: "완료", detail: viaTok ? "처음 비밀번호 바꿈" : "", by: "기사" });
+  return r;
+}
+
+/* ---------- 로그인 · 로그아웃 (한 차량은 마지막에 로그인한 기기 하나만) ----------
+   로그인하면 출입증 번호(tok)를 새로 만들어 차량에 저장. 예전 기기의 출입증은 그 순간 무효가 됨 */
+function newToken() {
+  var a = "abcdefghijklmnopqrstuvwxyz0123456789", s = "";
+  for (var i = 0; i < 24; i++) s += a.charAt(Math.floor(Math.random() * a.length));
+  return s;
+}
+function engineLogin(st, p) {
+  var no = String(p.no || "").slice(0, 10);
+  var bad = checkPin(st, no, p.pin);
+  if (bad) {
+    var f = pinFail(bad);
+    f.logs.push({ no: no, type: "-", date: "", action: "로그인", result: "실패", detail: bad, by: "기사" });
+    return f;
+  }
+  var c = st.cars[no], replaced = !!c.sess, tok = newToken();
+  c.sess = tok;
+  var r = result(true, "", { tok: tok, replaced: replaced, mustChange: mustChangePin(st, no) });
+  r.changes.push({ op: "sess", no: no, sess: tok });
+  r.logs.push({ no: no, type: "-", date: "", action: "로그인", result: "성공", detail: replaced ? "다른 기기는 로그아웃됨" : "", by: "기사" });
+  return r;
+}
+function engineLogout(st, p) {
+  var no = String(p.no), c = st.cars[no];
+  if (!c || !c.sess || String(c.sess) !== String(p.tok || "")) return result(true, "");   // 이미 다른 기기로 넘어갔으면 그대로 둠
+  c.sess = "";
+  var r = result(true, "");
+  r.changes.push({ op: "sess", no: no, sess: "" });
+  r.logs.push({ no: no, type: "-", date: "", action: "로그아웃", result: "완료", detail: "", by: "기사" });
+  return r;
+}
+
+
+/* =========================================================
+   관리자 기능 (규칙을 거치지 않고 바로 처리 — 모든 처리는 기록에 남김)
+   ========================================================= */
+var ADMIN_TYPES = ["연차", "여름휴가", "조퇴", "지각", "결근", "특별휴가"];
+// 특별휴가: 경조사·공무 등. 관리자만 입력, 연차·여름휴가에서 빠지지 않고 하루 인원에도 들어가지 않음. 사유는 메모 앞에 적음
+var EXTRA_REASONS = ["부친상", "모친상", "빙부상", "빙모상", "본인 결혼", "자녀 결혼", "공무", "기타"];
+var ADMIN_STATUS = { "확정": 1, "취소": 1, "반려": 1 };
+
+// 날짜별 현황
+function adminDay(st, p) {
+  var d = String(p.date || st.today);
+  if (!isValidDate(d)) return result(false, "날짜가 올바르지 않습니다.");
+  var on = st.reqs.filter(function (r) { return r.date === d; });
+  var pick = function (f) { return on.filter(f).map(function (r) {
+    return { id: r.id, no: r.no, type: r.type, status: r.status, time: r.time, by: r.by, createdAt: r.createdAt, note: r.note };
+  }).sort(function (a, b) { return a.no < b.no ? -1 : 1; }); };
+  var queue = waitQueue(st, d).map(function (r) {
+    return { id: r.id, no: r.no, status: r.status, kind: waitName(waitKind(r)), label: waitLabel(st, r), rank: waitRank(st, r), createdAt: r.createdAt };
+  });
+  var special = specialKind(st, d), taken = confirmedOn(st, d);
+  var firstRejected = queue.filter(function (x) { return x.status === "반려"; })[0];
+  return { ok: true, date: d, long: dLong(st, d), year: dYear(d), off: isOffDay(st, d), special: special, rules: rulesView(),
+           holiday: (st.holidayNames || {})[d] || "", block: blockOn(st, d) ? { range: blockRange(blockOn(st, d)), memo: blockOn(st, d).memo } : null,
+           left: dDiff(d, st.today), limit: limitOn(st, d), limitSrc: limitSource(st, d), taken: taken,
+           perkHolders: special ? perkHolders(st, d) : null, lowOpen: special ? lowOpenOn(st, d) : null,
+           leave: pick(function (r) { return r.type === "연차" && r.status === "확정"; }),
+           summer: pick(function (r) { return r.type === "여름휴가" && r.status === "확정"; }),
+           early: pick(function (r) { return (r.type === "조퇴" || r.type === "지각") && r.status === "확정"; }),
+           absent: pick(function (r) { return r.type === "결근" && r.status === "확정"; }),
+           extra: pick(function (r) { return r.type === "특별휴가" && r.status === "확정"; }),
+           queue: queue, suggest: taken < limitOn(st, d) && firstRejected ? firstRejected.id : "" };
+}
+
+// 대기·반려가 있는 날짜 (오늘 이후)
+function adminWaitDates(st) {
+  var m = {};
+  st.reqs.forEach(function (r) {
+    if (r.type === "연차" && WAIT[r.status] && r.date >= st.today) {
+      m[r.date] = m[r.date] || { date: r.date, label: dShort(r.date), week: WEEK[dWeekday(r.date)], waiting: 0, rejected: 0 };
+      if (r.status === "반려") m[r.date].rejected++; else m[r.date].waiting++;
+    }
+  });
+  return Object.keys(m).sort().map(function (k) { var x = m[k]; x.taken = confirmedOn(st, k); return x; });
+}
+
+// 차량 목록 / 차량 상세
+function adminCars(st) {
+  var y = dYear(st.today);
+  return { ok: true, year: y, limitPerk: RULES.PRIORITY_AFTER, cars: Object.keys(st.cars).sort().map(function (no) {
+    var c = st.cars[no], used = usedSpecial(st, no, y);
+    var waiting = st.reqs.filter(function (r) { return r.no === no && PENDING[r.status]; }).length;
+    return { no: no, off: !!c.off, total: c.total, remain: c.total - leaveUsed(st, no, y, true), perkLeft: Math.max(0, RULES.PRIORITY_AFTER - used),
+             summerTotal: summerTotal(st, no), summerRemain: summerRemain(st, no, y),
+             pinSet: !!c.pin, waiting: waiting, mustChange: !!c.pin && mustChangePin(st, no) };
+  }) };
+}
+function adminCar(st, p) {
+  var no = String(p.no), c = st.cars[no];
+  if (!c) return result(false, "등록되지 않은 호수입니다.");
+  var y = dYear(st.today), ny = String(+y + 1);
+  var list = st.reqs.filter(function (r) { return r.no === no && r.date >= y + "-01-01"; })
+    .sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; })
+    .map(function (r) {
+      return { id: r.id, date: r.date, long: dLong(st, r.date), type: r.type, status: r.status, time: r.time, by: r.by,
+               kind: WAIT[r.status] && r.type === "연차" ? waitName(waitKind(r)) : "", label: WAIT[r.status] && r.type === "연차" ? waitLabel(st, r) : "", rank: WAIT[r.status] && r.type === "연차" ? waitRank(st, r) : 0 };
+    });
+  return { ok: true, no: no, off: !!c.off, total: c.total, pinSet: !!c.pin, loggedIn: !!c.sess, mustChange: !!c.pin && mustChangePin(st, no), year: y, nextYear: ny,
+           summerTotal: summerTotal(st, no), summerRemain: summerRemain(st, no, y),
+           remain: c.total - leaveUsed(st, no, y, true), remainNext: c.total - leaveUsed(st, no, ny, true),
+           perkLeft: Math.max(0, RULES.PRIORITY_AFTER - usedSpecial(st, no, y)), limitPerk: RULES.PRIORITY_AFTER, list: list };
+}
+
+// 휴가 입력 (여러 날짜 한 번에 가능) — 규칙 없이 바로 확정
+function adminAdd(st, p) {
+  var no = String(p.no), type = String(p.type), time = String(p.time || ""), note = String(p.note || "");
+  var dates = [].concat(p.dates || p.date || []).map(String);
+  if (!st.cars[no]) return result(false, "등록되지 않은 호수입니다.");
+  if (ADMIN_TYPES.indexOf(type) < 0) return result(false, "구분을 골라 주세요.");
+  if (!dates.length) return result(false, "날짜를 골라 주세요.");
+  if (type === "특별휴가" && !String(p.note || "").trim()) return result(false, "특별휴가는 사유(예: 빙부상, 공무)를 적어 주세요.");
+  if (isTimed(type) && !hourOk(time)) return result(false, HOUR_MSG);
+  if (!isTimed(type)) time = "";
+  for (var i = 0; i < dates.length; i++) {
+    if (!isValidDate(dates[i])) return result(false, "날짜가 올바르지 않습니다.");
+    var dup = st.reqs.filter(function (r) { return r.no === no && r.date === dates[i] && ACTIVE[r.status]; })[0];
+    if (dup) return result(false, no + "호는 " + dLong(st, dates[i]) + "에 이미 " + dup.type + "(" + dup.status + ")이 있습니다.");
+  }
+  var r = result(true, ""), over = [];
+  dates.forEach(function (d) {
+    var req = { id: uniqueId(st), no: no, date: d, type: type, status: "확정", time: time, createdAt: st.now, by: "관리자", note: note, doneAt: st.now, wait: "" };
+    st.reqs.push(req);
+    r.changes.push({ op: "add", req: req });
+    r.logs.push({ no: no, type: type, date: d, action: "관리자 입력", result: "확정", detail: [time, note].filter(Boolean).join(" · "), by: "관리자" });
+    if (type === "연차" && confirmedOn(st, d) > limitOn(st, d)) over.push(dShort(d) + "(" + limitOn(st, d) + "명)");
+  });
+  var summerOver = type === "여름휴가" && dates.some(function (d) { return summerRemain(st, no, dYear(d)) < 0; });
+  var obj = { "연차": "연차를", "여름휴가": "여름휴가를", "조퇴": "조퇴를", "지각": "지각을", "결근": "결근을", "특별휴가": "특별휴가를" }[type];
+  r.msg = no + "호 " + dates.map(function (d) { return dLong(st, d); }).join(", ") + " " + obj + " 입력했습니다." +
+          (over.length ? " ※ " + over.join(", ") + "은 그날 최대 인원을 넘었습니다." : "") +
+          (summerOver ? " ※ 여름휴가 일수(" + summerTotal(st, no) + "일)를 넘었습니다." : "");
+  if (type === "연차") {
+    var neg = {}; dates.forEach(function (d) { var y = dYear(d), left = st.cars[no].total - leaveUsed(st, no, y, true); if (left < 0) neg[y] = left; });
+    for (var ny in neg) r.msg += " ※ " + no + "호 " + ny + "년 남은 연차가 " + neg[ny] + "일이 됩니다.";
+  }
+  return r;
+}
+
+// 상태 변경 (확정·취소·반려)
+function adminSetStatus(st, p) {
+  var to = String(p.status), req = st.reqs.filter(function (x) { return x.id === p.id; })[0];
+  if (!req) return result(false, "신청을 찾을 수 없습니다. 새로고침 해주세요.");
+  if (!ADMIN_STATUS[to]) return result(false, "바꿀 수 없는 상태입니다.");
+  if (req.status === to) return result(false, "이미 " + to + " 상태입니다.");
+  var before = req.status;
+  req.status = to; req.doneAt = st.now;
+  var r = result(true, req.no + "호 " + dLong(st, req.date) + " " + req.type + ": " + before + " → " + to);
+  r.changes.push({ op: "update", id: req.id, status: to, doneAt: st.now });
+  r.logs.push({ no: req.no, type: req.type, date: req.date, action: "관리자 수정", result: to, detail: "상태: " + before + " → " + to, by: "관리자" });
+  if (to === "확정" && req.type === "연차" && confirmedOn(st, req.date) > limitOn(st, req.date)) r.msg += " ※ 그날 최대 " + limitOn(st, req.date) + "명을 넘었습니다.";
+  if (to === "확정" && req.type === "연차") { var sy = dYear(req.date), sl = st.cars[req.no].total - leaveUsed(st, req.no, sy, true); if (sl < 0) r.msg += " ※ " + req.no + "호 " + sy + "년 남은 연차가 " + sl + "일이 됩니다."; }
+  if (to === "취소") settleAll(st, r); // 3일 넘게 남은 날이면 대기 순서대로 자동 확정
+  var auto = r.logs.filter(function (l) { return l.action === "자동처리"; }).map(function (l) { return l.no + "호"; });
+  if (auto.length) r.msg += " (대기 중이던 " + auto.join(", ") + " 자동 확정)";
+  return r;
+}
+
+// 총연차 / 비밀번호 초기화
+function adminSetTotal(st, p) {
+  var no = String(p.no), n = Number(p.total);
+  if (!st.cars[no]) return result(false, "등록되지 않은 호수입니다.");
+  if (!(n >= 0 && n <= 60 && Math.floor(n) === n)) return result(false, "총연차는 0~60 사이 숫자로 넣어 주세요.");
+  var before = st.cars[no].total;
+  st.cars[no].total = n;
+  var r = result(true, no + "호 총연차를 " + before + "일 → " + n + "일로 바꿨습니다.");
+  r.changes.push({ op: "total", no: no, total: n });
+  r.logs.push({ no: no, type: "-", date: "", action: "관리자 총연차 변경", result: "완료", detail: before + " → " + n, by: "관리자" });
+  return r;
+}
+function adminSetSummer(st, p) {
+  var no = String(p.no), n = Number(p.summer);
+  if (!st.cars[no]) return result(false, "등록되지 않은 호수입니다.");
+  if (!(n >= 0 && n <= 30 && Math.floor(n) === n)) return result(false, "여름휴가 일수는 0~30 사이 숫자로 넣어 주세요.");
+  var before = summerTotal(st, no);
+  st.cars[no].summer = n;
+  var r = result(true, no + "호 여름휴가 일수를 " + before + "일 → " + n + "일로 바꿨습니다.");
+  r.changes.push({ op: "summer", no: no, summer: n });
+  r.logs.push({ no: no, type: "-", date: "", action: "관리자 여름휴가 일수 변경", result: "완료", detail: before + " → " + n, by: "관리자" });
+  return r;
+}
+function adminResetPin(st, p) {
+  var no = String(p.no), np = String(p.newPin || "");
+  if (!st.cars[no]) return result(false, "등록되지 않은 호수입니다.");
+  if (!/^\d{4,8}$/.test(np)) return result(false, "비밀번호는 숫자 4~8자리로 넣어 주세요.");
+  st.cars[no].pin = np; st.cars[no].mustChange = true; st.cars[no].sess = "";
+  var r = result(true, no + "호 비밀번호를 바꿨습니다. 기사님께 새 비밀번호를 알려 주세요. 로그인하면 기사님이 직접 새 비밀번호로 한 번 더 바꾸게 됩니다.");
+  r.changes.push({ op: "pin", no: no, pin: np, must: true }, { op: "sess", no: no, sess: "" });
+  r.logs.push({ no: no, type: "-", date: "", action: "관리자 비밀번호 변경", result: "완료", detail: "", by: "관리자" });
+  return r;
+}
+
+
+// 관리자 비밀번호 새 값 확인 (첫 화면에서 숫자 키패드로 넣으므로 숫자만)
+function adminPwCheck(np, cur) {
+  if (!/^\d{4,12}$/.test(np)) return "새 비밀번호는 숫자 4~12자리로 정해 주세요. (첫 화면에서 숫자 키패드로 넣기 때문)";
+  if (np === cur) return "지금 비밀번호와 다른 번호로 정해 주세요.";
+  if (/^(\d)\1+$/.test(np) || "01234567890123".indexOf(np) >= 0 || "98765432109876".indexOf(np) >= 0) return "1111, 1234처럼 쉬운 번호는 쓸 수 없어요.";
+  return "";
+}
+// 관리자: 강제 로그아웃 (폰 분실 등)
+function adminKick(st, p) {
+  var no = String(p.no), c = st.cars[no];
+  if (!c) return result(false, "등록되지 않은 호수입니다.");
+  if (!c.sess) return result(false, no + "호는 지금 로그인된 기기가 없습니다.");
+  c.sess = "";
+  var r = result(true, no + "호를 로그아웃시켰습니다. 기사님 기기는 다음에 열 때 로그인 화면이 나옵니다.");
+  r.changes.push({ op: "sess", no: no, sess: "" });
+  r.logs.push({ no: no, type: "-", date: "", action: "관리자 강제 로그아웃", result: "완료", detail: "", by: "관리자" });
+  return r;
+}
+
+/* ---------- 관리자: 신청 내용 수정 ---------- */
+var EDIT_STATUS = { "확정": 1, "대기": 1, "후순위": 1, "반려": 1, "취소": 1 };
+function adminEdit(st, p) {
+  var req = st.reqs.filter(function (x) { return x.id === p.id; })[0];
+  if (!req) return result(false, "신청을 찾을 수 없습니다. 새로고침 해주세요.");
+  var nd = p.date !== undefined ? String(p.date) : req.date, nt = p.type !== undefined ? String(p.type) : req.type;
+  var ns = p.status !== undefined ? String(p.status) : req.status;
+  var ntime = p.time !== undefined ? String(p.time) : (req.time || ""), nnote = p.note !== undefined ? String(p.note) : (req.note || "");
+  if (isTimed(nt) && !hourOk(ntime)) return result(false, HOUR_MSG);
+  if (!isTimed(nt)) ntime = "";
+  if (!isValidDate(nd)) return result(false, "날짜가 올바르지 않습니다.");
+  if (ADMIN_TYPES.indexOf(nt) < 0) return result(false, "구분이 올바르지 않습니다.");
+  if (!EDIT_STATUS[ns]) return result(false, "상태가 올바르지 않습니다.");
+  if ((ns === "대기" || ns === "후순위") && nt !== "연차") return result(false, "대기·후순위는 연차만 가능합니다.");
+  if (ACTIVE[ns]) {
+    var dup = st.reqs.filter(function (x) { return x !== req && x.no === req.no && x.date === nd && ACTIVE[x.status]; })[0];
+    if (dup) return result(false, req.no + "호는 " + dLong(st, nd) + "에 이미 " + dup.type + "(" + dup.status + ")이 있습니다.");
+  }
+  var diff = [];
+  if (nd !== req.date) diff.push("날짜 " + dShort(req.date) + "→" + dShort(nd));
+  if (nt !== req.type) diff.push("구분 " + req.type + "→" + nt);
+  if (ns !== req.status) diff.push("상태 " + req.status + "→" + ns);
+  if (ntime !== (req.time || "")) diff.push("시간 " + (req.time || "없음") + "→" + (ntime || "없음"));
+  if (nnote !== (req.note || "")) diff.push("메모 수정");
+  if (!diff.length) return result(false, "바뀐 내용이 없습니다.");
+  var nw = ns === "후순위" ? "후순위" : ns === "대기" ? "일반" : (req.wait || "");
+  req.date = nd; req.type = nt; req.status = ns; req.time = ntime; req.note = nnote; req.wait = nw; req.doneAt = st.now;
+  var r = result(true, req.no + "호 신청을 수정했습니다. (" + diff.join(", ") + ")");
+  r.changes.push({ op: "edit", id: req.id, date: nd, type: nt, status: ns, time: ntime, note: nnote, wait: nw, doneAt: st.now });
+  r.logs.push({ no: req.no, type: nt, date: nd, action: "관리자 수정", result: ns, detail: diff.join(", "), by: "관리자" });
+  if (nt === "연차" && ns === "확정" && confirmedOn(st, nd) > limitOn(st, nd)) r.msg += " ※ 그날 최대 " + limitOn(st, nd) + "명을 넘었습니다.";
+  if (nt === "연차" && ACTIVE[ns]) { var ry = dYear(nd), rl = st.cars[req.no].total - leaveUsed(st, req.no, ry, true); if (rl < 0) r.msg += " ※ " + req.no + "호 " + ry + "년 남은 연차가 " + rl + "일이 됩니다."; }
+  settleAll(st, r);
+  return r;
+}
+
+/* ---------- 관리자: 전체 신청 목록 ---------- */
+function adminList(st, p) {
+  var month = String(p.month || ""), type = String(p.type || ""), status = String(p.status || ""), no = String(p.no || "");
+  var rows = st.reqs.filter(function (r) {
+    return (!month || r.date.slice(0, 7) === month) && (!type || r.type === type) && (!status || r.status === status) && (!no || r.no === no);
+  }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : a.no < b.no ? -1 : 1; });
+  var from = Number(p.offset || 0);
+  return { ok: true, total: rows.length, rows: rows.slice(from, from + 200).map(function (r) {
+    return { id: r.id, no: r.no, date: r.date, long: dLong(st, r.date), type: r.type, status: r.status, time: r.time || "", note: r.note || "",
+             by: r.by, createdAt: r.createdAt, kind: WAIT[r.status] && r.type === "연차" ? waitName(waitKind(r)) : "", label: WAIT[r.status] && r.type === "연차" ? waitLabel(st, r) : "", rank: WAIT[r.status] && r.type === "연차" ? waitRank(st, r) : 0 };
+  }) };
+}
+
+/* ---------- 관리자: 월별 휴가표 ---------- */
+function adminMonth(st, p) {
+  var m = String(p.month || st.today.slice(0, 7));
+  if (!/^\d{4}-\d{2}$/.test(m)) return result(false, "달이 올바르지 않습니다.");
+  var days = [], d = m + "-01";
+  var byDate = {};
+  st.reqs.forEach(function (r) { if (r.date.slice(0, 7) === m) (byDate[r.date] = byDate[r.date] || []).push(r); });
+  while (d.slice(0, 7) === m) {
+    var on = (byDate[d] || []).slice().sort(function (a, b) { return a.no < b.no ? -1 : 1; });
+    var nos = function (f) { return on.filter(f).map(function (r) { return r.no; }); };
+    days.push({ date: d, day: +d.slice(8), week: WEEK[dWeekday(d)], off: isOffDay(st, d), holiday: (st.holidayNames || {})[d] || "",
+                special: specialKind(st, d), today: d === st.today, block: !!blockOn(st, d),
+                leave: nos(function (r) { return r.type === "연차" && r.status === "확정"; }),
+                summer: nos(function (r) { return r.type === "여름휴가" && r.status === "확정"; }),
+                early: on.filter(function (r) { return (r.type === "조퇴" || r.type === "지각") && r.status === "확정"; })
+                         .map(function (r) { return { no: r.no, type: r.type, time: r.time || "" }; }),
+                absent: nos(function (r) { return r.type === "결근" && r.status === "확정"; }),
+                extra: nos(function (r) { return r.type === "특별휴가" && r.status === "확정"; }),
+                limit: limitOn(st, d), customLimit: limitSource(st, d).kind === "custom",
+                waiting: on.filter(function (r) { return r.type === "연차" && WAIT[r.status]; }).length });
+    d = dAdd(d, 1);
+  }
+  return { ok: true, month: m, today: st.today, limit: RULES.LIMIT, days: days };
+}
+
+/* ---------- 관리자: 차량 추가 · 운행 제외/복구 · 일괄 수정 ---------- */
+function adminCarAdd(st, p) {
+  var no = String(p.no || "").trim(), total = Number(p.total), summer = p.summer === "" || p.summer === undefined ? null : Number(p.summer), pin = String(p.pin || "");
+  if (!/^\d{1,5}$/.test(no)) return result(false, "호수는 숫자로 넣어 주세요. (예: 261)");
+  if (st.cars[no]) return result(false, no + "호는 이미 있습니다." + (st.cars[no].off ? " 운행 제외 상태라면 '운행 복구'를 눌러 주세요." : ""));
+  if (!(total >= 0 && total <= 60 && Math.floor(total) === total)) return result(false, "총연차는 0~60 사이 숫자로 넣어 주세요.");
+  if (summer !== null && !(summer >= 0 && summer <= 30 && Math.floor(summer) === summer)) return result(false, "여름휴가 일수는 0~30 사이 숫자로 넣어 주세요.");
+  if (pin && !/^\d{4,8}$/.test(pin)) return result(false, "비밀번호는 숫자 4~8자리로 넣어 주세요. (비워 두면 나중에 등록)");
+  st.cars[no] = { pin: pin, total: total, summer: summer, off: false };
+  var r = result(true, no + "호를 추가했습니다." + (pin ? "" : " 비밀번호는 차량 상세에서 등록해 주세요."));
+  r.changes.push({ op: "carAdd", no: no, pin: pin, total: total, summer: summer });
+  r.logs.push({ no: no, type: "-", date: "", action: "관리자 차량 추가", result: "완료", detail: "총연차 " + total + "일", by: "관리자" });
+  return r;
+}
+function adminCarActive(st, p) {
+  var no = String(p.no), on = !!p.active, c = st.cars[no];
+  if (!c) return result(false, "등록되지 않은 호수입니다.");
+  if (!c.off === on) return result(false, on ? "이미 운행 중입니다." : "이미 운행 제외 상태입니다.");
+  c.off = !on;
+  var waiting = st.reqs.filter(function (x) { return x.no === no && x.date >= st.today && ACTIVE[x.status]; }).length;
+  var r = result(true, no + "호를 " + (on ? "운행 차량으로 복구했습니다." : "운행 제외했습니다. 기사님 화면 목록과 로그인에서 빠지고, 기록은 그대로 남습니다.") +
+                       (!on && waiting ? " ※ 앞으로 잡힌 신청 " + waiting + "건은 그대로 있으니 필요하면 취소해 주세요." : ""));
+  r.changes.push({ op: "carActive", no: no, active: on });
+  r.logs.push({ no: no, type: "-", date: "", action: on ? "관리자 운행 복구" : "관리자 운행 제외", result: "완료", detail: "", by: "관리자" });
+  return r;
+}
+function adminBulk(st, p) {
+  var total = p.total === "" || p.total === undefined ? null : Number(p.total);
+  var summer = p.summer === "" || p.summer === undefined ? null : Number(p.summer);
+  var group = String(p.group || "all");
+  if (total === null && summer === null) return result(false, "바꿀 값을 하나 이상 넣어 주세요.");
+  if (total !== null && !(total >= 0 && total <= 60 && Math.floor(total) === total)) return result(false, "총연차는 0~60 사이 숫자로 넣어 주세요.");
+  if (summer !== null && !(summer >= 0 && summer <= 30 && Math.floor(summer) === summer)) return result(false, "여름휴가 일수는 0~30 사이 숫자로 넣어 주세요.");
+  var nos = Object.keys(st.cars).filter(function (no) {
+    return !st.cars[no].off && (group === "all" || String(Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10)))) === group);
+  });
+  if (!nos.length) return result(false, "바꿀 차량이 없습니다.");
+  nos.forEach(function (no) { if (total !== null) st.cars[no].total = total; if (summer !== null) st.cars[no].summer = summer; });
+  var what = [total !== null ? "총연차 " + total + "일" : "", summer !== null ? "여름휴가 " + summer + "일" : ""].filter(Boolean).join(", ");
+  var r = result(true, (group === "all" ? "운행 차량 전체" : group + "조") + " " + nos.length + "대의 " + what + "(으)로 바꿨습니다.");
+  r.changes.push({ op: "bulk", nos: nos, total: total, summer: summer });
+  r.logs.push({ no: "-", type: "-", date: "", action: "관리자 일괄 수정", result: "완료", detail: what + " · " + nos.length + "대", by: "관리자" });
+  return r;
+}
+
+/* ---------- 관리자: 공휴일·회사 휴무일 ---------- */
+function adminHolidays(st) {
+  return { ok: true, today: st.today, list: st.holidays.slice().sort().map(function (d) {
+    return { date: d, long: dLong(st, d), name: (st.holidayNames || {})[d] || "", past: d < st.today };
+  }) };
+}
+function adminHolAdd(st, p) {
+  var d = String(p.date || ""), name = String(p.name || "").trim() || "휴무일";
+  if (!isValidDate(d)) return result(false, "날짜가 올바르지 않습니다.");
+  if (st.holidays.indexOf(d) >= 0) return result(false, dLong(st, d) + "은 이미 쉬는 날로 들어 있습니다.");
+  st.holidays.push(d); st.holidayNames = st.holidayNames || {}; st.holidayNames[d] = name;
+  var n = st.reqs.filter(function (x) { return x.date === d && ACTIVE[x.status]; }).length;
+  var r = result(true, dLong(st, d) + "을 쉬는 날(" + name + ")로 추가했습니다." + (n ? " ※ 그날 잡힌 신청 " + n + "건은 그대로 있습니다." : ""));
+  r.changes.push({ op: "holAdd", date: d, name: name });
+  r.logs.push({ no: "-", type: "-", date: d, action: "관리자 공휴일 추가", result: "완료", detail: name, by: "관리자" });
+  return r;
+}
+function adminHolDel(st, p) {
+  var d = String(p.date || ""), i = st.holidays.indexOf(d);
+  if (i < 0) return result(false, "목록에 없는 날짜입니다.");
+  var name = (st.holidayNames || {})[d] || "";
+  st.holidays.splice(i, 1);
+  var r = result(true, dLong(st, d) + (name ? "(" + name + ")" : "") + "을 쉬는 날에서 뺐습니다.");
+  r.changes.push({ op: "holDel", date: d });
+  r.logs.push({ no: "-", type: "-", date: d, action: "관리자 공휴일 삭제", result: "완료", detail: name, by: "관리자" });
+  return r;
+}
+
+/* ---------- 관리자: 규칙 숫자 설정 ---------- */
+function adminSettings(st) {
+  return { ok: true, items: Object.keys(SETTING_INFO).map(function (k) {
+    return { key: k, label: SETTING_INFO[k][0], min: SETTING_INFO[k][1], max: SETTING_INFO[k][2], value: RULES[k], def: DEFAULT_RULES[k] };
+  }), openText: hourText(RULES.OPEN_HOUR) };
+}
+function adminSetSetting(st, p) {
+  var k = String(p.key), info = SETTING_INFO[k], v = Number(p.value);
+  if (!info) return result(false, "알 수 없는 설정입니다.");
+  if (!(v >= info[1] && v <= info[2] && Math.floor(v) === v)) return result(false, "'" + info[0] + "' 값은 " + info[1] + "~" + info[2] + " 사이 숫자로 넣어 주세요.");
+  if (k === "OPEN_DAYS" && v <= RULES.LOCK_DAYS) return result(false, "신청 가능 일수는 '관리자만' 일수(" + RULES.LOCK_DAYS + "일)보다 커야 합니다.");
+  if (k === "LOCK_DAYS" && v >= RULES.OPEN_DAYS) return result(false, "'관리자만' 일수는 신청 가능 일수(" + RULES.OPEN_DAYS + "일)보다 작아야 합니다.");
+  var before = RULES[k];
+  st.settings = st.settings || {}; st.settings[k] = v; applySettings(st);
+  var r = result(true, info[0] + ": " + before + " → " + v + (k === "OPEN_HOUR" ? " (" + hourText(v) + ")" : ""));
+  r.changes.push({ op: "setting", key: k, value: v });
+  r.logs.push({ no: "-", type: "-", date: "", action: "관리자 설정 변경", result: "완료", detail: info[0] + " " + before + " → " + v, by: "관리자" });
+  return r;
+}
+
+/* ---------- 연차 신청 막는 기간 (예: 7~8월 여름휴가 기간) ----------
+   st.blocks = [{ from, to, memo }]  기사님 연차 신청만 막음 (조퇴·지각·결근, 관리자 입력은 그대로) */
+function blockOn(st, d) {
+  var b = st.blocks || [];
+  for (var i = 0; i < b.length; i++) if (d >= b[i].from && d <= b[i].to) return b[i];
+  return null;
+}
+function blockRange(b) { return dShort(b.from) + " ~ " + dShort(b.to); }
+function adminBlocks(st) {
+  var list = (st.blocks || []).slice().sort(function (a, b) { return a.from < b.from ? -1 : 1; }).map(function (b) {
+    var n = st.reqs.filter(function (r) { return r.type === "연차" && ACTIVE[r.status] && r.date >= b.from && r.date <= b.to; }).length;
+    return { from: b.from, to: b.to, memo: b.memo || "", range: blockRange(b), past: b.to < st.today, leaves: n };
+  });
+  return { ok: true, list: list };
+}
+function adminBlockAdd(st, p) {
+  var from = String(p.from || ""), to = String(p.to || ""), memo = String(p.memo || "").trim().slice(0, 20);
+  if (!isValidDate(from) || !isValidDate(to)) return result(false, "시작일과 끝일을 모두 골라 주세요.");
+  if (from > to) return result(false, "끝일이 시작일보다 앞입니다.");
+  if (dDiff(to, from) > 366) return result(false, "한 번에 1년보다 긴 기간은 정할 수 없습니다.");
+  st.blocks = st.blocks || [];
+  var over = st.blocks.filter(function (b) { return !(to < b.from || from > b.to); })[0];
+  if (over) return result(false, "이미 정한 기간(" + blockRange(over) + ")과 겹칩니다. 그 기간을 지우고 다시 넣어 주세요.");
+  var nb = { from: from, to: to, memo: memo };
+  st.blocks.push(nb);
+  var act = st.reqs.filter(function (r) { return r.type === "연차" && ACTIVE[r.status] && r.date >= from && r.date <= to; });
+  var conf = act.filter(function (r) { return r.status === "확정"; }).length;
+  var r = result(true, blockRange(nb) + "을 연차 신청 막는 기간으로 정했습니다." +
+    (act.length ? " ※ 이 기간에 이미 연차 " + act.length + "건이 있습니다 (확정 " + conf + "건, 대기 " + (act.length - conf) + "건). 필요하면 날짜별 화면에서 정리해 주세요." : ""));
+  r.changes.push({ op: "blocks" });
+  r.logs.push({ no: "-", type: "-", date: from, action: "관리자 연차 막는 기간 추가", result: "완료", detail: blockRange(nb) + (memo ? " · " + memo : ""), by: "관리자" });
+  return r;
+}
+function adminBlockDel(st, p) {
+  var b = (st.blocks || []).filter(function (x) { return x.from === p.from && x.to === p.to; })[0];
+  if (!b) return result(false, "그 기간을 찾지 못했습니다. 화면을 새로 고쳐 주세요.");
+  st.blocks = st.blocks.filter(function (x) { return x !== b; });
+  var r = result(true, blockRange(b) + " 연차 막는 기간을 지웠습니다. 이제 이 기간에도 연차를 신청할 수 있습니다.");
+  r.changes.push({ op: "blocks" });
+  r.logs.push({ no: "-", type: "-", date: b.from, action: "관리자 연차 막는 기간 삭제", result: "완료", detail: blockRange(b) + (b.memo ? " · " + b.memo : ""), by: "관리자" });
+  return r;
+}
+
+/* ---------- 관리자: 날짜별 연차 최대 인원 (황금연휴 등) ---------- */
+function adminDayLimits(st) {
+  var list = Object.keys(st.dayLimits || {}).sort().filter(function (d) { return d >= st.today; }).map(function (d) {
+    return { date: d, long: dLong(st, d), n: +st.dayLimits[d].n, memo: st.dayLimits[d].memo || "", taken: confirmedOn(st, d) };
+  });
+  return { ok: true, list: list, base: RULES.LIMIT, special: RULES.SPECIAL_LIMIT };
+}
+function adminSetDayLimit(st, p) {
+  var d = String(p.date || ""), clear = p.n === "" || p.n === null || p.n === undefined, n = Number(p.n), memo = String(p.memo || "").trim().slice(0, 20);
+  if (!isValidDate(d)) return result(false, "날짜가 올바르지 않습니다.");
+  if (!clear && !(n >= 0 && n <= 30 && Math.floor(n) === n)) return result(false, "인원은 0~30 사이 숫자로 넣어 주세요.");
+  st.dayLimits = st.dayLimits || {};
+  var had = st.dayLimits[d];
+  if (clear && !had) return result(false, "이 날은 따로 정한 인원이 없습니다.");
+  if (clear) delete st.dayLimits[d]; else st.dayLimits[d] = { n: n, memo: memo };
+  var lim = limitOn(st, d), conf = confirmedOn(st, d);
+  var r = result(true, dLong(st, d) + " 연차 최대 인원을 " + (clear ? "기본값(" + lim + "명)으로 되돌렸습니다." : lim + "명으로 정했습니다.") +
+                       (conf > lim ? " ※ 이미 확정된 사람이 " + conf + "명입니다. 줄여야 하면 날짜별 화면에서 취소해 주세요." : ""));
+  r.changes.push({ op: "dayLimit", date: d, n: clear ? null : n, memo: memo });
+  r.logs.push({ no: "-", type: "-", date: d, action: "관리자 날짜별 인원", result: "완료", detail: clear ? "기본값으로" : n + "명" + (memo ? " · " + memo : ""), by: "관리자" });
+  settleAll(st, r);                                  // 인원을 늘렸으면 기다리던 사람 자동 확정
+  return r;
+}
+
+// 신청 ID는 항상 서버가 만들고, 이미 있는 ID와 겹치지 않게 함 (폰에서 보낸 ID는 무시)
+function uniqueId(st) { var id; do { id = newId(); } while (st.reqs.some(function (r) { return r.id === id; })); return id; }
+function newId() { return Math.random().toString(36).slice(2, 10); }
+
+/* =========================================================
+   현장 운행거리 (관리자 페이지에서 추가·수정·삭제, 엑셀 붙여넣기)
+   목록 S = [[현장명, 거리], ...]  거리는 숫자 또는 "-"(모름)
+   ========================================================= */
+function siteKey(s) { return String(s || "").replace(/\s+/g, "").toLowerCase(); }
+function siteName(s) { return String(s || "").replace(/\s+/g, " ").trim(); }
+// 거리 칸 읽기: "12.5", "12.5km" → 12.5 / 비어 있거나 "-" → "-" / "실측", "19~25" 같은 짧은 글은 그대로 / 너무 길면 null
+function siteDist(v) {
+  var s = String(v == null ? "" : v).trim(), t = s.replace(/\s*km$/i, "");
+  if (s === "" || s === "-") return "-";
+  if (/^\d+(\.\d+)?$/.test(t)) { var n = Math.round(Number(t) * 10) / 10; return n <= 9999 ? n : null; }
+  return s.length <= 15 ? s : null;
+}
+function distText(d) { return d === "-" || d === "" || d == null ? "거리 없음" : typeof d === "number" || /^\d+(\.\d+)?$/.test(d) ? d + "km" : String(d); }
+function siteRes(ok, msg) { return { ok: ok, msg: msg, changes: [], logs: [] }; }
+function siteLog(action, detail, name) { return { no: "-", type: "현장", date: "", action: action, result: "완료", detail: (name ? name + " · " : "") + detail, by: "관리자" }; }
+
+// 검색: 띄어쓴 낱말이 모두 들어간 현장 (기사님 화면과 같은 방식)
+function sitesSearch(S, p) {
+  var terms = String(p.q || "").toLowerCase().split(/\s+/).filter(Boolean);
+  var hits = S.map(function (r, i) { return { name: r[0], dist: r[1], i: i }; }).filter(function (x) {
+    var k = siteKey(x.name); return terms.every(function (t) { return k.indexOf(t) >= 0; });
+  });
+  if (!terms.length) hits.reverse(); // 검색어 없으면 최근 추가한 현장부터
+  var from = Number(p.offset || 0);
+  return { ok: true, count: S.length, total: hits.length, rows: hits.slice(from, from + 100).map(function (x) { return [x.name, x.dist]; }) };
+}
+
+// 추가(old 없음) 또는 수정(old = 원래 현장명)
+function siteSave(S, p) {
+  var name = siteName(p.name), old = p.old ? siteName(p.old) : "", dist = siteDist(p.dist);
+  if (!name) return siteRes(false, "현장명을 넣어 주세요.");
+  if (name.length > 100) return siteRes(false, "현장명이 너무 깁니다. (100자까지)");
+  if (dist === null) return siteRes(false, "거리는 숫자(예: 12.5)나 '실측'처럼 짧게 넣어 주세요. 모르면 비워 두세요.");
+  var i = old ? S.map(function (r) { return r[0]; }).indexOf(old) : -1;
+  if (old && i < 0) return siteRes(false, "'" + old + "' 현장을 찾지 못했습니다. 이미 지워졌거나 이름이 바뀌었을 수 있으니 다시 검색해 주세요.");
+  // 같은 현장이 이미 있는지 (띄어쓰기·대소문자 무시) — 이름을 그대로 두고 거리만 고칠 때는 검사 안 함
+  var dup = i >= 0 && siteKey(old) === siteKey(name) ? null : S.filter(function (r, j) { return j !== i && siteKey(r[0]) === siteKey(name); })[0];
+  if (dup) return siteRes(false, "'" + dup[0] + "' 현장이 이미 있습니다. (" + distText(dup[1]) + ") 그 현장을 수정해 주세요.");
+  var r;
+  if (i < 0) {
+    S.push([name, dist]);
+    r = siteRes(true, "'" + name + "' 현장을 추가했습니다. (" + distText(dist) + ")");
+    r.changes.push({ op: "siteAdd", name: name, dist: dist });
+    r.logs.push(siteLog("관리자 현장 추가", distText(dist), name));
+  } else {
+    var before = S[i].slice();
+    if (before[0] === name && String(before[1]) === String(dist)) return siteRes(false, "바뀐 내용이 없습니다.");
+    S[i] = [name, dist];
+    r = siteRes(true, "'" + name + "' 현장을 고쳤습니다." + (String(before[1]) !== String(dist) ? " (" + distText(before[1]) + " → " + distText(dist) + ")" : ""));
+    r.changes.push({ op: "siteEdit", old: old, name: name, dist: dist });
+    r.logs.push(siteLog("관리자 현장 수정", [before[0] !== name ? "이름: " + before[0] + " → " + name : "",
+      String(before[1]) !== String(dist) ? distText(before[1]) + " → " + distText(dist) : ""].filter(Boolean).join(" · "), name));
+  }
+  return r;
+}
+function siteDel(S, p) {
+  var name = siteName(p.name), i = S.map(function (r) { return r[0]; }).indexOf(name);
+  if (i < 0) return siteRes(false, "'" + name + "' 현장을 찾지 못했습니다. 이미 지워졌을 수 있습니다.");
+  var d = S[i][1];
+  S.splice(i, 1);
+  var r = siteRes(true, "'" + name + "' 현장을 지웠습니다.");
+  r.changes.push({ op: "siteDel", name: name });
+  r.logs.push(siteLog("관리자 현장 삭제", distText(d), name));
+  return r;
+}
+
+// 엑셀에서 복사한 두 열(현장명, 거리) 붙여넣기
+// 새 현장 → 추가, 거리가 바뀐 현장 → 수정, p.remove면 붙여넣은 목록에 없는 현장 → 삭제
+// p.dry면 바꾸지 않고 미리보기만
+function sitesPaste(S, p) {
+  var lines = String(p.text || "").split(/\r?\n/), bad = [], seen = {}, rows = [];
+  lines.forEach(function (ln, n) {
+    if (!ln.trim()) return;
+    var cells = ln.split("\t"), name, d;
+    if (cells.length >= 2) { name = cells[0]; d = cells[1]; }
+    else { var m = ln.trim().match(/^(.*\S)\s+(\d+(\.\d+)?(km)?)$/i); if (m) { name = m[1]; d = m[2]; } else { name = ln; d = ""; } } // 탭이 없으면 끝의 숫자를 거리로
+    name = siteName(name);
+    if (!name) return;
+    var dist = siteDist(d);
+    if (n === 0 && /현장/.test(name) && /거리/.test(String(d))) return;                  // 첫 줄 제목은 건너뜀
+    if (dist === null) { bad.push(name + " (거리: " + String(d).trim().slice(0, 20) + ")"); return; }
+    var k = siteKey(name);
+    if (seen[k] !== undefined) { rows[seen[k]] = [name, dist]; return; } // 같은 현장이 두 번이면 아래 것
+    seen[k] = rows.length; rows.push([name, dist]);
+  });
+  if (!rows.length) return siteRes(false, "붙여넣은 내용에서 현장을 찾지 못했습니다. 엑셀에서 현장명과 거리 두 열을 같이 복사해 주세요.");
+  // 이름이 똑같은 현장을 먼저 찾고, 없으면 띄어쓰기만 다른 현장
+  var idx = {}, exact = {}; S.forEach(function (r, i) { if (idx[siteKey(r[0])] === undefined) idx[siteKey(r[0])] = i; if (exact[r[0]] === undefined) exact[r[0]] = i; });
+  var add = [], upd = [], same = 0;
+  rows.forEach(function (r) {
+    var i = exact[r[0]] !== undefined ? exact[r[0]] : idx[siteKey(r[0])];
+    if (i === undefined) add.push(r);
+    else if (String(S[i][1]) !== String(r[1])) upd.push({ i: i, name: S[i][0], from: S[i][1], to: r[1] });
+    else same++;
+  });
+  var del = p.remove ? S.filter(function (r) { return seen[siteKey(r[0])] === undefined; }).map(function (r) { return r[0]; }) : [];
+  var info = { pasted: rows.length, add: add.length, upd: upd.length, same: same, del: del.length, bad: bad.length,
+               addList: add.slice(0, 30).map(function (r) { return r[0] + " · " + distText(r[1]); }),
+               updList: upd.slice(0, 30).map(function (u) { return u.name + " · " + distText(u.from) + " → " + distText(u.to); }),
+               delList: del.slice(0, 30), badList: bad.slice(0, 10) };
+  if (p.remove && del.length > S.length / 2) info.warn = "지금 목록의 절반이 넘는 " + del.length + "개가 지워집니다. 엑셀 전체를 복사했는지 확인해 주세요.";
+  if (p.dry) { var pv = siteRes(true, ""); pv.preview = info; return pv; }
+  if (!add.length && !upd.length && !del.length) return siteRes(false, "바뀐 현장이 없습니다. (붙여넣은 " + rows.length + "개 모두 같음)");
+  upd.forEach(function (u) { S[u.i] = [S[u.i][0], u.to]; });
+  if (del.length) { var dk = {}; del.forEach(function (n) { dk[n] = 1; }); for (var j = S.length - 1; j >= 0; j--) if (dk[S[j][0]]) S.splice(j, 1); }
+  add.forEach(function (r) { S.push(r); });
+  var msg = ["추가 " + add.length, "수정 " + upd.length].concat(del.length ? ["삭제 " + del.length] : []).join(" · ");
+  var res = siteRes(true, "엑셀 붙여넣기 반영: " + msg + "개" + (bad.length ? " (거리를 못 읽은 " + bad.length + "줄은 건너뜀)" : ""));
+  res.changes.push({ op: "sitesAll" });
+  res.logs.push(siteLog("관리자 현장 붙여넣기", msg + " · 총 " + S.length + "개"));
+  res.preview = info;
+  return res;
+}
+
+/* ---------- 금일 현장 (날짜별 나가는 현장 · 제품명 · 수량 · 도착) ----------
+   T = [[날짜, 현장명, 제품명, 수량, 도착], ...]  관리자가 출하예정 집계표를 붙여넣거나 검색해서 넣음 */
+function dayText(d) { var p = String(d).split("-"); return (+p[1]) + "월 " + (+p[2]) + "일"; }
+// 현장 목록에서 찾기: 이름이 똑같은 것 먼저, 없으면 띄어쓰기만 다른 것
+function siteFind(S, name) {
+  var k = siteKey(name), hit = null;
+  for (var i = 0; i < S.length; i++) { if (S[i][0] === name) return S[i]; if (!hit && siteKey(S[i][0]) === k) hit = S[i]; }
+  return hit;
+}
+// 수량: "1,221.000" → 1221, "2.500" → 2.5 / 숫자가 아니면 글자 그대로
+function qtyVal(v) {
+  var s = String(v == null ? "" : v).trim().replace(/,/g, "");
+  if (s === "") return "";
+  return /^-?\d+(\.\d+)?$/.test(s) ? Math.round(Number(s) * 1000) / 1000 : String(v).trim().slice(0, 15);
+}
+function qtyText(q) { return typeof q === "number" ? q.toLocaleString("en-US", { maximumFractionDigits: 3 }) : String(q || ""); }
+// 물량 표시: 650 → "650㎥" (물차운반비처럼 레미콘 물량이 아닌 줄은 숫자만)
+function qtyM3(product, q) {
+  if (q === "" || q == null) return "";
+  return typeof q === "number" && !/운반비|물차/.test(String(product || "")) ? qtyText(q) + "㎥" : qtyText(q);
+}
+function timeVal(v) { var m = String(v == null ? "" : v).trim().match(/^(\d{1,2}):(\d{2})/); return m ? ("0" + m[1]).slice(-2) + ":" + m[2] : ""; }
+// 줄 = [현장명, 제품명, 수량, 도착, 담당자(영업사원)]
+function todayRows(T, date) { return T.filter(function (r) { return r[0] === date; }).map(function (r) { return [r[1], r[2] || "", r[3] === 0 ? 0 : (r[3] || ""), r[4] || "", r[5] || ""]; }); }
+// 현장별로 묶기 (표에 나온 순서대로)
+function todayView(S, T, date) {
+  var out = [], at = {};
+  todayRows(T, date).forEach(function (r) {
+    var k = r[0];
+    if (at[k] === undefined) { var f = siteFind(S, r[0]); at[k] = out.length; out.push({ name: r[0], dist: f ? f[1] : "-", known: !!f, items: [], reps: [] }); }
+    var o = out[at[k]];
+    if (r[4] && o.reps.indexOf(r[4]) < 0) o.reps.push(r[4]);                 // 담당 영업사원 (현장별로 모음)
+    if (r[1] || r[2] !== "" || r[3]) o.items.push({ product: r[1], qty: r[2], time: r[3] });
+  });
+  // 레미콘 물량(㎥)이 많은 현장부터 (같으면 표에 나온 순서)
+  var m3 = function (x) { var t = 0; x.items.forEach(function (i) { if (typeof i.qty === "number" && !/운반비|물차/.test(i.product)) t += i.qty; }); return t; };
+  return out.map(function (x, i) { return { x: x, i: i, t: m3(x) }; })
+    .sort(function (a, b) { return b.t - a.t || a.i - b.i; }).map(function (o) { return o.x; });
+}
+function todayTotal(view) {
+  var t = 0; view.forEach(function (x) { x.items.forEach(function (i) { if (typeof i.qty === "number") t += i.qty; }); });
+  return Math.round(t * 1000) / 1000;
+}
+// 기사님 화면용: [[현장명, 거리, [[제품명, 수량, 도착], ...], 담당자], ...]
+function todaySites(S, T, date) {
+  return todayView(S, T, date).map(function (x) { return [x.name, x.dist, x.items.map(function (i) { return [i.product, i.qty, i.time]; }), x.reps.join(", ")]; });
+}
+// 목록에 없는 이름이면 비슷한 현장 찾기 (두 글자씩 겹치는 정도)
+function bigrams(k) { var m = {}; for (var i = 0; i < k.length - 1; i++) m[k.substr(i, 2)] = (m[k.substr(i, 2)] || 0) + 1; return m; }
+function siteSuggest(S, name, n) {
+  var a = bigrams(siteKey(name)), an = Math.max(1, siteKey(name).length - 1);
+  return S.map(function (r) {
+    var b = bigrams(siteKey(r[0])), bn = Math.max(1, siteKey(r[0]).length - 1), hit = 0;
+    for (var g in a) if (b[g]) hit += Math.min(a[g], b[g]);
+    return [r[0], r[1], 2 * hit / (an + bn)];
+  }).filter(function (x) { return x[2] >= 0.55; }).sort(function (x, y) { return y[2] - x[2]; }).slice(0, n || 2);
+}
+// 참고용 비슷한 현장: 이름 전체, 회사명을 뺀 현장 부분, 같은 동·리·구 이름 중 가장 잘 맞는 것
+var LONG_KM = 50;
+function placeWords(name) {
+  return (String(name).match(/[가-힣]{1,6}(동|리|읍|면|구|시|군)(?=[\d\s\-~(]|$)/g) || []).filter(function (w) { return w.length >= 2 && !/^(공구|지구|본부|구간)$/.test(w); });
+}
+function stripCo(name) { return String(name).replace(/^\S*(\(주\)|㈜|주식회사|건설|공사|공단|레미콘|산업|종합건설)\S*\s*/, ""); }
+function dice(a, b) {
+  var A = bigrams(siteKey(a)), B = bigrams(siteKey(b)), an = Math.max(1, siteKey(a).length - 1), bn = Math.max(1, siteKey(b).length - 1), hit = 0;
+  for (var g in A) if (B[g]) hit += Math.min(A[g], B[g]);
+  return 2 * hit / (an + bn);
+}
+function siteRefs(S, name, n) {
+  var core = stripCo(name), places = placeWords(name);
+  return S.filter(function (r) { return r[0] !== name; }).map(function (r) {
+    var sc = Math.max(dice(name, r[0]), core.length >= 4 ? dice(core, stripCo(r[0])) : 0);
+    var why = "이름";
+    places.forEach(function (w) { if (r[0].indexOf(w) >= 0 && sc < 0.6) { sc = Math.max(sc, 0.5 + Math.min(0.1, w.length / 50)); why = w; } });
+    return [r[0], r[1], sc, why === "이름" ? "이름 비슷" : "같은 지역 (" + why + ")"];
+  }).filter(function (x) { return x[2] >= 0.42; }).sort(function (a, b) { return b[2] - a[2]; }).slice(0, n || 5);
+}
+// 50km 넘는지 ("19~55" 같은 범위는 큰 쪽으로 봄)
+function isLong(d) {
+  var nums = String(d == null ? "" : d).match(/\d+(\.\d+)?/g);
+  return typeof d === "number" ? d > LONG_KM : !!(nums && /^\s*\d+(\.\d+)?\s*(~\s*\d+(\.\d+)?)?\s*(km)?\s*$/i.test(String(d)) && Math.max.apply(null, nums.map(Number)) > LONG_KM);
+}
+// 반영 전 확인 목록: 거리 없는 현장 + 50km 넘는 현장
+function todayReview(S, names) {
+  var missing = [], long = [];
+  names.forEach(function (n) {
+    var f = siteFind(S, n);
+    if (!f || f[1] === "-" || f[1] === "") missing.push({ name: n, inList: !!f, refs: siteRefs(S, n, 5) });
+    else if (isLong(f[1])) long.push({ name: f[0], dist: f[1] });
+  });
+  return { missing: missing, long: long };
+}
+// 거리 여러 곳 한꺼번에 저장 (반영 전 확인에서 넣은 값) — 있으면 고치고 없으면 추가
+function sitesFix(S, p) {
+  var list = p.fixes || [], res = siteRes(true, ""), done = 0, bad = [];
+  list.forEach(function (x) {
+    var f = siteFind(S, siteName(x.name));
+    var r = siteSave(S, { old: f ? f[0] : "", name: f ? f[0] : x.name, dist: x.dist });
+    if (r.ok) { done++; res.changes = res.changes.concat(r.changes); res.logs = res.logs.concat(r.logs); }
+    else if (r.msg !== "바뀐 내용이 없습니다.") bad.push(siteName(x.name) + ": " + r.msg);
+  });
+  res.ok = !bad.length || done > 0;
+  res.msg = "거리 " + done + "곳 저장" + (bad.length ? " · 저장 못 함 " + bad.length + "곳 (" + bad[0] + ")" : "");
+  return res;
+}
+function withSuggest(S, view) { view.forEach(function (x) { if (!x.known) x.sugg = siteSuggest(S, x.name, 2); }); return view; }
+function adminToday(S, T, p) {
+  var date = String(p.date || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return siteRes(false, "날짜가 올바르지 않습니다.");
+  var v = withSuggest(S, todayView(S, T, date));
+  return { ok: true, date: date, list: v, total: todayTotal(v) };
+}
+
+// 엑셀에서 복사한 표 읽기 (탭으로 칸 구분, 따옴표 안 줄바꿈 허용)
+function parseTSV(text) {
+  var rows = [], row = [], cell = "", q = false, t = String(text || "");
+  for (var i = 0; i < t.length; i++) {
+    var c = t[i];
+    if (q) { if (c === '"' && t[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') q = false; else cell += c; }
+    else if (c === '"' && cell === "") q = true;
+    else if (c === "\t") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && t[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+    else cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+// 출하예정 집계표 붙여넣기 → { date: 표의 출하일자(있으면), rows: [[현장명, 제품명, 수량, 도착], ...] }
+// 제목 줄(거래처현장·제품명·수량·도착)이 있으면 그 칸 순서를 따르고, 없으면 [순번,] 현장, 제품명, 수량, 도착 순서로 봄
+function parseShipment(S, text) {
+  var grid = parseTSV(text), date = "", col = null, rows = [];
+  var SKIP = /^(출하일자|공장구분|예정수량|합계|소계|총계|순번|거래처현장|현장명|현장)\s*:?$/;
+  grid.forEach(function (cells) {
+    cells = cells.map(function (c) { return String(c).replace(/\s+/g, " ").trim(); });
+    var line = cells.join(" ");
+    var dm = line.match(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/) || line.match(/출하일자\D*(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+    if (dm && !date && /출하|일자/.test(line)) date = dm[1] + "-" + ("0" + dm[2]).slice(-2) + "-" + ("0" + dm[3]).slice(-2);
+    var hi = function (re) { for (var j = 0; j < cells.length; j++) if (re.test(cells[j].replace(/\s/g, ""))) return j; return -1; };
+    if (hi(/^(거래처현장|현장명|현장|납품처|거래처)$/) >= 0 && hi(/^(제품명|제품|규격)$/) >= 0) {
+      col = { name: hi(/^(거래처현장|현장명|현장|납품처|거래처)$/), product: hi(/^(제품명|제품|규격)$/), qty: hi(/^(수량|물량)$/), time: hi(/^(도착|도착시간|시간)$/), rep: hi(/^(담당자|담당|영업사원|영업담당|영업)$/) };
+      return;
+    }
+    var filled = cells.filter(Boolean);
+    if (!filled.length) return;
+    var name, product, qty, time, rep = "";
+    if (col) { name = cells[col.name]; product = cells[col.product]; qty = col.qty >= 0 ? cells[col.qty] : ""; time = col.time >= 0 ? cells[col.time] : ""; rep = col.rep >= 0 ? cells[col.rep] : ""; }
+    else {
+      var k = /^\d{1,5}$/.test(cells[0]) ? 1 : 0;           // 맨 앞이 순번이면 건너뜀
+      name = cells[k]; product = cells[k + 1]; qty = cells[k + 2]; time = cells[k + 3];
+      rep = cells[k + 5] && /^[가-힣]{2,5}$/.test(cells[k + 5]) ? cells[k + 5] : "";   // 순번·현장·제품·수량·도착·km·담당자 순서
+    }
+    name = siteName(name);
+    if (!name || SKIP.test(name) || /^(출하일자|공장구분|예정수량)/.test(name)) return;
+    if (/출하예정|집계표/.test(name.replace(/\s/g, ""))) return;
+    var f = siteFind(S, name);
+    rows.push([f ? f[0] : name.slice(0, 100), siteName(product).slice(0, 40), qtyVal(qty), timeVal(time), siteName(rep).slice(0, 20)]);
+  });
+  return { date: date, rows: rows };
+}
+
+// 바꾸기: p.add(현장 한 곳 넣기) / p.del(현장 빼기) / p.clear(전부 지우기)
+//        p.text(출하예정 집계표 붙여넣기, p.mode = "replace" | "add", p.dry = 미리보기, 표에 출하일자가 있으면 그 날짜로)
+function todaySet(S, T, p) {
+  var date = String(p.date || ""), next, what, parsed = null;
+  if (p.text !== undefined && !p.clear && !p.add && !p.del) {
+    parsed = parseShipment(S, p.text);
+    if (!parsed.rows.length) return siteRes(false, "붙여넣은 내용에서 현장을 찾지 못했습니다. 출하예정 집계표를 거래처현장·제품명·수량 칸이 들어가게 복사해 주세요.");
+    if (parsed.date) date = parsed.date;                       // 표에 적힌 출하일자가 우선
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return siteRes(false, "날짜가 올바르지 않습니다.");
+  var cur = todayRows(T, date), has = {};
+  cur.forEach(function (r) { has[siteKey(r[0])] = 1; });
+  var canon = function (n) { var f = siteFind(S, n); return f ? f[0] : n; };
+  if (p.clear) { next = []; what = "전부 지움"; }
+  else if (p.add) {
+    var an = canon(siteName(p.add));
+    if (!an) return siteRes(false, "현장명을 넣어 주세요.");
+    if (has[siteKey(an)]) return siteRes(false, "'" + an + "'은 이미 들어 있습니다.");
+    next = cur.concat([[an, "", "", "", ""]]); what = "추가: " + an;
+  } else if (p.del) {
+    next = cur.filter(function (r) { return r[0] !== p.del; });
+    if (next.length === cur.length) return siteRes(false, "목록에 없는 현장입니다. 화면을 새로 고쳐 주세요.");
+    what = "빼기: " + p.del;
+  } else {
+    var add = p.mode === "add", same = {};
+    cur.forEach(function (r) { same[r.join("\t")] = 1; });
+    var fresh = add ? parsed.rows.filter(function (r) { return !same[r.join("\t")]; }) : parsed.rows;
+    next = add ? cur.concat(fresh) : parsed.rows;
+    var names = {}, unknown = [], total = 0;
+    parsed.rows.forEach(function (r) {
+      if (!names[r[0]]) { names[r[0]] = 1; if (!siteFind(S, r[0])) unknown.push(r[0]); }
+      if (typeof r[2] === "number") total += r[2];
+    });
+    var siteCount = function (rows) { var m = {}; rows.forEach(function (r) { m[r[0]] = 1; }); return Object.keys(m).length; };
+    if (p.dry) {
+      var pv = siteRes(true, "");
+      pv.preview = { date: date, fromSheet: !!parsed.date, rows: parsed.rows.length, sites: Object.keys(names).length, total: Math.round(total * 1000) / 1000,
+                     add: add, fresh: fresh.length, before: siteCount(cur), beforeRows: cur.length, after: siteCount(next),
+                     unknown: unknown.slice(0, 30), unknownCount: unknown.length, review: todayReview(S, Object.keys(names)),
+                     sample: parsed.rows.slice(0, 3).map(function (r) { return r[0] + " · " + (r[1] || "제품 없음") + " · " + qtyM3(r[1], r[2]) + (r[3] ? " · " + r[3] : "") + (r[4] ? " · 담당 " + r[4] : ""); }) };
+      return pv;
+    }
+    what = (add ? "집계표 더하기 " + fresh.length + "줄" : "집계표 " + parsed.rows.length + "줄로 바꿈") + (unknown.length ? " (목록에 없는 현장 " + unknown.length + "곳)" : "");
+  }
+  if (next.map(function (r) { return r.join("\t"); }).join("\n") === cur.map(function (r) { return r.join("\t"); }).join("\n")) return siteRes(false, "바뀐 내용이 없습니다.");
+  for (var j = T.length - 1; j >= 0; j--) if (T[j][0] === date) T.splice(j, 1);
+  next.forEach(function (r) { T.push([date, r[0], r[1], r[2], r[3], r[4] || ""]); });
+  var v = todayView(S, T, date);
+  var r2 = siteRes(true, dayText(date) + " 출하 현장 " + v.length + "곳 (" + what + ")");
+  r2.changes.push({ op: "todayWrite", date: date });
+  r2.logs.push({ no: "-", type: "현장", date: date, action: "관리자 금일 현장", result: "완료", detail: what + " · 총 " + v.length + "곳", by: "관리자" });
+  r2.list = withSuggest(S, v); r2.total = todayTotal(v); r2.date = date;
+  return r2;
+}
+
+/* ---------- 기록 분류 (관리자 기록 탭) ----------
+   기록 줄 = [시각, 호수, 종류, 날짜, 처리, 결과, 처리자, 내용] */
+var LOG_CATS = ["휴가", "운행거리", "계정", "차량·설정"];
+function logCat(r) {
+  var a = String(r[4] || "");
+  if (r[2] === "현장" || a.indexOf("현장") >= 0 || a.indexOf("영업") >= 0) return "운행거리";
+  if (/비밀번호|로그인|로그아웃|잠금/.test(a)) return "계정";
+  if (/차량|운행 제외|운행 복구|총연차|여름휴가 일수|일괄|설정|공휴일|날짜별 인원|막는 기간|백업/.test(a)) return "차량·설정";
+  return "휴가";
+}
+function logFilter(rows, p) {
+  var q = String(p.q || "").replace(/\s+/g, ""), cat = String(p.cat || "");
+  if (cat) rows = rows.filter(function (r) { return logCat(r) === cat; });
+  if (/^\d{3}$/.test(q)) rows = rows.filter(function (r) { return String(r[1]) === q; });   // 세 자리 숫자는 호수로만
+  else if (q) rows = rows.filter(function (r) { return r.join("").replace(/\s+/g, "").indexOf(q) >= 0; });
+  var from = Number(p.offset || 0);
+  return { ok: true, total: rows.length, rows: rows.slice(from, from + 100) };
+}
+
+/* ---------- 영업사원 연락처 (금일 물량표의 담당자 이름을 누르면 보여 줌) ----------
+   R = [[이름, 전화번호, 무전기번호], ...] */
+function repPhone(v) {
+  var d = String(v || "").replace(/[^\d]/g, "");
+  if (!d) return "";
+  if (d.length === 11) return d.slice(0, 3) + "-" + d.slice(3, 7) + "-" + d.slice(7);
+  if (d.length === 10 && /^02/.test(d)) return d.slice(0, 2) + "-" + d.slice(2, 6) + "-" + d.slice(6);
+  if (d.length === 10) return d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6);
+  if (d.length === 9 && /^02/.test(d)) return d.slice(0, 2) + "-" + d.slice(2, 5) + "-" + d.slice(5);
+  return d;
+}
+function repText(r) { return [r[1] ? r[1] : "", r[2] ? "무전 " + r[2] : ""].filter(Boolean).join(" · ") || "연락처 없음"; }
+function repSave(R, p) {
+  var name = siteName(p.name).slice(0, 10), old = p.old ? siteName(p.old) : "";
+  var digits = String(p.phone || "").replace(/[^\d]/g, ""), phone = repPhone(p.phone), radio = String(p.radio || "").replace(/[^\d]/g, "").slice(0, 8);
+  if (!name) return siteRes(false, "이름을 넣어 주세요.");
+  if (digits && (digits.length < 9 || digits.length > 11)) return siteRes(false, "전화번호를 확인해 주세요. (예: 010-1234-5678)");
+  if (String(p.radio || "").trim() && !radio) return siteRes(false, "무전기 번호는 숫자로 넣어 주세요.");
+  var i = -1; for (var k = 0; k < R.length; k++) if (R[k][0] === old) i = k;
+  if (old && i < 0) return siteRes(false, "'" + old + "'을(를) 찾지 못했습니다. 화면을 새로 고쳐 주세요.");
+  for (var j = 0; j < R.length; j++) if (j !== i && R[j][0] === name) return siteRes(false, "'" + name + "'은(는) 이미 목록에 있습니다.");
+  var row = [name, phone, radio], r;
+  if (i < 0) {
+    R.push(row);
+    r = siteRes(true, name + " 영업사원을 추가했습니다. (" + repText(row) + ")");
+    r.logs.push(siteLog("관리자 영업사원 추가", repText(row), name));
+  } else {
+    var b = R[i];
+    if (b.join("|") === row.join("|")) return siteRes(false, "바뀐 내용이 없습니다.");
+    R[i] = row;
+    r = siteRes(true, name + " 연락처를 고쳤습니다. (" + repText(row) + ")");
+    r.logs.push(siteLog("관리자 영업사원 수정", (b[0] !== name ? "이름 " + b[0] + " → " + name + " · " : "") + repText(b) + " → " + repText(row), name));
+  }
+  r.changes.push({ op: "repsAll" });
+  return r;
+}
+function repDel(R, p) {
+  var name = siteName(p.name), i = -1;
+  for (var k = 0; k < R.length; k++) if (R[k][0] === name) i = k;
+  if (i < 0) return siteRes(false, "'" + name + "'을(를) 찾지 못했습니다. 이미 지워졌을 수 있습니다.");
+  var b = R.splice(i, 1)[0];
+  var r = siteRes(true, name + " 영업사원을 목록에서 지웠습니다.");
+  r.changes.push({ op: "repsAll" });
+  r.logs.push(siteLog("관리자 영업사원 삭제", repText(b), name));
+  return r;
+}
+
+
+const groupOf = no => Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10)));
+let SUM = null, MY = null;
+let myCar = store.get("myCar");
+let myTok = store.get("myTok");      // 로그인 출입증 번호 (비밀번호는 폰에 저장하지 않음)
+if (store.get("myPin")) store.set("myPin", "");   // 예전 방식으로 저장된 비밀번호는 지움
+let group = myCar ? groupOf(myCar) : 1;
+let openNo = "";
+let form = { type: "연차", date: "", time: "" };
+
+/* ---------- 서버 통신 (체험 모드는 이 폰 안에서 처리) ---------- */
+function kstNow() {
+  const k = new Date(Date.now() + 9 * 3600e3), p = n => String(n).padStart(2, "0");
+  const d = k.getUTCFullYear() + "-" + p(k.getUTCMonth() + 1) + "-" + p(k.getUTCDate());
+  return { today: d, now: d + " " + p(k.getUTCHours()) + ":" + p(k.getUTCMinutes()) + ":" + p(k.getUTCSeconds()) };
+}
+let DEMO_MEM = null; // 저장공간이 막힌 브라우저용 (화면이 열려 있는 동안만 기억)
+function demoState() {
+  let st = DEMO_MEM ? JSON.parse(JSON.stringify(DEMO_MEM)) : null;
+  if (!st) try { st = JSON.parse(localStorage.getItem("demoState") || "null"); } catch (e) {}
+  if (!st) {
+    st = { cars: {}, reqs: [], holidays: ["2026-01-01","2026-02-16","2026-02-17","2026-02-18","2026-03-01","2026-03-02","2026-05-01","2026-05-05","2026-05-24","2026-05-25","2026-06-03","2026-06-06","2026-07-17","2026-08-15","2026-08-17","2026-09-24","2026-09-25","2026-09-26","2026-10-03","2026-10-05","2026-10-09","2026-12-25","2027-01-01","2027-02-06","2027-02-07","2027-02-08","2027-02-09","2027-03-01","2027-05-01","2027-05-03","2027-05-05","2027-05-13","2027-06-06","2027-07-17","2027-07-19","2027-08-15","2027-08-16","2027-09-14","2027-09-15","2027-09-16","2027-10-03","2027-10-04","2027-10-09","2027-10-11","2027-12-25","2027-12-27"] };
+    let n = 0;
+    VAC_SEED.forEach(([no, avail, , used, summer]) => {
+      st.cars[no] = { pin: "0" + no, total: used.length + Number(avail) };
+      [["연차", used], ["여름휴가", summer]].forEach(([type, list]) => list.forEach(md => {
+        const [m, d] = md.split("/").map(Number);
+        st.reqs.push({ id: "s" + (++n), no, date: "2026-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"), type, status: "확정", time: "", createdAt: "2026-10-27 00:00", by: "관리자" });
+      }));
+    });
+  }
+  Object.keys(st.cars).forEach(no => { if (st.cars[no].pin === "1234") st.cars[no].pin = "0" + no; });   // 예전 체험 기본 비밀번호 → 0+호수
+  Object.assign(st, kstNow());
+  applySettings(st);
+  return st;
+}
+async function api(action, p) {
+  p = Object.assign({ action }, p || {});
+  if (API_URL) {
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 40000);
+      const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(p), signal: ctl.signal });
+      clearTimeout(timer);
+      return await res.json();
+    } catch (e) {
+      // 응답을 못 받음: 서버에서는 처리됐을 수도 있으니 목록을 다시 확인하도록 안내
+      return { ok: false, net: true, msg: action === "apply" || action === "cancel"
+        ? "연결이 불안정해 결과를 확인하지 못했어요. 내 신청 목록을 확인한 뒤 다시 시도해 주세요."
+        : "연결이 불안정합니다. 잠시 후 다시 시도해 주세요." };
+    }
+  }
+  const st = demoState();
+  if (action !== "summary" && action !== "mine" && action !== "login" && action !== "logout") engineDaily(st);
+  const fn = { summary: engineSummary, mine: engineMine, apply: engineApply, cancel: engineCancel, changePin: engineChangePin, login: engineLogin, logout: engineLogout }[action];
+  const r = fn(st, p);
+  DEMO_MEM = { cars: st.cars, reqs: st.reqs, holidays: st.holidays, holidayNames: st.holidayNames, settings: st.settings, dayLimits: st.dayLimits, blocks: st.blocks };
+  try { localStorage.setItem("demoState", JSON.stringify(DEMO_MEM)); } catch (e) {}
+  // 체험 모드 기록 (관리자 페이지 '기록' 탭에서 보임)
+  try {
+    const L = JSON.parse(localStorage.getItem("demoLogs") || "[]");
+    (r.logs || []).forEach(l => L.push([st.now, l.no, l.type, l.date, l.action, l.result, l.by, l.detail || ""]));
+    localStorage.setItem("demoLogs", JSON.stringify(L.slice(-2000)));
+  } catch (e) {}
+  delete r.changes; delete r.logs; delete r.badPin;
+  return r;
+}
+
+// 신청·취소·비밀번호 변경: 사람이 몰려 늦어지거나 연결이 끊기면 폰이 알아서 다시 보냄 (최대 약 1분 30초)
+async function apiWrite(action, p, onWait) {
+  let r, retried = false;
+  for (let i = 0; i < 12; i++) {
+    r = await api(action, p);
+    if (!(r.busy || r.net)) break;
+    retried = true;
+    if (onWait) onWait(i + 1);
+    await new Promise(res => setTimeout(res, 2500 + Math.random() * 2500));
+  }
+  // 앞서 보낸 요청이 실제로는 처리됐는데 답만 못 받은 경우
+  if (retried && !r.ok && action === "apply" && /이미 그 날짜에 신청돼 있습니다/.test(r.msg))
+    r = { ok: true, msg: "신청이 접수됐습니다. 아래 '내 신청'에서 결과를 확인해 주세요." };
+  if (retried && !r.ok && action === "cancel" && /이미 취소됐거나/.test(r.msg))
+    r = { ok: true, msg: "취소가 처리됐습니다. 아래 '내 신청'에서 확인해 주세요." };
+  if (r.busy || r.net) r.msg = "지금 신청하는 분이 너무 많습니다. 잠시 후 다시 눌러 주세요.";
+  return r;
+}
+
+/* ---------- 표시 도구 ---------- */
+const L = () => (SUM && SUM.rules ? SUM.rules.lockDays : 3);   // 며칠 이내는 관리자만 (설정값)
+const isFutureMD = md => {
+  const [m, d] = md.split("/").map(Number);
+  const t = SUM.today.split("-").map(Number);
+  return m > t[1] || (m === t[1] && d > t[2]);
+};
+// 앞으로 쉬는 날: 연차 날짜 + "여름 11/5~11/9"
+function upcoming(used, summer) {
+  const parts = used.filter(isFutureMD);
+  if (summer.some(isFutureMD)) parts.push("여름 " + (summer.length > 1 ? summer[0] + "~" + summer[summer.length - 1] : summer[0]));
+  return parts;
+}
+function chips(list, cls, perk) {
+  if (!list.length) return '<div class="chips"><span class="none">없음</span></div>';
+  const P = new Set(perk || []);
+  return '<div class="chips">' + list.map(d =>
+    '<span class="chip ' + cls + (isFutureMD(d) ? ' future' : '') + (P.has(d) ? ' pk' : '') + '">' + esc(d) + (P.has(d) ? '<small>우</small>' : '') + '</span>').join("") + '</div>';
+}
+// 연도별 남은 연차·후순위 여부 (12월에는 다음 해 날짜도 열리므로 날짜의 연도로 판단)
+const remainFor = y => !MY ? null : (y === MY.thisYear ? MY.remain : MY.remainNext);
+// 이번 신청으로 특혜(월·금·샌드위치데이 일반 신청)를 쓰게 되는지
+const usesPerk = d => !!MY && !!d.special && !lowFor(d.year);
+const perkUsed = y => !MY ? 0 : (y === MY.thisYear ? MY.usedSpecial : MY.usedSpecialNext);
+const perkLeft = y => !MY ? 0 : Math.max(0, MY.priorityAfter - perkUsed(y));
+// 마지막 기회면 빨간 경고, 아직 남으면 남는 횟수 안내
+const perkWarn = d => perkLeft(d.year) <= 1
+  ? "" + d.long + "은 " + d.special + "이라 " + d.year + "년 마지막 우선순위를 씁니다. 이 날 연차를 쓰면, 이후 " + d.year + "년 " + MY.specialWords + " 연차는 모두 후순위로 접수됩니다."
+  : "※ " + d.long + "은 " + d.special + "이라 우선순위 1번을 씁니다. " + d.year + "년 우선순위가 " + (perkLeft(d.year) - 1) + "번 남습니다.";
+// 일반 신청자에게 꽉 찬 날인지 (후순위 대상인 날은 제외 — 그쪽은 후순위 안내)
+const limOf = d => d.limit != null ? d.limit : SUM.limit;   // 그날 최대 인원 (황금연휴 등 날짜별로 다를 수 있음)
+const isFullFor = d => !(d.special && lowFor(d.year)) && limOf(d) - d.taken <= 0;
+const lowFor = y => !!MY && (y === MY.thisYear ? MY.usedSpecial : MY.usedSpecialNext) >= MY.priorityAfter;
+const nextYearOpen = () => SUM.days.some(d => d.year !== SUM.year) || (SUM.next && SUM.next.year !== SUM.year);
+const yearBadge = (y, n) => '<span class="badge lg ' + (Number(n) > 0 ? 'ok' : 'zero') + '">' + y + '년 연차 ' + esc(n) + '일 남음</span>';
+const badge = (n, lg) => '<span class="badge ' + (Number(n) > 0 ? 'ok' : 'zero') + (lg ? ' lg' : '') + '">' + esc(n) + '일 남음</span>';
+// 연차와 여름휴가를 따로: 각각 사용 날짜와 남은 일수 (여름휴가는 연차 남은 일수에 포함하지 않음)
+const details = r => '<p class="label">' + SUM.year + '년 연차 사용 (' + r[2].length + '일)' +
+    ((r[5] || []).length ? ' · <span class="perk-key">우</span> = 우선순위로 쓴 날 ' + r[5].length + '일' : '') + '</p>' + chips(r[2], "", r[5]) +
+  '<p class="label">' + SUM.year + '년 여름휴가 사용 (' + r[3].length + '일) · <b class="' + (r[4] > 0 ? 'left-ok' : 'left-zero') + '">' + r[4] + '일 남음</b></p>' +
+  chips(r[3], "summer");
+// 상태 표시: "우선순위 대기 1번째", "후순위 대기 2번째", "반려 · 우선순위 대기 1번째"
+// 확정된 휴가가 실제로 쓰인 날(당일 포함)부터 "사용" (조퇴·지각은 "완료")
+const isUsed = x => x.status === "확정" && x.left <= 0;
+const pillText = x => {
+  if (isUsed(x)) return x.type === "조퇴" || x.type === "지각" || x.type === "결근" ? "완료" : "사용";
+  const showRank = x.rank && x.left >= 0;
+  if (x.status === "대기") return (x.label || "대기") + (showRank ? " " + x.rank + "번째" : "");
+  if (x.status === "후순위") return "후순위 대기" + (showRank ? " " + x.rank + "번째" : "");
+  if (x.status === "반려" && showRank) return "반려 · " + (x.label || "대기") + " " + x.rank + "번째";
+  return x.status;
+};
+const STATUS_CLS = { "확정": "ok", "후순위": "wait", "대기": "wait", "반려": "zero", "취소": "off" };
+
+// 브라우저 확인창(confirm)은 일부 앱·미리보기에서 막혀 있어 사이트 안에 직접 띄움
+function ask(msg, okLabel, cancelLabel) {
+  return new Promise(resolve => {
+    const box = document.getElementById("ask");
+    document.getElementById("ask-msg").textContent = msg;
+    const ok = document.getElementById("ask-ok"), no = document.getElementById("ask-no");
+    ok.textContent = okLabel || "예"; no.textContent = cancelLabel || "아니요";
+    const done = v => { box.classList.remove("show"); ok.onclick = no.onclick = box.onclick = null; resolve(v); };
+    ok.onclick = () => done(true);
+    no.onclick = () => done(false);
+    box.onclick = e => { if (e.target === box) done(false); };
+    box.classList.add("show");
+  });
+}
+function toast(msg, good) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.className = "toast show" + (good ? " good" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "toast", Math.max(4000, msg.length * 110));
+}
+
+/* ---------- 내 차 카드 ---------- */
+function renderMine() {
+  const el = document.getElementById("mine");
+  const r = SUM && SUM.cars.find(x => x[0] === myCar);
+  if (!r) {
+    el.innerHTML = SUM ? '<div class="pick">' + esc(myCar) + '호 정보를 찾지 못했습니다. 관리자에게 문의하세요.</div>' : '';
+    return;
+  }
+  let my = "";
+  if (!MY) {
+    my = '<p class="none">내 신청 불러오는 중…</p>';
+  } else {
+    const list = MY.list.filter(x => x.status !== "취소"); // 취소한 신청은 목록에서 숨김 (기록 탭에는 남음)
+    my = '<button class="btn primary wide" id="open-form">＋ 휴가·조퇴·지각·결근 신청</button>' +
+      '<p class="label" style="margin-top:16px">내 신청</p>' +
+      (list.length ? '<ul class="reqs">' + list.map(x =>
+        '<li><div class="req-main"><b>' + esc(x.long) + '</b> ' + esc(x.type) + (x.reason ? ' (' + esc(x.reason) + ')' : '') + (x.time ? ' ' + esc(x.time) : '') +
+          ' <span class="pill ' + (isUsed(x) ? 'used' : STATUS_CLS[x.status]) + '">' + esc(pillText(x)) + '</span>' +
+          (x.status === "후순위" ? '<div class="hint">후순위 대기 ' + x.rank + '번째입니다. 우선순위 대기하는 분들이 먼저 확정되고, 그다음 후순위 대기 순서대로 확정됩니다. 휴가 ' + L() + '일 전까지 자리가 나지 않으면 확정되지 않습니다.</div>' : '') +
+          (x.status === "대기" ? '<div class="hint">' + (x.label || "대기") + ' ' + x.rank + '번째입니다. 확정된 분이 취소하면 ' + (x.label || "대기") + ' 순서대로 자동 확정됩니다. ' +
+            '휴가 ' + L() + '일 전까지 자리가 나지 않으면 확정되지 않습니다.</div>' : '') +
+          (x.status === "반려" && x.rank && x.left >= 0 ? '<div class="hint">자리가 다 차서 확정되지 않았습니다. ' + (x.label || "대기") + ' ' + x.rank + '번째입니다. 자리가 나면 ' + (x.label === "대기" ? '신청 순서대로' : '우선순위 대기, 후순위 대기 순서대로') + ' 관리자가 확정합니다.</div>' : '') +
+          (!x.canCancel && (x.status === "확정" || x.status === "후순위") && x.left > 0 ? '<div class="hint">취소는 관리자에게 문의</div>' : '') +
+        '</div>' + (x.canCancel ? '<button class="btn small" data-cancel="' + esc(x.id) + '">취소</button>' : '') + '</li>').join("") + '</ul>'
+        : '<p class="none">최근 신청 내역이 없습니다</p>') +
+      '<div class="links"><button class="link" id="open-pw">비밀번호 변경</button></div>';
+  }
+  const y = SUM.year, left = MY ? MY.remain : r[1];
+  const month = Number(SUM.today.slice(5, 7));
+  // 11~12월: 남은 연차가 해가 바뀌면 없어진다는 안내
+  const expire = month >= 11 && Number(left) > 0
+    ? '<div class="notice red"><b>' + y + '년 연차가 ' + left + '일 남았습니다.</b>' +
+      '<br>' + y + '년 12월 31일이 지나면 남은 연차는 없어지고, ' + (+y + 1) + '년으로 넘어가지 않습니다.' +
+      (SUM.days.some(d => !d.locked && !d.off && d.year === y)
+        ? '<br>휴대폰 신청은 휴가 날짜 ' + (L() + 1) + '일 전까지만 됩니다.'
+        : '<br>' + y + '년 날짜는 이제 휴대폰으로 신청할 수 없습니다. 쓰시려면 관리자에게 문의하세요.') + '</div>' : '';
+  // 12월 말: 다음 해 날짜 신청이 열렸다는 안내
+  const nextInfo = MY && nextYearOpen()
+    ? '<div class="notice blue"><b>' + MY.nextYear + '년 연차: ' + MY.remainNext + '일</b>' +
+      '<br>' + MY.nextYear + '년 1월 날짜를 신청하면 <b>' + MY.nextYear + '년 연차</b>에서 빠집니다.' +
+      '<br>' + y + '년 연차는 줄지 않습니다.</div>' : '';
+  el.innerHTML = '<div class="mine"><div class="mine-top"><span class="mine-tag">내 차</span></div>' +
+    '<div class="mine-head"><span class="big">' + esc(r[0]) + '<small>호</small></span><span class="badges">' + yearBadge(y, left) +
+    '<span class="badge lg ' + (r[4] > 0 ? 'sum' : 'zero') + '">여름휴가 ' + r[4] + '일 남음</span></span></div>' +
+    expire + nextInfo +
+    (MY ? '<p class="perk">우선순위: ' + y + '년 <b>' + perkLeft(y) + '번 남음</b>' +
+          (perkLeft(y) === 0 ? ' <span class="sub">(이후 후순위로 접수)</span>' : '') +
+          '<br><span class="sub">우선순위 = 월·금요일, 연휴 앞뒤 날 연차를 먼저 신청할 수 있는 횟수</span></p>' : '') +
+    details(r) + '<div class="divider"></div>' + my + '</div>';
+}
+
+/* ---------- 조별 목록 ---------- */
+function renderTabs() {
+  document.getElementById("tabs").innerHTML = [1,2,3,4,5,6].map(g =>
+    '<button class="tab' + (g === group ? ' on' : '') + '" data-g="' + g + '">' + g + '조</button>').join("");
+}
+const chevron = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+function renderList() {
+  if (!SUM) return;
+  document.getElementById("list").innerHTML = '<p class="list-cap">남은 일수는 ' + SUM.year + '년 연차 기준입니다</p>' + SUM.cars.filter(r => groupOf(r[0]) === group).map(r => {
+    const up = upcoming(r[2], r[3]);
+    return '<div class="row' + (r[0] === openNo ? ' open' : '') + (r[0] === myCar ? ' me' : '') + '">' +
+      '<button class="row-btn" data-no="' + esc(r[0]) + '">' +
+        '<span class="no">' + esc(r[0]) + '</span>' + badge(r[1]) +
+        '<span class="next' + (up.length ? ' has' : '') + '">' + (up.length ? esc(up.join(" · ")) : '예정 없음') + '</span>' +
+        chevron + '</button>' +
+      '<div class="detail">' + details(r) +
+      '</div></div>';
+  }).join("");
+}
+function renderVac() { renderMine(); renderTabs(); renderList(); }
+
+/* ---------- 신청 화면 ---------- */
+function renderForm() {
+  const taken = new Set((MY ? MY.list : []).filter(x => x.status === "확정" || x.status === "후순위").map(x => x.date));
+  document.getElementById("types").innerHTML = ["연차", "조퇴", "지각", "결근"].map(t =>
+    '<button class="seg' + (form.type === t ? ' on' : '') + '" data-type="' + t + '">' + t + '</button>').join("");
+  let divided = false;
+  const divider = y => { divided = true; return '<div class="year-div">↓ 여기부터 <b>' + y + '년</b> 날짜입니다. ' + y + '년 연차에서 빠집니다.</div>'; };
+  document.getElementById("days").innerHTML = SUM.days.map(d => {
+    const pre = !divided && d.year !== SUM.year ? divider(d.year) : "";
+    let sub = "", dis = false, cls = "";
+    if (d.locked) {
+      // 3일 이내: 인원만 보여주고 신청은 막음 (누르면 안내)
+      const mineThere = taken.has(d.date);
+      sub = d.off ? "휴무" : (mineThere ? "내 신청 · " : "") + d.taken + "/" + limOf(d) + "명";
+      return pre + '<button class="day locked" data-locked="' + d.date + '">' +
+        '<span class="d1">' + d.label + '</span><span class="d2' + (d.week === "일" || d.off ? ' red' : '') + '">' + d.week + '</span>' +
+        '<span class="d3">' + sub + '</span>' + (d.off ? '' : '<span class="d4">관리자 문의</span>') + '</button>';
+    }
+    if (d.off) { sub = "휴무"; dis = true; }
+    else if (taken.has(d.date)) { sub = "신청함"; dis = true; }
+    else if (form.type === "연차" && d.block) { sub = "연차 불가"; dis = true; }   // 연차 신청 막는 기간 (예: 여름휴가 기간)
+    else if (form.type === "연차" && MY && remainFor(d.year) < 1) { sub = "연차 없음"; dis = true; }
+    else if (form.type === "연차") {
+      const left = limOf(d) - d.taken;
+      if (d.special && lowFor(d.year)) {
+        // 특혜를 다 쓴 사람: 특혜 보유자 몫을 빼고 남는 자리가 있으면 바로 확정
+        if (d.lowOpen > 0) sub = d.lowOpen + "자리";
+        else { sub = "후순위"; cls = " warn"; }
+      }
+      else if (left <= 0) { sub = "마감 · 대기"; cls = " warn"; }   // 꽉 찬 날도 대기로 신청 가능
+      else sub = left + "자리";
+    } else sub = "가능";
+    return pre + '<button class="day' + (form.date === d.date ? ' on' : '') + cls + '" data-date="' + d.date + '"' + (dis ? ' disabled' : '') + '>' +
+      '<span class="d1">' + d.label + '</span><span class="d2' + (d.week === "일" || d.off ? ' red' : '') + '">' + d.week + '</span>' +
+      '<span class="d3">' + sub + '</span></button>';
+  }).join("");
+  // 다음에 열리는 날짜: 언제부터 신청할 수 있는지 표시
+  const nx = SUM.next;
+  if (nx) document.getElementById("days").innerHTML += (!divided && nx.year !== SUM.year ? divider(nx.year) : "") +
+    '<button class="day soon" data-soon="1"><span class="d1">' + nx.label + '</span><span class="d2">' + nx.week + '</span>' +
+    '<span class="d3">' + nx.opensLabel + '(' + nx.opensWeek + ')<br>' + nx.opensTime + '부터</span></button>';
+  document.getElementById("time-row").style.display = form.type === "조퇴" || form.type === "지각" ? "block" : "none";
+  document.getElementById("time-label").textContent = form.type === "조퇴" ? "몇 시에 퇴근하시나요? (조퇴 시간)" : "몇 시에 출근하시나요? (출근 예정 시간)";
+  const hrs = (SUM.rules && SUM.rules.hours) || ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"];
+  document.getElementById("hours").innerHTML = hrs.map(h => '<button type="button" class="' + (form.time === h ? 'on' : '') + '" data-hour="' + h + '">' + (+h.slice(0, 2)) + '시</button>').join("");
+  const sel = SUM.days.find(d => d.date === form.date);
+  let note = "", other = false;
+  if (sel && form.type === "연차") {
+    const n = remainFor(sel.year);
+    other = sel.year !== SUM.year;
+    if (sel.special && lowFor(sel.year))
+      note = sel.lowOpen > 0
+        ? sel.long + "은 " + sel.special + "이지만, 자리에 여유가 있어 바로 확정됩니다.\n"
+        : sel.long + "은 후순위 대기로 접수됩니다. " + sel.year + "년 우선순위 " + MY.priorityAfter + "번을 모두 쓰셨기 때문입니다. " +
+          "우선순위 대기하는 분들이 먼저 확정되고, 그다음 후순위 대기 순서대로 확정됩니다. 휴가 " + L() + "일 전까지 자리가 나지 않으면 확정되지 않습니다.\n";
+    if (isFullFor(sel))
+      note = "" + sel.long + "은 자리가 다 찼습니다. 신청하시면 " + (sel.special ? "우선순위 대기" : "대기") + "로 접수되고, 확정된 분이 취소하면 " + (sel.special ? "우선순위 대기" : "대기") + " 순서대로 자동 확정됩니다. " +
+             "휴가 " + L() + "일 전까지 자리가 나지 않으면 확정되지 않습니다.\n";
+    note += sel.long + " 연차가 확정되면 " + sel.year + "년 연차에서 1일이 빠집니다. (" + sel.year + "년 남은 연차 " + n + "일 → " + (n - 1) + "일)";
+    if (isFullFor(sel)) note += "\n대기하는 동안에도 연차 1일은 미리 잡아 두고, 대기를 취소하면 돌아옵니다.";
+    if (sel.year !== SUM.year) note += "\n" + SUM.year + "년 연차는 줄지 않습니다.";   // 다음 해 날짜일 때만
+    if (isFullFor(sel)) other = true;                                                 // 빨간 굵은 글씨로
+    if (usesPerk(sel)) { note = perkWarn(sel) + "\n\n" + note; if (perkLeft(sel.year) <= 1) other = true; }
+  } else if (sel && form.type === "결근") {
+    note = sel.long + " 결근 신청입니다.\n연차는 줄지 않고, 인원 제한 없이 바로 확정됩니다."; other = true;
+  } else if (sel) {
+    note = form.time
+      ? sel.long + " " + form.type + " (" + (+form.time.slice(0, 2)) + "시 " + (form.type === "조퇴" ? "퇴근" : "출근") + ") 신청입니다. 연차는 줄지 않습니다."
+      : sel.long + " " + form.type + " 신청입니다. " + (form.type === "조퇴" ? "퇴근" : "출근") + " 시간을 골라 주세요.";
+  } else if (form.type === "연차" && MY && MY.remain < 1 && !(nextYearOpen() && MY.remainNext > 0)) {
+    note = SUM.year + "년 연차가 남아 있지 않습니다. 조퇴·지각·결근은 신청할 수 있습니다.";
+  }
+  document.getElementById("form-warn").textContent = "" + L() + "일 이내 신청·취소와 여름휴가는 관리자에게 직접 요청하세요";
+  document.getElementById("day-hint").textContent = "· 회색은 " + L() + "일 이내(관리자 문의) · 점선은 다음에 열리는 날";
+  const fn = document.getElementById("form-note");
+  fn.textContent = note; fn.className = "form-note" + (other ? " other" : "");
+  document.getElementById("submit").disabled = !form.date || ((form.type === "조퇴" || form.type === "지각") && !form.time);
+}
+function openForm() {
+  form = { type: "연차", date: "", time: "" };
+  renderForm();
+  document.getElementById("sheet").classList.add("show");
+}
+function closeForm() {
+  if (formInline()) { form = { type: form.type, date: "", time: "" }; return renderForm(); }   // 넓은 화면: 신청란은 그대로, 고른 날짜만 비움
+  document.getElementById("sheet").classList.remove("show");
+}
+/* ---------- 넓은 화면(펼친 폴더블·태블릿): 신청란을 오른쪽에 항상 펼쳐 둠 ---------- */
+const vacMQ = window.matchMedia("(min-width: 680px)");
+const formInline = () => vacMQ.matches;
+let formReady = false;
+function syncForm() {
+  const sheet = document.getElementById("sheet"), right = document.getElementById("vac-right"), empty = document.getElementById("form-empty");
+  if (formInline()) {
+    if (sheet.parentNode !== right) right.appendChild(sheet);
+    sheet.classList.add("inline");
+    const ready = !!(SUM && MY && myTok);
+    sheet.style.display = ready ? "" : "none";
+    empty.innerHTML = ready ? "" : '<b>내 신청 불러오는 중…</b>';
+    if (ready) { if (!formReady) { form = { type: "연차", date: "", time: "" }; formReady = true; } renderForm(); }
+  } else {
+    if (sheet.parentNode !== document.body) document.body.appendChild(sheet);
+    sheet.classList.remove("inline"); sheet.style.display = "";
+    formReady = false;
+  }
+}
+vacMQ.addEventListener ? vacMQ.addEventListener("change", syncForm) : vacMQ.addListener(syncForm);
+const renderMineBase = renderMine;
+renderMine = function () { renderMineBase(); syncForm(); };
+
+/* ---------- 불러오기 ---------- */
+async function loadVac() {
+  try {
+    const s = await api("summary", { no: myCar, tok: myTok });
+    if (!s.ok && s.auth) return logout(s.msg);                      // 다른 기기 로그인 등
+    if (!s.ok) throw new Error(s.msg);
+    SUM = s;
+    document.getElementById("checked").textContent = "오늘 " + SUM.today + (API_URL ? "" : " · 체험 모드");
+    document.getElementById("demo").style.display = API_URL ? "none" : "block";
+    if (myCar && myTok) await loadMine(true);
+    renderVac();
+  } catch (e) {
+    document.getElementById("checked").textContent = "휴가 정보를 불러오지 못했습니다. 새로고침 해주세요.";
+  }
+}
+async function loadMine(silent) {
+  const r = await api("mine", { no: myCar, tok: myTok });
+  if (r.ok) { MY = r; if (r.mustChange) showChange(); else newsCheck(r.list); }   // 처음 비밀번호를 아직 안 바꿨으면 바꾸는 화면
+  else if (r.net || r.locked) { if (!silent) toast(r.msg); }   // 연결 문제·잠금이면 로그인은 그대로 둠
+  else logout(r.msg);                                              // 다른 기기에서 로그인했거나 운행 제외 → 다시 로그인
+}
+
+/* ---------- 새 소식: 지난번에 본 뒤로 관리자·자동 처리로 바뀐 내 신청 ----------
+   이 폰에 지난번 '내 신청' 상태를 적어 두고, 다음에 열 때 달라진 것만 알려 줌 */
+const seenKey = () => "seen_" + myCar;
+function seenGet() { try { return JSON.parse(localStorage.getItem(seenKey()) || "null"); } catch (e) { return null; } }
+function seenSet(v) { try { localStorage.setItem(seenKey(), JSON.stringify(v)); } catch (e) {} }
+function seenDrop(id) { const s = seenGet(); if (s && s[id]) { delete s[id]; seenSet(s); } }   // 내가 직접 취소한 것은 알리지 않음
+function newsCheck(list) {
+  const prev = seenGet(), cur = {};
+  list.forEach(x => { cur[x.id] = [x.date, x.type, x.status, x.time || "", x.long]; });
+  seenSet(cur);
+  if (!prev) return;                                               // 이 폰에서 처음 보는 것: 기준만 저장
+  const today = SUM ? SUM.today : kstNow().today, out = [];
+  const what = (long, type, time) => long + " " + type + (time ? " " + time : "");
+  list.forEach(x => {
+    const p = prev[x.id], w = what(x.long, x.type, x.time);
+    if (!p) { if (x.by === "관리자") out.push(["ok", "입력", w, "관리자가 넣었습니다"]); return; }
+    if (p[0] !== x.date || p[1] !== x.type || p[3] !== (x.time || "")) out.push(["", "변경", what(p[4], p[1], p[3]) + " → " + w, "관리자가 바꿨습니다"]);
+    if (p[2] !== x.status) {
+      if (x.status === "확정") out.push(["ok", "확정", w, (p[2] === "대기" || p[2] === "후순위" || p[2] === "반려") ? "기다리던 신청이 확정됐습니다" : "확정됐습니다"]);
+      else if (x.status === "반려") out.push(["bad", "미확정", w, "자리가 나지 않아 확정되지 않았습니다"]);
+      else if (p[2] === "확정") out.push(["", "대기", w, "관리자가 대기로 바꿨습니다"]);
+    }
+  });
+  Object.keys(prev).forEach(id => {
+    if (cur[id]) return;
+    const p = prev[id];
+    if (dDiff(p[0], today) >= -3) out.push(["bad", "취소", what(p[4], p[1], p[3]), "관리자가 취소했습니다"]);   // 날짜가 지나 목록에서 빠진 것은 제외
+  });
+  if (!out.length) return;
+  document.getElementById("news-list").innerHTML = out.map(o => '<li><span class="tag ' + o[0] + '">' + o[1] + '</span><b>' + esc(o[2]) + '</b><span class="sub">' + esc(o[3]) + '</span></li>').join("");
+  document.getElementById("news").classList.add("show");
+}
+document.getElementById("news-ok").addEventListener("click", () => document.getElementById("news").classList.remove("show"));
+
+/* ---------- 로그인 · 로그아웃 (로그인은 이 폰에 계속 유지) ---------- */
+function showLogin(msg) {
+  const ls = document.getElementById("login-screen");
+  showMainLogin();
+  ls.classList.remove("hidden", "entering"); void ls.offsetWidth; ls.classList.add("entering");   // 로그인 화면이 부드럽게 다시 나타남
+  document.getElementById("who").classList.add("hidden");
+  document.getElementById("lg-err").textContent = msg || "";
+  document.getElementById("lg-id").value = myCar || "";
+  document.getElementById("lg-pw").value = "";
+  setEye(false);                                                  // 로그인 화면이 다시 열리면 항상 가린 상태로
+}
+const REDUCED = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+function startApp(animate) {
+  const ls = document.getElementById("login-screen");
+  if (animate && !REDUCED) {                                      // 로그인 화면은 흐려지며 사라지고, 뒤 화면은 살짝 떠오름
+    ls.classList.add("leaving");
+    document.body.classList.remove("app-enter"); void document.body.offsetWidth; document.body.classList.add("app-enter");
+    setTimeout(() => { ls.classList.add("hidden"); ls.classList.remove("leaving"); }, 380);
+    setTimeout(() => document.body.classList.remove("app-enter"), 700);
+  } else ls.classList.add("hidden");
+  document.getElementById("who-no").textContent = myCar + "호";
+  document.getElementById("who").classList.remove("hidden");
+  group = groupOf(myCar);
+  loadVac();
+  loadSheet();
+}
+function logout(msg) {
+  MY = null; myTok = ""; store.set("myTok", "");
+  try { localStorage.removeItem("sitesCache"); localStorage.removeItem("todayCache"); localStorage.removeItem("repsCache"); } catch (e) {}
+  SITES = []; DAY_CACHE = {}; $q.value = ""; setToday([], []); renderDist();
+  showLogin(msg);
+}
+// 폼 제출(submit)을 쓰지 않음: 미리보기 창처럼 폼 제출이 막힌 곳에서도 로그인 버튼이 동작하도록
+document.getElementById("login-form").addEventListener("submit", e => e.preventDefault());
+["lg-id", "lg-pw"].forEach(id => document.getElementById(id).addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); id === "lg-id" && !document.getElementById("lg-pw").value ? document.getElementById("lg-pw").focus() : doLogin(); }
+}));
+document.getElementById("lg-btn").addEventListener("click", () => doLogin());
+// 비밀번호 보기·숨기기 (눈 모양 버튼)
+function setEye(show) {
+  const pw = document.getElementById("lg-pw"), eye = document.getElementById("lg-eye");
+  pw.type = show ? "text" : "password"; eye.classList.toggle("on", show);
+  eye.setAttribute("aria-label", show ? "비밀번호 숨기기" : "비밀번호 보기");
+}
+document.getElementById("lg-eye").addEventListener("click", () => {
+  const pw = document.getElementById("lg-pw"); setEye(pw.type === "password"); pw.focus();
+});
+document.getElementById("lg-change").addEventListener("click", e => {          // 새 비밀번호 칸의 눈 버튼
+  const b = e.target.closest("[data-eye]"); if (!b) return;
+  const inp = document.getElementById(b.dataset.eye), show = inp.type === "password";
+  inp.type = show ? "text" : "password"; b.classList.toggle("on", show); inp.focus();
+});
+async function doLogin() {
+  const id = document.getElementById("lg-id").value.trim(), pin = document.getElementById("lg-pw").value.trim();
+  const no = id.replace(/\D/g, "");   // 9999 = 관리자
+  const err = document.getElementById("lg-err"), btn = document.getElementById("lg-btn");
+  if (no === "9999") {                              // 관리자: 비밀번호 확인 후 관리자 페이지로
+    if (!pin) return err.textContent = "비밀번호를 입력하세요.";
+    btn.disabled = true; btn.textContent = "확인 중…"; err.textContent = "";
+    let demoPw = "4512"; try { demoPw = localStorage.getItem("demoAdminPw") || "4512"; } catch (e) {}
+    let r = { ok: pin === demoPw, msg: "관리자 비밀번호가 맞지 않습니다." };   // 체험 모드
+    if (!API_URL && r.ok) try { const L = JSON.parse(localStorage.getItem("demoLogs") || "[]"); L.push([kstNow().now, "-", "-", "", "관리자 로그인", "성공", "관리자", ""]); localStorage.setItem("demoLogs", JSON.stringify(L.slice(-2000))); } catch (e) {}
+    if (API_URL) r = await api("adminLogin", { adminPw: pin });
+    btn.disabled = false; btn.textContent = "로그인";
+    if (!r.ok) return err.textContent = r.msg || "관리자 비밀번호가 맞지 않습니다.";
+    try { sessionStorage.setItem("adminPw", pin); } catch (e) {}
+    return location.href = "admin.html";
+  }
+  if (!no) return err.textContent = "아이디(차량 호수)를 입력하세요.";
+  if (!pin) return err.textContent = "비밀번호를 입력하세요.";
+  btn.disabled = true; btn.textContent = "확인 중…"; err.textContent = "";
+  const r = await api("login", { no, pin });
+  if (!r.ok) { btn.disabled = false; btn.textContent = "로그인"; return err.textContent = r.msg === "등록되지 않은 호수입니다." ? "등록되지 않은 아이디(차량 호수)입니다." : r.msg; }
+  myCar = no; myTok = r.tok; MY = null; store.set("myCar", no); store.set("myTok", r.tok); openNo = "";
+  LOGIN_NOTE = r.replaced ? "기존 기기에서 로그아웃되었습니다. 이제 이 기기에서 " + no + "호로 사용합니다." : "";
+  if (r.mustChange) { btn.disabled = false; btn.textContent = "로그인"; return showChange(); }   // 처음 받은 비밀번호 → 먼저 바꾸기
+  await enterApp(btn, "✓ " + no + "호 확인됨");
+}
+// 확인 표시를 잠깐 보여 준 뒤 부드럽게 넘어감
+let LOGIN_NOTE = "";
+async function enterApp(btn, label) {
+  btn.disabled = true; btn.classList.add("ok"); btn.textContent = label;
+  await new Promise(res => setTimeout(res, REDUCED ? 150 : 550));
+  startApp(true);
+  setTimeout(() => { btn.disabled = false; btn.classList.remove("ok"); btn.textContent = btn.dataset.label || "로그인"; showMainLogin(); }, 450);
+  if (LOGIN_NOTE) { const n = LOGIN_NOTE; LOGIN_NOTE = ""; setTimeout(() => toast(n, true), 600); }
+}
+/* ---------- 처음 받은 비밀번호 바꾸기 (로그인 화면 안에서) ---------- */
+function showMainLogin() { document.getElementById("lg-main").classList.remove("hidden"); document.getElementById("lg-change").classList.add("hidden"); }
+function showChange() {
+  const ls = document.getElementById("login-screen");
+  if (ls.classList.contains("hidden")) { ls.classList.remove("hidden"); document.getElementById("who").classList.add("hidden"); }
+  document.getElementById("lg-main").classList.add("hidden");
+  document.getElementById("lg-change").classList.remove("hidden");
+  document.getElementById("ch-no").textContent = myCar + "호";
+  ["ch-new", "ch-new2"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("ch-err").textContent = "";
+  setTimeout(() => document.getElementById("ch-new").focus(), 300);
+}
+async function doChange() {
+  const np = document.getElementById("ch-new").value.trim(), np2 = document.getElementById("ch-new2").value.trim();
+  const err = document.getElementById("ch-err"), btn = document.getElementById("ch-btn");
+  if (!np || !np2) return err.textContent = "새 비밀번호를 두 칸 모두 넣어 주세요.";
+  if (!/^\d{4,8}$/.test(np)) return err.textContent = "숫자 4~8자리로 정해 주세요.";
+  if (np !== np2) return err.textContent = "두 칸의 번호가 서로 달라요. 다시 확인해 주세요.";
+  btn.disabled = true; btn.textContent = "바꾸는 중…"; err.textContent = "";
+  const r = await api("changePin", { no: myCar, tok: myTok, newPin: np });
+  btn.disabled = false; btn.textContent = btn.dataset.label;
+  if (!r.ok) { if (r.kicked) return logout(r.msg); return err.textContent = r.msg; }
+  LOGIN_NOTE = (LOGIN_NOTE ? LOGIN_NOTE + " " : "") + "비밀번호를 바꿨습니다. 다음부터 새 비밀번호로 로그인하세요.";
+  await enterApp(btn, "✓ 비밀번호를 바꿨습니다");
+}
+document.getElementById("ch-btn").addEventListener("click", () => doChange());
+["ch-new", "ch-new2"].forEach(id => document.getElementById(id).addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); id === "ch-new" ? document.getElementById("ch-new2").focus() : doChange(); }
+}));
+document.getElementById("ch-out").addEventListener("click", () => { api("logout", { no: myCar, tok: myTok }); logout(""); });
+// 앱을 다시 볼 때마다 로그인 상태 확인 (다른 기기에서 로그인했으면 여기서 알려 줌)
+document.addEventListener("visibilitychange", async () => {
+  if (document.hidden || !myCar || !myTok || !document.getElementById("login-screen").classList.contains("hidden")) return;
+  await loadMine(true); if (myTok) renderMine();
+});
+document.getElementById("who-out").addEventListener("click", async () => {
+  if (!(await ask("로그아웃할까요?\n\n다시 쓰려면 아이디와 비밀번호를 넣어야 합니다.", "로그아웃", "그대로 두기"))) return;
+  api("logout", { no: myCar, tok: myTok });                       // 서버의 출입증도 지움 (기다리지 않음)
+  logout("");
+});
+
+/* ---------- 오후 9시가 되면 새 날짜가 열리므로 화면을 자동 갱신 ---------- */
+let openKey = "";
+setInterval(async () => {
+  const n = kstNow(), key = n.today + (Number(n.now.slice(11, 13)) >= (SUM ? SUM.rules.openHour : 21) ? "b" : "a");
+  if (!openKey) { openKey = key; return; }
+  if (key === openKey || !SUM) return;
+  openKey = key;
+  await loadVac();
+  if (document.getElementById("sheet").classList.contains("show")) renderForm();
+}, 15000);
+
+/* ---------- 이벤트 ---------- */
+document.getElementById("tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  group = Number(b.dataset.g); openNo = ""; renderTabs(); renderList();
+});
+document.getElementById("list").addEventListener("click", e => {
+  const b = e.target.closest(".row-btn"); if (!b) return;
+  openNo = openNo === b.dataset.no ? "" : b.dataset.no; renderList();
+});
+document.getElementById("mine").addEventListener("click", async e => {
+  const id = e.target.id;
+  if (id === "open-form") openForm();
+  else if (id === "open-pw") openPw();
+  else if (e.target.dataset.cancel) {
+    const x = MY.list.find(v => v.id === e.target.dataset.cancel);
+    if (!(await ask(x.long + " " + x.type + " 신청을 취소할까요?", "취소하기", "그대로 두기"))) return;
+    e.target.disabled = true;
+    e.target.textContent = "처리 중…";
+    const r = await apiWrite("cancel", { no: myCar, tok: myTok, id: x.id }, () => { e.target.textContent = "기다리는 중…"; });
+    if (r.ok) seenDrop(x.id);
+    toast(r.msg, r.ok);
+    await loadVac();
+  }
+});
+document.getElementById("sheet").addEventListener("click", async e => {
+  if (e.target.id === "sheet" || e.target.id === "close") return closeForm();
+  const t = e.target.closest("[data-type]"); if (t) { form.type = t.dataset.type; form.date = ""; form.time = ""; return renderForm(); }
+  const hb = e.target.closest("[data-hour]"); if (hb) { form.time = hb.dataset.hour; return renderForm(); }
+  const lk = e.target.closest("[data-locked]");
+  if (lk) {
+    const d = SUM.days.find(x => x.date === lk.dataset.locked);
+    return toast(d.off ? d.long + "은 쉬는 날입니다."
+      : d.long + " 연차 " + d.taken + "/" + limOf(d) + "명 · " + L() + "일 이내라 신청·취소는 관리자에게 직접 요청해 주세요.");
+  }
+  if (e.target.closest("[data-soon]")) {
+    const nx = SUM.next;
+    return toast(nx.long + "은 " + nx.opensLong + " " + nx.opensTime + "부터 신청할 수 있습니다." + (nx.year !== SUM.year ? " " + nx.year + "년 연차에서 빠집니다." : ""));
+  }
+  const d = e.target.closest("[data-date]"); if (d && !d.disabled) { form.date = d.dataset.date; return renderForm(); }
+  if (e.target.id === "submit") {
+    const sel = SUM.days.find(d => d.date === form.date);
+    if (form.type === "연차" && isFullFor(sel)) {
+      const wl = sel.special ? "우선순위 대기" : "대기";
+      if (!(await ask(sel.long + "은 자리가 다 찼습니다.\n" + wl + "로 신청합니다." +
+          "\n\n자리가 나면 " + wl + " 순서대로 자동 확정되고, 그때 " + sel.year + "년 연차에서 1일이 빠집니다." +
+          "\n휴가 " + L() + "일 전까지 자리가 나지 않으면 확정되지 않습니다.\n\n" + wl + "로 신청할까요?", "대기 신청", "다시 고르기"))) return;
+    } else if (form.type === "연차" && sel.special && lowFor(sel.year) && !(sel.lowOpen > 0)) {
+      if (!(await ask(sel.long + "은 후순위 대기로 신청합니다.\n\n우선순위 대기하는 분들이 먼저 확정되고, 그다음 후순위 대기 순서대로 확정됩니다." +
+          "\n확정되면 " + sel.year + "년 연차에서 1일이 빠집니다.\n휴가 " + L() + "일 전까지 자리가 나지 않으면 확정되지 않습니다.\n\n후순위 대기로 신청할까요?", "대기 신청", "다시 고르기"))) return;
+    } else if ((form.type === "조퇴" || form.type === "지각") && !(await ask(sel.long + " " + (+form.time.slice(0, 2)) + "시 " + (form.type === "조퇴" ? "퇴근 (조퇴)" : "출근 (지각)") + "\n\n신청할까요?", "신청하기", "다시 고르기"))) return;
+    else if (form.type === "결근" && !(await ask(sel.long + " 결근을 신청합니다.\n\n연차는 줄지 않습니다.\n\n신청할까요?", "결근 신청", "다시 고르기"))) return;
+    else if (form.type === "연차" && !(await ask(sel.long + " 연차를 신청합니다.\n" + sel.year + "년 연차에서 1일이 빠집니다." +
+        (usesPerk(sel) ? "\n\n" + perkWarn(sel) : "") + "\n\n신청할까요?", "신청하기", "다시 고르기"))) return;
+    e.target.disabled = true; e.target.textContent = "신청 중…";
+    const r = await apiWrite("apply", { no: myCar, tok: myTok, date: form.date, type: form.type, time: form.time },
+      n => { e.target.textContent = "신청 처리 중… 순서를 기다리고 있어요"; });
+    e.target.textContent = "신청하기";
+    toast(r.msg, r.ok);
+    if (r.ok) closeForm();
+    await loadVac();
+    if (!r.ok) renderForm();
+  }
+});
+
+
+/* ---------- 비밀번호 변경 ---------- */
+function openPw() {
+  ["pw-now", "pw-new", "pw-new2"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("pw-note").textContent = "";
+  document.getElementById("pwsheet").classList.add("show");
+  setTimeout(() => document.getElementById("pw-now").focus(), 250);
+}
+function closePw() { document.getElementById("pwsheet").classList.remove("show"); }
+document.getElementById("pwsheet").addEventListener("click", async e => {
+  if (e.target.id === "pwsheet" || e.target.id === "pw-close") return closePw();
+  if (e.target.id !== "pw-save") return;
+  const now = document.getElementById("pw-now").value.trim();
+  const np = document.getElementById("pw-new").value.trim();
+  const np2 = document.getElementById("pw-new2").value.trim();
+  const note = document.getElementById("pw-note");
+  if (!now || !np) return note.textContent = "빈칸을 모두 채워 주세요.";
+  if (!/^\d{4,8}$/.test(np)) return note.textContent = "새 비밀번호는 숫자 4~8자리로 정해 주세요.";
+  if (np !== np2) return note.textContent = "새 비밀번호 두 칸이 서로 달라요.";
+  e.target.disabled = true; e.target.textContent = "바꾸는 중…";
+  const r = await apiWrite("changePin", { no: myCar, pin: now, newPin: np }, () => { e.target.textContent = "기다리는 중…"; });
+  e.target.disabled = false; e.target.textContent = "비밀번호 바꾸기";
+  if (!r.ok) return note.textContent = r.msg;
+  closePw(); toast(r.msg, true);
+  await loadMine(true); renderMine();
+});
+
+/* ───── 시작 ───── */
+// 로그인돼 있으면 바로, 아니면 로그인 화면
+showView(store.get("lastView") === "vac" ? "vac" : "dist");
+if (myCar && myTok) startApp(); else showLogin();
+</script>
+</body>
+</html>
