@@ -3,7 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>기사 도우미</title>
+<title>현창레미콘</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="현창레미콘">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
   :root {
     --bg: #ffffff;
@@ -59,6 +67,17 @@
   body { overflow-x: hidden; }
   @media (prefers-reduced-motion: reduce) { .view.in-r, .view.in-l { animation: none; } }
   .login-screen { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; }
+  .a2hs { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom)); z-index: 30; display: flex; align-items: center; gap: 10px;
+          background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.15); max-width: 520px; margin: 0 auto; }
+  .a2hs.hidden { display: none; }
+  .a2hs-ic { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); flex: none; }
+  .a2hs-t { flex: 1; display: flex; flex-direction: column; font-size: 15px; line-height: 1.35; }
+  .a2hs-t span { font-size: 13px; color: var(--muted); }
+  .a2hs-go { flex: none; height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .a2hs-x { flex: none; width: 34px; height: 40px; border: 0; background: none; color: var(--muted); font-size: 24px; cursor: pointer; }
+  .a2hs-steps { margin: 4px 0 18px; padding-left: 22px; font-size: 16px; line-height: 1.6; }
+  .a2hs-steps li { margin-bottom: 8px; }
+  .a2hs-steps b { color: var(--accent); }
   .login-screen.hidden, .who.hidden, #lg-main.hidden, #lg-change.hidden { display: none; }
   .link-btn { border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; padding: 8px; margin-top: 6px; cursor: pointer; }
   .login-box { max-width: 420px; margin: 0 auto; padding: 18vh 24px 40px; }
@@ -369,6 +388,20 @@
   <p class="login-note">같은 숫자 반복(1111)이나 호수와 같은 번호는 쓸 수 없어요<br><button class="link-btn" id="ch-out" type="button">나중에 하기 (로그아웃)</button></p>
   </div>
  </form>
+</div>
+<!-- 홈 화면에 앱으로 추가 안내 -->
+<div class="a2hs hidden" id="a2hs">
+  <img src="icon-192.png" alt="" class="a2hs-ic">
+  <div class="a2hs-t"><b>앱으로 추가하기</b><span id="a2hs-sub">다음부터 아이콘만 누르면 바로 열려요</span></div>
+  <button type="button" class="a2hs-go" id="a2hs-go">추가</button>
+  <button type="button" class="a2hs-x" id="a2hs-x" aria-label="닫기">×</button>
+</div>
+<div class="ask" id="a2hs-ios">
+  <div class="ask-box">
+    <div class="news-head" id="a2hs-ios-title">홈 화면에 추가하기</div>
+    <ol class="a2hs-steps" id="a2hs-ios-steps"></ol>
+    <button class="btn primary wide" id="a2hs-ios-ok" style="height:50px;font-size:17px">알겠어요</button>
+  </div>
 </div>
 <div class="who hidden" id="who"><b id="who-no"></b><button type="button" id="who-out">로그아웃</button></div>
 
@@ -2366,6 +2399,45 @@ async function loadMine(silent) {
   else logout(r.msg);                                              // 다른 기기에서 로그인했거나 운행 제외 → 다시 로그인
 }
 
+/* ---------- 홈 화면에 앱으로 추가 (안드로이드: 설치 창 / 아이폰: 순서 안내 / 카톡 안 브라우저: 다른 브라우저로 열기 안내) ---------- */
+const UA = navigator.userAgent || "";
+const isStandalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const isIOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const inKakao = /KAKAOTALK/i.test(UA), inApp = inKakao || /NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);
+let installEvt = null;
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; showA2hs(); });
+window.addEventListener("appinstalled", () => { hideA2hs(true); toast("홈 화면에 '현창레미콘' 앱이 추가됐습니다.", true); });
+function a2hsSnoozed() { try { return Number(localStorage.getItem("a2hsLater") || 0) > Date.now(); } catch (e) { return false; } }
+function showA2hs() {
+  if (!API_URL || isStandalone() || a2hsSnoozed() || !myTok) return;     // 로그인한 뒤에만, 앱으로 열었으면 안 보임
+  if (!installEvt && !isIOS && !inApp) return;                           // 설치할 수 없는 브라우저
+  document.getElementById("a2hs-sub").textContent = inApp ? "카톡 안에서는 추가가 안 돼요. 눌러서 방법 보기" : "다음부터 아이콘만 누르면 바로 열려요";
+  document.getElementById("a2hs-go").textContent = installEvt ? "추가" : "방법 보기";
+  document.getElementById("a2hs").classList.remove("hidden");
+}
+function hideA2hs(forever) {
+  document.getElementById("a2hs").classList.add("hidden");
+  try { localStorage.setItem("a2hsLater", String(Date.now() + (forever ? 3650 : 7) * 864e5)); } catch (e) {}
+}
+document.getElementById("a2hs-x").addEventListener("click", () => hideA2hs(false));   // 일주일 뒤 다시 안내
+document.getElementById("a2hs-go").addEventListener("click", async () => {
+  if (installEvt) {
+    installEvt.prompt();
+    const c = await installEvt.userChoice.catch(() => ({}));
+    installEvt = null;
+    if (c && c.outcome === "accepted") hideA2hs(true); else hideA2hs(false);
+    return;
+  }
+  const steps = inApp
+    ? ["화면 오른쪽 아래(또는 위)의 <b>점 세 개 ⋮</b> 또는 <b>공유</b> 버튼을 누르세요.", "<b>다른 브라우저로 열기</b>를 누르세요. (아이폰은 <b>Safari로 열기</b>)", "새로 열린 화면에서 다시 로그인하면 <b>앱으로 추가하기</b> 안내가 나옵니다."]
+    : ["화면 아래 가운데의 <b>공유 버튼</b>(네모에서 화살표가 위로 나온 모양)을 누르세요.", "목록을 위로 올려 <b>홈 화면에 추가</b>를 누르세요.", "오른쪽 위 <b>추가</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다."];
+  document.getElementById("a2hs-ios-title").textContent = inApp ? "카톡 밖에서 열어 주세요" : "홈 화면에 추가하기";
+  document.getElementById("a2hs-ios-steps").innerHTML = steps.map(t => "<li>" + t + "</li>").join("");
+  document.getElementById("a2hs-ios").classList.add("show");
+});
+document.getElementById("a2hs-ios-ok").addEventListener("click", () => { document.getElementById("a2hs-ios").classList.remove("show"); hideA2hs(false); });
+
 /* ---------- 새 소식: 지난번에 본 뒤로 관리자·자동 처리로 바뀐 내 신청 ----------
    이 폰에 지난번 '내 신청' 상태를 적어 두고, 다음에 열 때 달라진 것만 알려 줌 */
 const seenKey = () => "seen_" + myCar;
@@ -2425,11 +2497,13 @@ function startApp(animate) {
   group = groupOf(myCar);
   loadVac();
   loadSheet();
+  setTimeout(showA2hs, 6000);                                     // 화면이 다 뜨고 알림이 사라진 뒤 앱 추가 안내
 }
 function logout(msg) {
   MY = null; myTok = ""; store.set("myTok", "");
   try { localStorage.removeItem("sitesCache"); localStorage.removeItem("todayCache"); localStorage.removeItem("repsCache"); } catch (e) {}
   SITES = []; DAY_CACHE = {}; $q.value = ""; setToday([], []); renderDist();
+  document.getElementById("a2hs").classList.add("hidden");
   showLogin(msg);
 }
 // 폼 제출(submit)을 쓰지 않음: 미리보기 창처럼 폼 제출이 막힌 곳에서도 로그인 버튼이 동작하도록

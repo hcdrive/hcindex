@@ -4,7 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>관리자</title>
+<title>현창레미콘 관리자</title>
+<link rel="manifest" href="admin.webmanifest">
+<link rel="icon" type="image/png" href="admin-icon-192.png">
+<link rel="apple-touch-icon" href="admin-apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="현창관리자">
 <style>
   :root {
     --bg: #ffffff; --text: #1f2328; --muted: #6b7280; --line: #e5e7eb;
@@ -301,6 +308,7 @@
   <input class="field" id="pw" type="password" autocomplete="current-password" placeholder="관리자 비밀번호">
   <button class="btn primary wide" id="login-btn" style="margin-top:10px">들어가기</button>
   <p class="demo hidden" id="login-demo" style="margin-top:16px">체험 모드입니다. 기사님 사이트 체험 모드와 같은 데이터를 씁니다.</p>
+  <button class="btn wide hidden" id="login-install" style="margin-top:12px">관리자 앱으로 설치</button>
 </div>
 
 <div id="app" class="hidden">
@@ -325,6 +333,7 @@
     <button data-side="v-bulk">새해 일괄 수정</button>
     <button data-side="v-backup">백업</button>
     <button data-side="v-apw">관리자 비밀번호</button>
+    <button class="out hidden" id="side-install">관리자 앱으로 설치</button>
     <button class="out" id="side-out">로그아웃</button>
   </aside>
   <h1 class="page-title" id="page-title"></h1>
@@ -420,6 +429,7 @@
         <li><button data-sub="v-hol">공휴일 · 회사 휴무일<small>쉬는 날 추가·삭제 (샌드위치데이 계산에 반영)</small></button></li>
         <li><button data-sub="v-set">규칙 설정<small>하루 인원, 오픈 시각, 관리자만 기간, 우선순위 횟수 등</small></button></li>
         <li><button data-sub="v-backup">백업<small>매일 자동 백업 상태 확인, 지금 바로 백업하기</small></button></li>
+        <li class="hidden" id="more-install"><button id="more-install-btn">관리자 앱으로 설치<small>휴대폰 홈 화면이나 PC 바탕화면에 '현창관리자' 아이콘 만들기</small></button></li>
         <li><button data-sub="v-apw">관리자 비밀번호<small>관리자 페이지 들어오는 비밀번호 바꾸기</small></button></li>
         <li><button data-sub="v-bulk">새해 일괄 수정<small>전체(또는 조별) 총연차·여름휴가 일수를 한꺼번에</small></button></li>
       </ul>
@@ -3054,6 +3064,29 @@ $("log-cats").addEventListener("click", e => { const b = e.target.closest("[data
 if (!API_URL) $("login-demo").classList.remove("hidden");
 showView("v-month");
 if (PW) start();
+
+/* ---------- 관리자 앱으로 설치 (홈 화면·바탕화면 아이콘) ---------- */
+const A_UA = navigator.userAgent || "";
+const aStandalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const aIOS = /iPhone|iPad|iPod/i.test(A_UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const aInApp = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(A_UA);
+let aInstall = null;
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+function aInstallShow() {
+  const can = API_URL && !aStandalone() && (aInstall || aIOS || aInApp);
+  ["side-install", "more-install", "login-install"].forEach(id => $(id).classList.toggle("hidden", !can));
+}
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); aInstall = e; aInstallShow(); });
+window.addEventListener("appinstalled", () => { aInstall = null; aInstallShow(); toast("'현창관리자' 앱을 설치했습니다.", true); });
+async function aInstallGo() {
+  if (aInstall) { aInstall.prompt(); await aInstall.userChoice.catch(() => {}); aInstall = null; aInstallShow(); return; }
+  await ask(aInApp ? "카톡 안에서는 설치가 안 됩니다.\n\n점 세 개(⋮) 또는 공유 → '다른 브라우저로 열기'(아이폰은 'Safari로 열기')를 누른 뒤 다시 해 주세요."
+                   : "아이폰은 이렇게 추가합니다.\n\n1. 화면 아래 공유 버튼(네모에서 화살표가 위로 나온 모양)\n2. '홈 화면에 추가'\n3. 오른쪽 위 '추가'", "알겠어요", "닫기");
+}
+$("side-install").onclick = aInstallGo;
+$("more-install-btn").onclick = aInstallGo;
+$("login-install").onclick = aInstallGo;
+aInstallShow();
 
 </script>
 </body>
