@@ -67,6 +67,11 @@
   body { overflow-x: hidden; }
   @media (prefers-reduced-motion: reduce) { .view.in-r, .view.in-l { animation: none; } }
   .login-screen { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; }
+  .vac-closed.hidden, .vac-grid.hidden { display: none; }
+  .vc-box { max-width: 520px; margin: 24px auto 0; padding: 28px 20px; border-radius: 16px; background: var(--card); text-align: center; }
+  .vc-box b { display: block; font-size: 20px; margin-bottom: 12px; }
+  .vc-box p { margin: 0 0 8px; font-size: 16px; line-height: 1.6; }
+  .vc-box .vc-sub { color: var(--muted); font-size: 15px; }
   .a2hs { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom)); z-index: 30; display: flex; align-items: center; gap: 10px;
           background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.15); max-width: 520px; margin: 0 auto; }
   .a2hs.hidden { display: none; }
@@ -425,7 +430,15 @@
 
 <!-- ───── 휴가 화면 ───── -->
 <section class="view" id="vac">
- <div class="vac-grid">
+ <div class="vac-closed hidden" id="vac-closed">
+  <h1>휴가</h1>
+  <div class="vc-box">
+   <b>휴가 신청은 아직 테스트 중입니다</b>
+   <p>준비가 끝나면 이 화면에서 휴가·조퇴·지각·결근을 신청하고, 내 휴가 사용 내역을 볼 수 있습니다.</p>
+   <p class="vc-sub">지금 휴가가 필요하시면 사무실에 말씀해 주세요.</p>
+  </div>
+ </div>
+ <div class="vac-grid" id="vac-grid">
  <div class="vac-left">
   <h1>휴가사용내역</h1>
   <p class="date" id="checked">불러오는 중…</p>
@@ -746,10 +759,12 @@ var RULES = {
   OFF_WEEKDAYS: [0, 6],  // 쉬는 요일 (0=일요일, 6=토요일)
   SPECIAL_WEEKDAYS: [1, 5], // 후순위 대상 요일 (1=월, 5=금)
   PRIORITY_AFTER: 2,     // 월·금·샌드위치데이 연차는 한 해에 이 횟수까지 일반 신청, 그 뒤로는 후순위
-  SUMMER_DEFAULT: 3      // '차량' 탭 여름휴가 칸이 비어 있으면 한 해 여름휴가 3일로 계산
+  SUMMER_DEFAULT: 3,     // '차량' 탭 여름휴가 칸이 비어 있으면 한 해 여름휴가 3일로 계산
+  VAC_OPEN: 0            // 기사님 휴가 신청: 0 = 테스트 중(막음), 1 = 열림
 };
 // 관리자 '설정'에서 바꿀 수 있는 숫자들 (이름 → [설명, 최소, 최대])
 var SETTING_INFO = {
+  VAC_OPEN: ["기사님 휴가 신청 열기 (0 = 테스트 중, 1 = 열림)", 0, 1],
   LIMIT: ["하루 연차 최대 인원", 1, 30],
   SPECIAL_LIMIT: ["우선순위날 하루 연차 최대 인원 (월·금·연휴 앞뒤 날)", 0, 30],
   OPEN_DAYS: ["며칠 뒤 날짜까지 신청 가능 (예: 14 → 15일 전 저녁에 열림)", 4, 60],
@@ -783,7 +798,7 @@ function limitSource(st, d) {
 function hourText(h) { return h === 0 ? "밤 12시" : h < 12 ? "오전 " + h + "시" : h === 12 ? "낮 12시" : "오후 " + (h - 12) + "시"; }
 function rulesView() {
   return { hours: workHours(), workStart: WORK_START, workEnd: WORK_END, limit: RULES.LIMIT, specialLimit: RULES.SPECIAL_LIMIT, openDays: RULES.OPEN_DAYS, openHour: RULES.OPEN_HOUR, openText: hourText(RULES.OPEN_HOUR),
-           lockDays: RULES.LOCK_DAYS, priorityAfter: RULES.PRIORITY_AFTER, summerDefault: RULES.SUMMER_DEFAULT };
+           lockDays: RULES.LOCK_DAYS, priorityAfter: RULES.PRIORITY_AFTER, summerDefault: RULES.SUMMER_DEFAULT, vacOpen: RULES.VAC_OPEN === 1 };
 }
 
 var SELF_TYPES = ["연차", "조퇴", "지각", "결근"];
@@ -928,6 +943,7 @@ var WRONG_PIN = "비밀번호가 맞지 않습니다.";
 var KICKED_MSG = "다른 기기에서 로그인하여 이 기기는 로그아웃되었습니다. 본인이 아니면 관리자에게 알려 주세요.";
 var OUT_MSG = "로그아웃되었습니다. 다시 로그인해 주세요.";
 var MUST_MSG = "처음 받은 비밀번호를 먼저 바꿔 주세요.";
+var VAC_CLOSED_MSG = "휴가 신청은 아직 테스트 중입니다. 신청이 필요하면 사무실에 말씀해 주세요.";
 // 처음 받은 비밀번호(0+호수)를 그대로 쓰거나, 관리자가 비밀번호를 새로 정해 준 경우 → 바꿔야 함
 function mustChangePin(st, no) { var c = st.cars[no]; return !!c && (!!c.mustChange || String(c.pin) === "0" + no); }
 // 기사 확인: 로그인한 뒤에는 출입증 번호(tok), 출입증이 없으면 비밀번호
@@ -955,6 +971,7 @@ function engineApply(st, p) {
   var bad = checkAuth(st, no, p);
   if (bad) return authFail(bad);
   if (mustChangePin(st, no)) return result(false, MUST_MSG, { mustChange: true });
+  if (RULES.VAC_OPEN !== 1) return result(false, VAC_CLOSED_MSG);
   var fail = function (msg) {
     var r = result(false, msg);
     r.logs.push({ no: no, type: type, date: date, action: "신청", result: "실패", detail: msg, by: "기사" });
@@ -1031,6 +1048,7 @@ function engineCancel(st, p) {
   var bad = checkAuth(st, no, p);
   if (bad) return authFail(bad);
   if (mustChangePin(st, no)) return result(false, MUST_MSG, { mustChange: true });
+  if (RULES.VAC_OPEN !== 1) return result(false, VAC_CLOSED_MSG);
   var req = st.reqs.filter(function (r) { return r.id === p.id && r.no === no; })[0];
   if (!req || !ACTIVE[req.status]) return result(false, "이미 취소됐거나 취소할 수 없는 신청입니다. 아래 '내 신청'에서 확인해 주세요.");
   if (req.type === "여름휴가" || req.type === "특별휴가") return result(false, req.type + "는 관리자에게 문의해 주세요.");
@@ -2067,6 +2085,7 @@ function demoState() {
   }
   Object.keys(st.cars).forEach(no => { if (st.cars[no].pin === "1234") st.cars[no].pin = "0" + no; });   // 예전 체험 기본 비밀번호 → 0+호수
   Object.assign(st, kstNow());
+  st.settings = st.settings || {}; if (st.settings.VAC_OPEN === undefined) st.settings.VAC_OPEN = 1;   // 체험 모드는 신청 열어 둠
   applySettings(st);
   return st;
 }
@@ -2384,6 +2403,11 @@ async function loadVac() {
     if (!s.ok && s.auth) return logout(s.msg);                      // 다른 기기 로그인 등
     if (!s.ok) throw new Error(s.msg);
     SUM = s;
+    // 관리자가 휴가 신청을 열기 전에는 '테스트 중' 안내만 보여 줌
+    const open = !(s.rules && s.rules.vacOpen === false);
+    document.getElementById("vac-closed").classList.toggle("hidden", open);
+    document.getElementById("vac-grid").classList.toggle("hidden", !open);
+    if (!open) { if (myCar && myTok) await loadMine(true); return; }   // 처음 비밀번호 바꾸기 확인은 그대로
     document.getElementById("checked").textContent = "오늘 " + SUM.today + (API_URL ? "" : " · 체험 모드");
     document.getElementById("demo").style.display = API_URL ? "none" : "block";
     if (myCar && myTok) await loadMine(true);
