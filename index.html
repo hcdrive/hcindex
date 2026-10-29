@@ -79,6 +79,32 @@
   .install-bar.hidden { display: none; }
   .install-help { display: block; margin: -8px auto 14px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
   .install-help.hidden { display: none; }
+  #a2hs-chrome.hidden, #a2hs-start.hidden { display: none; }
+  /* 안드로이드 그림 안내 */
+  .ag-pic { padding: 10px; }
+  .ag-hit { box-shadow: 0 0 0 3px #e5484d; border-radius: 10px; }
+  .ag-dlg { background: #fff; border-radius: 22px; padding: 16px 14px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .ag-q { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 10px; }
+  .ag-btns { display: grid; grid-template-columns: 1fr 1fr; text-align: center; font-weight: 700; font-size: 16px; color: #111; }
+  .ag-btns span { padding: 8px 0; }
+  .ag-app { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: #111; margin: 4px 0 10px; }
+  .ag-ic { position: relative; width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 1px solid #e5e5ea; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .ag-ic img { width: 34px; height: 34px; }
+  .ag-ic i { position: absolute; right: -5px; bottom: -5px; width: 18px; height: 18px; border-radius: 50%; background: #f2b632; color: #222; font-style: normal; font-weight: 900; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+  .ag-pp { background: #e4e4e9; border-radius: 20px; padding: 14px; color: #111; }
+  .ag-pph { display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 700; font-size: 14px; }
+  .ag-ppt { text-align: center; font-size: 18px; font-weight: 700; margin: 8px 0 10px; }
+  .ag-txt { font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+  .ag-more { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 15px; padding: 6px 8px; margin: 0 0 12px -2px; }
+  .ag-ok { position: relative; background: #4a7df0; color: #fff; text-align: center; font-weight: 700; border-radius: 22px; padding: 10px; }
+  .ag-ok.no { opacity: .45; }
+  .ag-ok em { display: none; }
+  .ag-no { text-align: center; font-size: 13px; font-weight: 700; color: #c42b2b; margin-top: 6px; }
+  .ig-pic.ag-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: #1f2a37; border-radius: 16px; padding: 12px 6px; }
+  .ag-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ag-cell b { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.18); }
+  .ag-cell small { font-size: 11px; color: #fff; white-space: nowrap; }
+  .ag-cell.on .ag-ic { box-shadow: 0 0 0 3px #e5484d; }
   .a2hs-ic { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); flex: none; }
   .a2hs-t { flex: 1; display: flex; flex-direction: column; font-size: 15px; line-height: 1.35; }
   .a2hs-t span { font-size: 13px; color: var(--muted); }
@@ -475,6 +501,8 @@
         <li>그래도 설치가 막히면 <b>⋮</b> 메뉴에서 <b>홈 화면에 추가</b> → <b>바로가기 만들기</b>를 누르세요. 바탕화면 아이콘은 똑같이 생깁니다.</li>
       </ol>
     </div>
+    <button class="btn primary wide hidden" id="a2hs-start" style="height:52px;font-size:18px;margin-bottom:10px">설치 시작</button>
+    <button class="btn wide hidden" id="a2hs-chrome" style="height:50px;font-size:17px;margin-bottom:10px">크롬에서 설치하기</button>
     <button class="btn primary wide" id="a2hs-ios-ok" style="height:50px;font-size:17px">알겠어요</button>
   </div>
 </div>
@@ -487,7 +515,7 @@
   <h1>운행거리검색</h1>
   <div class="install-bar hidden" id="install-bar">
     <img src="icon-192.png" alt="" class="a2hs-ic">
-    <div class="a2hs-t"><b>현창레미콘 앱 설치</b><span>아이콘으로 바로 열려요</span></div>
+    <div class="a2hs-t"><b id="install-t">현창레미콘 앱 설치</b><span id="install-s">아이콘으로 바로 열려요</span></div>
     <button type="button" class="a2hs-go" id="install-go">설치하기</button>
   </div>
   <button type="button" class="install-help hidden" id="install-help">설치가 잘 안 되나요?</button>
@@ -2562,6 +2590,16 @@ if ("serviceWorker" in navigator && location.protocol === "https:") navigator.se
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; showA2hs(); showInstallBtn(); });
 window.addEventListener("appinstalled", () => { hideA2hs(true); installDone = true; showInstallBtn(); toast("홈 화면에 '현창레미콘' 앱이 추가됐습니다.", true); });
 const isAndroid = /Android/i.test(UA), isSamsung = /SamsungBrowser/i.test(UA);
+const isChrome = isAndroid && /Chrome\//.test(UA) && !/SamsungBrowser|EdgA|OPR|Whale|NAVER|wv\)/i.test(UA);
+// 이 사이트 앱이 이미 설치돼 있는지 (안드로이드 크롬 등 지원하는 곳만)
+async function appInstalled() {
+  try { if (navigator.getInstalledRelatedApps) return (await navigator.getInstalledRelatedApps()).length > 0; } catch (e) {}
+  return false;
+}
+// 삼성 인터넷 등에서 같은 주소를 크롬으로 열기 (크롬이 앱 설치를 가장 잘 지원)
+function openInChrome() {
+  location.href = "intent://" + location.host + location.pathname + "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" + encodeURIComponent(location.href) + ";end";
+}
 let installDone = false;
 // 첫 화면(운행거리검색)에 늘 보이는 '앱 설치' 버튼: 로그인했고, 앱으로 연 게 아니면 언제든 다시 누를 수 있음
 function showInstallBtn() {
@@ -2569,6 +2607,11 @@ function showInstallBtn() {
   const can = !!API_URL && !!myTok && !isStandalone() && !installDone && (installEvt || isIOS || isAndroid || inApp);
   el.classList.toggle("hidden", !can);
   document.getElementById("install-help").classList.toggle("hidden", !can || !isAndroid);
+  if (can && isAndroid && !installEvt) appInstalled().then(yes => {               // 이미 깔린 휴대폰: 문구만 바꿈
+    document.getElementById("install-t").textContent = yes ? "현창레미콘 앱이 설치돼 있어요" : "현창레미콘 앱 설치";
+    document.getElementById("install-s").textContent = yes ? "바탕화면 아이콘으로 여세요" : "아이콘으로 바로 열려요";
+    document.getElementById("install-go").textContent = yes ? "여는 방법" : "설치하기";
+  });
 }
 function a2hsSnoozed() { try { return Number(localStorage.getItem("a2hsLater") || 0) > Date.now(); } catch (e) { return false; } }
 function showA2hs() {
@@ -2586,7 +2629,42 @@ document.getElementById("a2hs-x").addEventListener("click", () => hideA2hs(false
 document.getElementById("a2hs-go").addEventListener("click", () => openInstall(false));
 document.getElementById("install-go").addEventListener("click", () => openInstall(true));
 document.getElementById("install-help").addEventListener("click", () => { const keep = installEvt; installEvt = null; openInstall(true); installEvt = keep; });
+// 안드로이드 설치 시작 (그림 안내를 먼저 보여 준 뒤 누름)
+async function startInstall() {
+  document.getElementById("a2hs-ios").classList.remove("show");
+  if (!installEvt) return;
+  installEvt.prompt();
+  const c = await installEvt.userChoice.catch(() => ({}));
+  installEvt = null;
+  if (c && c.outcome === "accepted") { hideA2hs(true); installDone = true; showInstallBtn(); return; }
+  hideA2hs(false); showInstallBtn();
+  toast("설치를 취소했습니다. 첫 화면의 설치하기로 언제든 다시 할 수 있어요.");
+}
+function guideButtons(start, chrome) {
+  document.getElementById("a2hs-start").classList.toggle("hidden", !start);
+  document.getElementById("a2hs-chrome").classList.toggle("hidden", !chrome);
+  document.getElementById("a2hs-ios-ok").textContent = start ? "나중에" : "알겠어요";
+  document.getElementById("a2hs-ios-ok").classList.toggle("primary", !start);
+}
 async function openInstall(fromBar) {
+  if (isAndroid && !inApp) {
+    if (!installEvt && await appInstalled()) {
+      document.getElementById("a2hs-warn").classList.add("hidden"); guideButtons(false, false);
+      document.getElementById("a2hs-ios-title").textContent = "이미 설치되어 있습니다";
+      const l = document.getElementById("a2hs-ios-steps"); l.classList.remove("ios-guide");
+      l.innerHTML = "<li>휴대폰 <b>앱스 화면</b>(앱 목록)이나 바탕화면에서 <b>현창레미콘</b> 아이콘을 찾아 누르세요.</li><li>앱으로 열면 이 설치 안내는 보이지 않습니다.</li>";
+      document.getElementById("a2hs-ios").classList.add("show");
+      return;
+    }
+    document.getElementById("a2hs-warn").classList.add("hidden");
+    document.getElementById("a2hs-ios-title").textContent = "앱 설치하기";
+    const l = document.getElementById("a2hs-ios-steps"); l.classList.add("ios-guide");
+    l.innerHTML = androidGuide(!!installEvt);
+    guideButtons(!!installEvt, !installEvt && !isChrome);
+    document.getElementById("a2hs-ios").classList.add("show");
+    return;
+  }
+  guideButtons(false, false);
   if (installEvt) {
     installEvt.prompt();
     const c = await installEvt.userChoice.catch(() => ({}));
@@ -2596,22 +2674,34 @@ async function openInstall(fromBar) {
     if (!fromBar) return;
   }
   const already = "이미 설치하셨다면 휴대폰 바탕화면의 <b>현창레미콘</b> 아이콘으로 여시면 됩니다.";
+  // 안드로이드: 이미 앱이 깔려 있으면 휴대폰이 설치 창을 다시 띄워 주지 않음 → 설치돼 있다고 알려 줌
+  if (isAndroid && !inApp && await appInstalled()) {
+    document.getElementById("a2hs-warn").classList.add("hidden");
+    document.getElementById("a2hs-chrome").classList.add("hidden");
+    document.getElementById("a2hs-ios-title").textContent = "이미 설치되어 있습니다";
+    const l = document.getElementById("a2hs-ios-steps"); l.classList.remove("ios-guide");
+    l.innerHTML = "<li>휴대폰 바탕화면(또는 앱 목록)에서 <b>현창레미콘</b> 아이콘을 찾아 누르세요.</li><li>앱으로 열면 이 설치 안내는 보이지 않습니다.</li>";
+    document.getElementById("a2hs-ios").classList.add("show");
+    return;
+  }
   const steps = !inApp && isAndroid
     ? (isSamsung
-      ? ["화면 아래 오른쪽의 <b>메뉴 ≡</b> 버튼을 누르세요.", "<b>현재 페이지 추가</b> → <b>홈 화면</b>을 누르세요.", "<b>추가</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다.", already]
-      : ["화면 오른쪽 위의 <b>점 세 개 ⋮</b>를 누르세요.", "<b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르세요.", "<b>설치(추가)</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다.", already])
+      ? ["주소창 오른쪽에 <b>설치 아이콘</b>(아래 화살표 모양)이 보이면 누르고 <b>설치</b>를 누르세요.", "아이콘이 없으면 화면 아래 오른쪽의 <b>메뉴 ≡</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b>을 누르세요.", "그래도 바로가기만 만들어지면 아래 <b>크롬에서 설치하기</b>를 눌러 크롬에서 설치하세요.", already]
+      : ["화면 오른쪽 위의 <b>점 세 개 ⋮</b>를 누르세요.", "<b>앱 설치</b>를 누르세요. (<b>홈 화면에 추가</b>만 보이면 그것을 누른 뒤 <b>설치</b>를 고르세요)", "<b>설치</b>를 누르면 바탕화면에 <b>현창레미콘</b> 앱이 생깁니다.", already])
     : inApp
     ? ["화면 오른쪽 아래(또는 위)의 <b>점 세 개 ⋮</b> 또는 <b>공유</b> 버튼을 누르세요.", "<b>다른 브라우저로 열기</b>를 누르세요. (아이폰은 <b>Safari로 열기</b>)", "새로 열린 화면에서 다시 로그인하면 <b>앱으로 추가하기</b> 안내가 나옵니다."]
     : /CriOS/i.test(UA)
     ? ["주소창 오른쪽 위의 <b>공유 버튼</b>(네모에서 화살표가 위로 나온 모양)을 누르세요.", "목록을 위로 올려 <b>홈 화면에 추가</b>를 누르세요.", "오른쪽 위 <b>추가</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다.", already]
     : null;   // 아이폰 사파리: 그림 안내 (IOS_GUIDE)
-  document.getElementById("a2hs-warn").classList.toggle("hidden", !(isAndroid && !inApp));
+  document.getElementById("a2hs-warn").classList.add("hidden");
   document.getElementById("a2hs-ios-title").textContent = inApp ? "카톡 밖에서 열어 주세요" : "앱 설치하기";
   const list = document.getElementById("a2hs-ios-steps");
   list.classList.toggle("ios-guide", !steps);
   list.innerHTML = steps ? steps.map(t => "<li>" + t + "</li>").join("") : IOS_GUIDE + "<li class=\"ig-done\">" + already + "</li>";
   document.getElementById("a2hs-ios").classList.add("show");
 }
+document.getElementById("a2hs-chrome").addEventListener("click", openInChrome);
+document.getElementById("a2hs-start").addEventListener("click", startInstall);
 document.getElementById("a2hs-ios-ok").addEventListener("click", () => { document.getElementById("a2hs-ios").classList.remove("show"); hideA2hs(false); });
 
 /* ---------- 아이폰 사파리 설치 그림 안내 (화면 모양을 단순하게 다시 그림) ---------- */
@@ -2641,6 +2731,34 @@ const IOS_GUIDE =
     '<div class="ig-app"><img src="apple-touch-icon.png" alt=""><span>현창레미콘</span></div>' +
     '<div class="ig-tg"><span>웹 앱으로 열기</span><i></i></div></div>' +
     '<div class="a2hs-note">바탕화면에 <b>현창레미콘</b> 아이콘이 생기면 끝입니다. 다음부터는 그 아이콘으로 여세요.</div></li>';
+
+/* ---------- 안드로이드 설치 그림 안내 (설치 창 → 플레이 프로텍트 경고 → 무시하고 설치) ---------- */
+const AG_SHIELD = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#4a7df0" stroke-width="2" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6z"/><path d="M10 9v6l5-3z" fill="#4a7df0"/></svg>';
+function androidGuide(hasEvt) {
+  const appIc = '<span class="ag-ic"><img src="icon-192.png" alt=""></span>';
+  const step1 = hasEvt
+    ? "아래 <b>설치 시작</b>을 누르고, 나오는 창에서 <b>" + (isSamsung ? "추가" : "설치") + "</b>를 누르세요."
+    : isSamsung
+      ? "화면 아래 <b>메뉴 ≡</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b>을 누르고, 나오는 창에서 <b>추가</b>를 누르세요."
+      : "오른쪽 위 <b>점 세 개 ⋮</b> → <b>앱 설치</b>를 누르고, 나오는 창에서 <b>설치</b>를 누르세요.";
+  const dlg = isSamsung
+    ? '<div class="ag-dlg"><div class="ag-q">앱스 화면에 이 웹페이지를 추가할까요?</div><div class="ag-btns"><span>취소</span><span class="ag-hit">추가</span></div></div>'
+    : '<div class="ag-dlg"><div class="ag-q">앱 설치</div><div class="ag-app">' + appIc + '<span>현창레미콘</span></div><div class="ag-btns"><span>취소</span><span class="ag-hit">설치</span></div></div>';
+  return '<li><div class="ig-t">' + step1 + '</div><div class="ig-pic ag-pic">' + dlg + '</div></li>' +
+    '<li><div class="ig-t"><b>안전하지 않은 앱 차단됨</b> 창이 나오면 <b>확인</b>을 누르지 말고 <b>세부정보 더보기</b>를 누르세요.</div>' +
+      '<div class="ig-pic ag-pic"><div class="ag-pp"><div class="ag-pph">' + AG_SHIELD + '<span>Google Play 프로텍트</span></div>' +
+      '<div class="ag-ppt">안전하지 않은 앱 차단됨</div><div class="ag-app">' + appIc.replace('</span>', '<i>!</i></span>') + '<span>현창레미콘</span></div>' +
+      '<div class="ag-more ag-hit">세부정보 더보기 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m7 10 5 5 5-5"/></svg></div>' +
+      '<div class="ag-ok no">확인</div><div class="ag-no">확인을 누르면 설치가 취소됩니다</div></div></div></li>' +
+    '<li><div class="ig-t">내용이 펼쳐지면 아래쪽 <b>무시하고 설치하기</b>를 누르세요.</div>' +
+      '<div class="ig-pic ag-pic"><div class="ag-pp"><div class="ag-txt">이 앱을 설치하면 기기가 위험에 노출될 수 있습니다.</div>' +
+      '<div class="ag-more ag-hit">무시하고 설치하기</div><div class="ag-ok no">확인</div><div class="ag-no">확인을 누르면 설치가 취소됩니다</div></div></div>' +
+      '<div class="a2hs-note">플레이스토어 앱이 아니라서 나오는 경고입니다. 회사 사이트를 여는 앱이라 휴대폰 사진·연락처 등에는 접근하지 않습니다.</div></li>' +
+    '<li><div class="ig-t">설치가 끝나면 <b>앱스 화면</b>(앱 목록)에 <b>현창레미콘</b> 아이콘이 생깁니다.</div>' +
+      '<div class="ig-pic ag-apps"><span class="ag-cell"><b></b><small>&nbsp;</small></span><span class="ag-cell on">' + appIc + '<small>현창레미콘</small></span><span class="ag-cell"><b></b><small>&nbsp;</small></span><span class="ag-cell"><b></b><small>&nbsp;</small></span></div>' +
+      '<div class="a2hs-note">바탕화면에 두려면 아이콘을 <b>길게 눌러</b> <b>홈 화면에 추가</b>를 누르세요.</div></li>' +
+    (!hasEvt && !isChrome ? '<li class="ig-done">설치 대신 바로가기만 만들어지면 아래 <b>크롬에서 설치하기</b>를 눌러 크롬에서 같은 순서로 설치하세요.</li>' : '');
+}
 
 /* ---------- 새 소식: 지난번에 본 뒤로 관리자·자동 처리로 바뀐 내 신청 ----------
    이 폰에 지난번 '내 신청' 상태를 적어 두고, 다음에 열 때 달라진 것만 알려 줌 */

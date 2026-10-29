@@ -29,5 +29,11 @@
       "purpose": "maskable"
     }
   ],
-  "id": "./index.html"
+  "id": "./index.html",
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://hcdrive.github.io/hcindex/manifest.webmanifest"
+    }
+  ]
 }
