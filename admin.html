@@ -217,6 +217,13 @@
   .set-row { padding: 12px 14px !important; display: block !important; }
   .set-row .lab { font-weight: 700; font-size: 15px; }
   .set-row .hint { font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chips.hidden { display: none; }
+  .chips button { border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; font-size: 15px; font-weight: 700; border-radius: 999px; padding: 8px 16px; cursor: pointer; }
+  .chips button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nt-body { white-space: pre-line; font-size: 14px; color: var(--text); margin-top: 4px; }
+  .nt-end { opacity: .55; }
+  .push-test { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 4px 0 6px; }
   textarea.field { height: auto; min-height: 150px; padding: 12px; font-size: 15px; line-height: 1.5; resize: vertical; font-family: inherit; }
   .check { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 15px; line-height: 1.4; }
   .check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; }
@@ -354,6 +361,7 @@
     <div class="grp">신청 · 기록</div>
     <button data-side="v-list">전체 신청 목록</button>
     <button data-side="v-logs">기록</button>
+    <button data-side="v-noti">기사님 알림 보내기</button>
     <div class="grp">설정</div>
     <button data-side="v-lim">연차 막는 기간 · 인원</button>
     <button data-side="v-hol">공휴일 · 회사 휴무일</button>
@@ -464,6 +472,7 @@
         <li><button data-sub="v-reps">영업사원 연락처<small>전화번호·무전기 번호 (금일 물량표에서 담당자 이름을 누르면 보임)</small></button></li>
         <li><button data-sub="v-list">전체 신청 목록<small>모든 신청을 달·구분·상태·호수로 찾고 수정</small></button></li>
         <li><button data-sub="v-logs">기록<small>누가 언제 무엇을 했는지</small></button></li>
+        <li><button data-sub="v-noti">기사님 알림 보내기<small>공지·안내를 기사님 화면 종 모양 알림으로 보내기 (전체 · 조별 · 호수별)</small></button></li>
         <li><button data-sub="v-lim">연차 막는 기간 · 날짜별 인원<small>여름휴가 기간 등 연차 신청 막기, 특정 날짜만 최대 인원 따로 (예: 2명)</small></button></li>
         <li><button data-sub="v-hol">공휴일 · 회사 휴무일<small>쉬는 날 추가·삭제 (샌드위치데이 계산에 반영)</small></button></li>
         <li><button data-sub="v-set">규칙 설정<small>하루 인원, 오픈 시각, 관리자만 기간, 우선순위 횟수 등</small></button></li>
@@ -508,6 +517,26 @@
     </section>
 
     <!-- ───── 영업사원 연락처 ───── -->
+    <section class="view form" id="v-noti">
+      <button class="back" data-sub="v-more">← 더보기</button>
+      <p class="info" style="margin-top:0">보낸 알림은 기사님 화면 왼쪽 위 <b>종 모양</b>에 빨간 숫자로 표시됩니다. 휴가 확정·취소, 물량표 올라옴은 따로 보내지 않아도 자동으로 알려 줍니다.</p>
+      <div class="push-test"><b>휴대폰 푸시 시험</b><p class="muted" style="margin:4px 0 8px;font-size:13px">그 호수로 로그인해서 [알림 받기]를 켠 휴대폰으로 시험 알림을 보냅니다. 밤 10시~아침 6시에는 아침 6시에 갑니다.</p>
+        <div class="inline"><input class="field" id="pt-no" type="text" inputmode="numeric" maxlength="3" placeholder="호수 (예: 214)"><button class="btn" id="pt-send">시험 알림 보내기</button></div></div>
+      <p class="label">받는 사람</p>
+      <div class="segs" id="nt-who" style="grid-template-columns:repeat(3,1fr)"><button class="seg on" data-ntw="all">전체</button><button class="seg" data-ntw="group">조 고르기</button><button class="seg" data-ntw="nos">호수 적기</button></div>
+      <div class="chips hidden" id="nt-groups"></div>
+      <input class="field hidden" id="nt-nos" type="text" inputmode="numeric" placeholder="예: 201, 214, 237" style="margin-top:8px">
+      <p class="label">제목 <span class="muted" style="font-weight:400">· 40자까지</span></p>
+      <input class="field" id="nt-title" type="text" maxlength="40" placeholder="예: 11월 안전교육 안내">
+      <p class="label">내용 <span class="muted" style="font-weight:400">· 선택 · 500자까지</span></p>
+      <textarea class="field" id="nt-body" rows="4" maxlength="500" style="min-height:110px" placeholder="예: 11월 5일(목) 오후 5시, 사무실 2층에서 안전교육이 있습니다."></textarea>
+      <p class="label">기사님 화면에 보이는 기간</p>
+      <div class="segs" id="nt-days" style="grid-template-columns:repeat(4,1fr)"><button class="seg" data-ntd="3">3일</button><button class="seg on" data-ntd="7">7일</button><button class="seg" data-ntd="14">14일</button><button class="seg" data-ntd="30">30일</button></div>
+      <button class="btn primary wide" id="nt-send" style="margin-top:16px">알림 보내기</button>
+      <p class="label" style="margin-top:22px">보낸 알림</p>
+      <ul class="rows" id="nt-list"></ul>
+    </section>
+
     <section class="view form" id="v-reps">
       <button class="back" data-sub="v-more">← 더보기</button>
       <p class="info" style="margin-top:0">기사님 화면의 오늘 물량표에서 <b>담당자 이름을 누르면</b> 여기 적힌 전화번호와 무전기 번호가 보입니다. 이름은 출하예정 집계표의 담당자 칸과 똑같이 적어 주세요.</p>
@@ -1671,6 +1700,121 @@ function adminSetDayLimit(st, p) {
 function uniqueId(st) { var id; do { id = newId(); } while (st.reqs.some(function (r) { return r.id === id; })); return id; }
 function newId() { return Math.random().toString(36).slice(2, 10); }
 
+
+/* ---------- 알림 (기사님 화면 종 모양) ----------
+   알림 = ① 내 휴가 변경(관리자 입력·수정, 자동 확정·반려)  ② 물량표 올라옴  ③ 관리자 공지
+   기록 줄 = [시각, 호수, 종류, 날짜, 처리, 결과, 처리자, 내용]
+   공지 줄 = [ID, 보낸 시각, 대상, 제목, 내용, 끝날짜]   대상: "전체" · "3조" · "201,214" */
+var BELL_DAYS = 30, BELL_TYPES = { "연차": 1, "여름휴가": 1, "조퇴": 1, "지각": 1, "결근": 1, "특별휴가": 1 };
+function noGroup(no) { return Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10))); }
+function noticeTargets(target) {
+  var t = String(target || "").replace(/\s/g, "");
+  if (!t || t === "전체") return { all: true };
+  var g = {}, n = {};
+  t.split(/[,，·]/).forEach(function (x) { var m = x.match(/^([1-6])조$/); if (m) g[m[1]] = 1; else if (/^\d{3}호?$/.test(x)) n[x.replace("호", "")] = 1; });
+  return { groups: g, nos: n };
+}
+function noticeFor(target, no) { var t = noticeTargets(target); return !!(t.all || t.groups[String(noGroup(no))] || t.nos[String(no)]); }
+function noticeTargetText(target) {
+  var t = noticeTargets(target); if (t.all) return "전체";
+  return Object.keys(t.groups).sort().map(function (g) { return g + "조"; }).concat(Object.keys(t.nos).sort().map(function (n) { return n + "호"; })).join(", ") || "전체";
+}
+function noticeAdd(N, p, now, today) {
+  var title = String(p.title || "").trim(), body = String(p.body || "").trim(), days = Number(p.days || 7);
+  var target = String(p.target || "전체").trim() || "전체";
+  if (!title) return result(false, "제목을 적어 주세요.");
+  if (title.length > 40) return result(false, "제목은 40자까지 쓸 수 있습니다.");
+  if (body.length > 500) return result(false, "내용은 500자까지 쓸 수 있습니다.");
+  if (!(days >= 1 && days <= 90)) return result(false, "보이는 기간은 1~90일로 정해 주세요.");
+  var tt = noticeTargets(target);
+  if (!tt.all && !Object.keys(tt.groups).length && !Object.keys(tt.nos).length) return result(false, "받는 사람을 '전체', '3조' 또는 '201, 214'처럼 적어 주세요.");
+  var id = "N" + now.replace(/[^\d]/g, "") + Math.floor(Math.random() * 90 + 10);
+  var until = dAdd(today, days - 1);
+  N.push([id, now, target, title, body, until]);
+  var r = result(true, "알림을 보냈습니다. (" + noticeTargetText(target) + " · " + dShort(until) + "까지 보임)");
+  r.changes.push({ op: "notices" });
+  r.logs.push({ no: "-", type: "알림", date: "", action: "관리자 알림 보내기", result: "완료", detail: noticeTargetText(target) + " · " + title, by: "관리자" });
+  return r;
+}
+function noticeDel(N, p) {
+  for (var i = 0; i < N.length; i++) if (N[i][0] === String(p.id)) {
+    var t = N[i][3]; N.splice(i, 1);
+    var r = result(true, "알림을 지웠습니다. 기사님 화면에서도 사라집니다.");
+    r.changes.push({ op: "notices" });
+    r.logs.push({ no: "-", type: "알림", date: "", action: "관리자 알림 삭제", result: "완료", detail: t, by: "관리자" });
+    return r;
+  }
+  return result(false, "이미 지워진 알림입니다. 새로고침해 주세요.");
+}
+function noticeList(N, today) {
+  return N.slice().sort(function (a, b) { return a[1] < b[1] ? 1 : -1; }).map(function (n) {
+    return { id: n[0], at: n[1], target: noticeTargetText(n[2]), title: n[3], body: n[4], until: n[5], live: !n[5] || n[5] >= today };
+  });
+}
+// 받침에 따라 조사: josa("결근", "이", "가") → "결근이"
+function josa(w, a, b) { var c = String(w).charCodeAt(String(w).length - 1); return w + (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b); }
+function bellVacText(r) {
+  var d = /^\d{4}-\d{2}-\d{2}$/.test(r[3]) ? dShort(r[3]) + "(" + WEEK[dWeekday(r[3])] + ") " : "", type = r[2], res = r[5], act = r[4];
+  var ga = josa(type, "이", "가"), eun = josa(type, "은", "는"), eul = josa(type, "을", "를");
+  if (act === "자동처리") return res === "확정"
+    ? { title: d + ga + " 확정됐습니다", body: "기다리던 " + type + "에 자리가 나서 확정됐습니다." }
+    : { title: d + eun + " 확정되지 않았습니다", body: "자리가 나지 않아 확정되지 않았습니다." };
+  if (act === "관리자 입력") return { title: d + ga + " 입력됐습니다", body: "사무실에서 " + eul + " 입력했습니다. (" + res + ")" };
+  var word = { "확정": "확정됐습니다", "취소": "취소됐습니다", "반려": "반려됐습니다", "대기": "대기로 바뀌었습니다", "후순위": "후순위 대기로 바뀌었습니다" }[res] || res + "(으)로 바뀌었습니다";
+  return { title: d + ga + " " + word, body: "사무실에서 바꿨습니다." + (r[7] && act === "관리자 수정" && /→/.test(r[7]) && !/^상태:/.test(r[7]) ? " (" + r[7] + ")" : "") };
+}
+function engineBell(st, p, logs, notices) {
+  var no = String(p.no);
+  var bad = checkAuth(st, no, p);
+  if (bad) return authFail(bad);
+  var from = dAdd(st.today, -BELL_DAYS), items = [], today = {};
+  (logs || []).forEach(function (r) {
+    var at = String(r[0] || ""); if (at.slice(0, 10) < from) return;
+    if (String(r[1]) === no && BELL_TYPES[r[2]] && r[6] !== "기사" && (r[4] === "자동처리" || /^관리자/.test(r[4]) || /시트/.test(r[4]))) {
+      var t = bellVacText(r);
+      items.push({ id: "v" + at + r[3] + r[4] + r[5], at: at, kind: "vac", date: r[3], title: t.title, body: t.body });
+    }
+    // 물량표: 앞으로 나갈 날(내일 이후) 물량표를 처음 올렸을 때만. 오늘 것·수정·현장 거리 수정 등은 알리지 않음
+    if (r[2] === "현장" && r[4] === "관리자 금일 현장" && /^집계표/.test(r[7] || "") && /^\d{4}-\d{2}-\d{2}$/.test(r[3]) && r[3] > st.today && r[3] <= dAdd(st.today, 7)) {
+      var m = String(r[7] || "").match(/총 (\d+)곳/);
+      if (!today[r[3]]) today[r[3]] = { at: at, n: m ? +m[1] : 0 };   // 처음 올린 것만 (수정·추가는 알리지 않음)
+    }
+  });
+  Object.keys(today).forEach(function (d) {
+    var x = today[d];
+    items.push({ id: "t" + d + x.at, at: x.at, kind: "today", date: d,
+                 title: dShort(d) + "(" + WEEK[dWeekday(d)] + ") 물량표가 올라왔습니다",
+                 body: "출하 현장 " + x.n + "곳 · 눌러서 보기" });
+  });
+  (notices || []).forEach(function (n) {
+    if (String(n[1]).slice(0, 10) < dAdd(st.today, -90) || (n[5] && n[5] < st.today) || !noticeFor(n[2], no)) return;
+    items.push({ id: "n" + n[0], at: n[1], kind: "notice", title: n[3], body: n[4] });
+  });
+  items.sort(function (a, b) { return a.at < b.at ? 1 : a.at > b.at ? -1 : 0; });
+  return { ok: true, now: st.now, items: items.slice(0, 50) };
+}
+
+/* ---------- 휴대폰 푸시 (원시그널) ----------
+   밤 10시 ~ 아침 6시에는 어떤 경우에도 울리지 않음 → 그 사이에 생긴 알림은 아침 6시에 보냄 */
+var PUSH_QUIET_FROM = 22, PUSH_QUIET_TO = 6;
+function pushSendAfter(now) {                        // now = "YYYY-MM-DD HH:MM:SS" (한국 시각)
+  var h = +String(now).slice(11, 13), d = String(now).slice(0, 10);
+  if (h >= PUSH_QUIET_FROM) return dAdd(d, 1) + " 0" + PUSH_QUIET_TO + ":00:00 GMT+0900";
+  if (h < PUSH_QUIET_TO) return d + " 0" + PUSH_QUIET_TO + ":00:00 GMT+0900";
+  return "";
+}
+// 처리 결과의 기록 → 기사님별 휴가 푸시 문구 (종 알림과 같은 기준: 본인이 직접 한 것은 제외)
+function pushVacList(logs) {
+  var out = [];
+  (logs || []).forEach(function (l) {
+    if (!l || !BELL_TYPES[l.type] || l.by === "기사" || !/^\d{3}$/.test(String(l.no))) return;
+    if (!(l.action === "자동처리" || /^관리자/.test(l.action))) return;
+    var t = bellVacText(["", l.no, l.type, l.date, l.action, l.result, l.by, l.detail || ""]);
+    out.push({ no: String(l.no), title: t.title, body: t.body });
+  });
+  return out;
+}
+
 /* =========================================================
    현장 운행거리 (관리자 페이지에서 추가·수정·삭제, 엑셀 붙여넣기)
    목록 S = [[현장명, 거리], ...]  거리는 숫자 또는 "-"(모름)
@@ -2146,6 +2290,15 @@ async function api(action, p) {
     if (r.ok) { try { localStorage.setItem("demoReps", JSON.stringify(R)); } catch (e) {} demoSave(demoState(), r.logs); }
     delete r.changes; delete r.logs; r.list = R; return r;
   }
+  if (action === "adminNotices" || action === "adminNoticeAdd" || action === "adminNoticeDel") {   // 알림 (체험: 이 폰에 저장)
+    let N = []; try { N = JSON.parse(localStorage.getItem("demoNotices") || "[]"); } catch (e) {}
+    const st0 = demoState();
+    if (action === "adminNotices") return { ok: true, list: noticeList(N, st0.today) };
+    const r = action === "adminNoticeAdd" ? noticeAdd(N, p, st0.now, st0.today) : noticeDel(N, p);
+    if (r.ok) { try { localStorage.setItem("demoNotices", JSON.stringify(N)); } catch (e) {} demoSave(st0, r.logs); }
+    delete r.changes; delete r.logs; r.list = noticeList(N, st0.today); return r;
+  }
+  if (action === "adminPushTest") return { ok: false, msg: "체험 모드에서는 휴대폰 알림을 보내지 않습니다. 실제 사이트에서 시험해 주세요." };
   if (action === "adminBackupInfo") return { ok: true, demo: true };
   if (action === "adminBackupNow" || action === "adminBackupAuto") return { ok: false, msg: "체험 모드에서는 백업하지 않습니다. 구글 시트에 연결하면 동작합니다." };
   if (action === "adminChangePw") {
@@ -2880,7 +3033,7 @@ async function loadLogs(more) {
 }
 
 /* ---------- 화면 전환 ---------- */
-const SUBS = { "v-reps": 1, "v-backup": 1, "v-apw": 1, "v-list": 1, "v-logs": 1, "v-hol": 1, "v-set": 1, "v-bulk": 1, "v-sites": 1, "v-paste": 1, "v-today": 1, "v-lim": 1 };
+const SUBS = { "v-noti": 1, "v-reps": 1, "v-backup": 1, "v-apw": 1, "v-list": 1, "v-logs": 1, "v-hol": 1, "v-set": 1, "v-bulk": 1, "v-sites": 1, "v-paste": 1, "v-today": 1, "v-lim": 1 };
 function showView(v) {
   document.querySelectorAll(".view").forEach(el => el.classList.toggle("on", el.id === v));
   document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v || (!!SUBS[v] && b.dataset.view === "v-more")));
@@ -2907,6 +3060,7 @@ function viewLoad(v) {
   if (v === "v-set") j(loadSet());
   if (v === "v-backup") j(loadBackup());
   if (v === "v-reps") j(loadReps());
+  if (v === "v-noti") j(loadNotices());
   if (v === "v-month" && curMonth) j(loadMonth(curMonth));
   if (v === "v-day" && curDate && TODAY) j(loadDay(curDate));
   return Promise.all(jobs);
@@ -3280,6 +3434,53 @@ $("set-list").addEventListener("click", async e => {
 });
 
 $("add-out").addEventListener("click", e => { const b = e.target.closest("[data-out]"); if (!b) return; addForm.outside = b.dataset.out === "1"; renderAdd(); });
+
+/* ---------- 기사님 알림 보내기 ---------- */
+const NT = { who: "all", groups: {}, days: 7 };
+function renderNtForm() {
+  document.querySelectorAll("#nt-who [data-ntw]").forEach(b => b.classList.toggle("on", b.dataset.ntw === NT.who));
+  document.querySelectorAll("#nt-days [data-ntd]").forEach(b => b.classList.toggle("on", +b.dataset.ntd === NT.days));
+  $("nt-groups").classList.toggle("hidden", NT.who !== "group");
+  $("nt-nos").classList.toggle("hidden", NT.who !== "nos");
+  $("nt-groups").innerHTML = [1, 2, 3, 4, 5, 6].map(g => '<button type="button" class="' + (NT.groups[g] ? 'on' : '') + '" data-ntg="' + g + '">' + g + '조</button>').join("");
+}
+function renderNotices(list) {
+  $("nt-list").innerHTML = list.length ? list.map(n => '<li class="' + (n.live ? '' : 'nt-end') + '"><div class="main"><b>' + esc(n.title) + '</b>' +
+      (n.body ? '<div class="nt-body">' + esc(n.body) + '</div>' : '') +
+      '<div class="meta">' + esc(n.target) + ' · ' + esc(n.at.slice(5, 16).replace("-", "/")) + ' 보냄 · ' + (n.live ? md(n.until) + '까지 보임' : '기간 끝남') + '</div></div>' +
+      '<div class="acts"><button class="btn small danger" data-ntdel="' + esc(n.id) + '" data-t="' + esc(n.title) + '">지우기</button></div></li>').join("")
+    : '<li><span class="empty">보낸 알림이 없습니다</span></li>';
+}
+async function loadNotices() { renderNtForm(); const r = await call("adminNotices"); if (r.ok) renderNotices(r.list); }
+$("nt-who").addEventListener("click", e => { const b = e.target.closest("[data-ntw]"); if (b) { NT.who = b.dataset.ntw; renderNtForm(); } });
+$("nt-days").addEventListener("click", e => { const b = e.target.closest("[data-ntd]"); if (b) { NT.days = +b.dataset.ntd; renderNtForm(); } });
+$("nt-groups").addEventListener("click", e => { const b = e.target.closest("[data-ntg]"); if (b) { NT.groups[b.dataset.ntg] = !NT.groups[b.dataset.ntg]; renderNtForm(); } });
+$("nt-send").onclick = async () => {
+  const title = $("nt-title").value.trim(), body = $("nt-body").value.trim();
+  const target = NT.who === "all" ? "전체" : NT.who === "group" ? Object.keys(NT.groups).filter(g => NT.groups[g]).map(g => g + "조").join(",") : $("nt-nos").value;
+  if (!title) return toast("제목을 적어 주세요.");
+  if (NT.who === "group" && !target) return toast("조를 하나 이상 골라 주세요.");
+  if (NT.who === "nos" && !target.trim()) return toast("호수를 적어 주세요. (예: 201, 214)");
+  const whoText = NT.who === "all" ? "기사님 전체" : target.replace(/,/g, ", ");
+  if (!(await ask("이 알림을 보낼까요?\n\n받는 사람: " + whoText + "\n제목: " + title + "\n보이는 기간: " + NT.days + "일", "보내기", "다시 보기"))) return;
+  $("nt-send").disabled = true;
+  const r = await call("adminNoticeAdd", { target, title, body, days: NT.days });
+  $("nt-send").disabled = false;
+  toast(r.msg, r.ok);
+  if (r.ok) { $("nt-title").value = ""; $("nt-body").value = ""; renderNotices(r.list); }
+};
+$("nt-list").addEventListener("click", async e => {
+  const b = e.target.closest("[data-ntdel]"); if (!b) return;
+  if (!(await ask("'" + b.dataset.t + "' 알림을 지울까요?\n\n기사님 화면에서도 사라집니다.", "지우기", "그대로 두기", true))) return;
+  const r = await call("adminNoticeDel", { id: b.dataset.ntdel });
+  toast(r.msg, r.ok); if (r.ok) renderNotices(r.list);
+});
+
+$("pt-send").onclick = async () => {
+  const no = $("pt-no").value.trim(); if (!/^\d{3}$/.test(no)) return toast("호수를 적어 주세요. (예: 214)");
+  $("pt-send").disabled = true; const r = await call("adminPushTest", { no }); $("pt-send").disabled = false;
+  toast(r.msg, r.ok);
+};
 
 </script>
 </body>

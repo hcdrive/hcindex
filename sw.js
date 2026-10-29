@@ -1,7 +1,9 @@
 /* 현창레미콘 앱용 보조 파일
    - 화면 파일(index.html 등)은 늘 인터넷에서 최신을 먼저 받고, 안 될 때만 저장해 둔 것을 씀
    - 구글 시트와 주고받는 자료(script.google.com)는 손대지 않음 */
-const CACHE = "hc-app-v2";
+// 휴대폰 푸시 알림 (원시그널): 알림을 받고, 누르면 앱을 여는 일을 맡김
+try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"); } catch (e) {}
+const CACHE = "hc-app-v3";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./admin.html", "./admin.webmanifest", "./admin-icon-192.png", "./admin-apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener("activate", e => {

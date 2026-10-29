@@ -55,6 +55,7 @@
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
     padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+    padding-top: env(safe-area-inset-top);                       /* 아이폰 위쪽 시계·배터리 줄과 겹치지 않게 */
     min-height: 100vh;
   }
   .view { display: none; max-width: 640px; margin: 0 auto; padding: 24px 16px 32px; }
@@ -79,6 +80,13 @@
   .install-bar.hidden { display: none; }
   .install-help { display: block; margin: -8px auto 14px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
   .install-help.hidden { display: none; }
+  .who-l { display: flex; align-items: center; gap: 4px; }
+  .who .push-pill { border: 1.5px solid var(--accent); background: var(--accent-bg); color: var(--accent); font-size: 13.5px; font-weight: 800; border-radius: 999px; padding: 5px 11px; white-space: nowrap; }
+  .who .push-pill.off { border-color: var(--line); background: var(--card); color: var(--muted); }
+  .push-pill.hidden { display: none; }
+  .who-r b, .who-r button { white-space: nowrap; }
+  .bell-push { font-size: 14px; color: var(--muted); padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .bell-push.hidden { display: none; }
   #a2hs-chrome.hidden, #a2hs-start.hidden { display: none; }
   /* 안드로이드 그림 안내 */
   .ag-pic { padding: 10px; }
@@ -179,7 +187,34 @@
   @keyframes navIn { from { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .login-screen.leaving, .login-screen.entering, body.app-enter .view.on, body.app-enter .who, body.app-enter .nav { animation: none; transition: none; } }
   .login-note { text-align: center; color: var(--muted); font-size: 13px; margin-top: 22px; }
-  .who { display: flex; justify-content: flex-end; align-items: center; gap: 8px; max-width: 1100px; margin: 0 auto; padding: 10px 16px 0; font-size: 14px; }
+  .who { display: flex; justify-content: space-between; align-items: center; gap: 8px; max-width: 1100px; margin: 0 auto; padding: 10px 16px 0; font-size: 14px; }
+  .who-r { display: flex; align-items: center; gap: 8px; }
+  .who .bell { position: relative; width: 44px; height: 44px; margin: -4px 0 -4px -8px; border: 0; border-radius: 50%; padding: 0; background: none; color: var(--text); display: inline-flex; align-items: center; justify-content: center; }
+  .who .bell svg { width: 27px; height: 27px; }
+  .bell-n { position: absolute; top: 3px; right: 2px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: #e5484d; color: #fff; font-size: 12px; font-weight: 800; line-height: 19px; text-align: center; box-sizing: border-box; border: 2px solid var(--bg); }
+  .bell-n.hidden { display: none; }
+  .bell-panel { position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,.45); display: none; }
+  .bell-panel.show { display: block; }
+  body.bell-open { overflow: hidden; }
+  .bp-box { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); }
+  @media (min-width: 680px) { .bp-box { inset: 40px auto 40px 50%; transform: translateX(-50%); width: 480px; border-radius: 18px; overflow: hidden; } }
+  .bp-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .bp-head b { font-size: 21px; }
+  .bp-close { border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; font-size: 16px; font-weight: 700; border-radius: 999px; padding: 7px 16px; }
+  .bp-list { list-style: none; margin: 0; padding: 8px 12px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto; flex: 1; }
+  .bl-item { padding: 14px 12px; border-radius: 14px; margin-bottom: 8px; background: var(--card); cursor: pointer; }
+  .bl-item.new { background: var(--accent-bg); }
+  .bl-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .bl-tag { font-size: 13px; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+  .bl-tag.v { background: var(--green-bg); color: var(--green); }
+  .bl-tag.t { background: #fff1d6; color: #9a6200; }
+  .bl-tag.n { background: #ece8ff; color: #5b3fd1; }
+  .bl-new { font-size: 12px; font-weight: 800; color: #e5484d; }
+  .bl-at { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .bl-t { display: block; font-size: 17px; line-height: 1.4; }
+  .bl-b { font-size: 15px; color: var(--muted); margin-top: 3px; line-height: 1.5; white-space: pre-line; }
+  .bl-go { display: inline-block; margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--accent); }
+  .bl-none { text-align: center; color: var(--muted); padding: 40px 0; }
   .who b { color: var(--text); }
   .who button { border: 1px solid var(--line); background: var(--bg); color: var(--muted); font: inherit; font-size: 13px; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
   h1 { text-align: center; font-weight: 700; letter-spacing: -0.5px; }
@@ -506,7 +541,17 @@
     <button class="btn primary wide" id="a2hs-ios-ok" style="height:50px;font-size:17px">알겠어요</button>
   </div>
 </div>
-<div class="who hidden" id="who"><b id="who-no"></b><button type="button" id="who-out">로그아웃</button></div>
+<div class="who hidden" id="who">
+  <span class="who-l"><button type="button" class="bell" id="bell" aria-label="알림"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="bell-n hidden" id="bell-n"></span></button><button type="button" class="push-pill hidden" id="push-go">휴대폰 알림 켜기</button></span>
+  <span class="who-r"><b id="who-no"></b><button type="button" id="who-out">로그아웃</button></span>
+</div>
+<div class="bell-panel" id="bell-panel">
+  <div class="bp-box">
+    <div class="bp-head"><b>알림</b><button type="button" class="bp-close" id="bell-close">닫기</button></div>
+    <div class="bell-push hidden" id="bell-push"></div>
+    <ul class="bp-list" id="bell-list"></ul>
+  </div>
+</div>
 
 <!-- ───── 운행거리 화면 ───── -->
 <section class="view" id="dist">
@@ -1811,6 +1856,121 @@ function adminSetDayLimit(st, p) {
 function uniqueId(st) { var id; do { id = newId(); } while (st.reqs.some(function (r) { return r.id === id; })); return id; }
 function newId() { return Math.random().toString(36).slice(2, 10); }
 
+
+/* ---------- 알림 (기사님 화면 종 모양) ----------
+   알림 = ① 내 휴가 변경(관리자 입력·수정, 자동 확정·반려)  ② 물량표 올라옴  ③ 관리자 공지
+   기록 줄 = [시각, 호수, 종류, 날짜, 처리, 결과, 처리자, 내용]
+   공지 줄 = [ID, 보낸 시각, 대상, 제목, 내용, 끝날짜]   대상: "전체" · "3조" · "201,214" */
+var BELL_DAYS = 30, BELL_TYPES = { "연차": 1, "여름휴가": 1, "조퇴": 1, "지각": 1, "결근": 1, "특별휴가": 1 };
+function noGroup(no) { return Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10))); }
+function noticeTargets(target) {
+  var t = String(target || "").replace(/\s/g, "");
+  if (!t || t === "전체") return { all: true };
+  var g = {}, n = {};
+  t.split(/[,，·]/).forEach(function (x) { var m = x.match(/^([1-6])조$/); if (m) g[m[1]] = 1; else if (/^\d{3}호?$/.test(x)) n[x.replace("호", "")] = 1; });
+  return { groups: g, nos: n };
+}
+function noticeFor(target, no) { var t = noticeTargets(target); return !!(t.all || t.groups[String(noGroup(no))] || t.nos[String(no)]); }
+function noticeTargetText(target) {
+  var t = noticeTargets(target); if (t.all) return "전체";
+  return Object.keys(t.groups).sort().map(function (g) { return g + "조"; }).concat(Object.keys(t.nos).sort().map(function (n) { return n + "호"; })).join(", ") || "전체";
+}
+function noticeAdd(N, p, now, today) {
+  var title = String(p.title || "").trim(), body = String(p.body || "").trim(), days = Number(p.days || 7);
+  var target = String(p.target || "전체").trim() || "전체";
+  if (!title) return result(false, "제목을 적어 주세요.");
+  if (title.length > 40) return result(false, "제목은 40자까지 쓸 수 있습니다.");
+  if (body.length > 500) return result(false, "내용은 500자까지 쓸 수 있습니다.");
+  if (!(days >= 1 && days <= 90)) return result(false, "보이는 기간은 1~90일로 정해 주세요.");
+  var tt = noticeTargets(target);
+  if (!tt.all && !Object.keys(tt.groups).length && !Object.keys(tt.nos).length) return result(false, "받는 사람을 '전체', '3조' 또는 '201, 214'처럼 적어 주세요.");
+  var id = "N" + now.replace(/[^\d]/g, "") + Math.floor(Math.random() * 90 + 10);
+  var until = dAdd(today, days - 1);
+  N.push([id, now, target, title, body, until]);
+  var r = result(true, "알림을 보냈습니다. (" + noticeTargetText(target) + " · " + dShort(until) + "까지 보임)");
+  r.changes.push({ op: "notices" });
+  r.logs.push({ no: "-", type: "알림", date: "", action: "관리자 알림 보내기", result: "완료", detail: noticeTargetText(target) + " · " + title, by: "관리자" });
+  return r;
+}
+function noticeDel(N, p) {
+  for (var i = 0; i < N.length; i++) if (N[i][0] === String(p.id)) {
+    var t = N[i][3]; N.splice(i, 1);
+    var r = result(true, "알림을 지웠습니다. 기사님 화면에서도 사라집니다.");
+    r.changes.push({ op: "notices" });
+    r.logs.push({ no: "-", type: "알림", date: "", action: "관리자 알림 삭제", result: "완료", detail: t, by: "관리자" });
+    return r;
+  }
+  return result(false, "이미 지워진 알림입니다. 새로고침해 주세요.");
+}
+function noticeList(N, today) {
+  return N.slice().sort(function (a, b) { return a[1] < b[1] ? 1 : -1; }).map(function (n) {
+    return { id: n[0], at: n[1], target: noticeTargetText(n[2]), title: n[3], body: n[4], until: n[5], live: !n[5] || n[5] >= today };
+  });
+}
+// 받침에 따라 조사: josa("결근", "이", "가") → "결근이"
+function josa(w, a, b) { var c = String(w).charCodeAt(String(w).length - 1); return w + (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b); }
+function bellVacText(r) {
+  var d = /^\d{4}-\d{2}-\d{2}$/.test(r[3]) ? dShort(r[3]) + "(" + WEEK[dWeekday(r[3])] + ") " : "", type = r[2], res = r[5], act = r[4];
+  var ga = josa(type, "이", "가"), eun = josa(type, "은", "는"), eul = josa(type, "을", "를");
+  if (act === "자동처리") return res === "확정"
+    ? { title: d + ga + " 확정됐습니다", body: "기다리던 " + type + "에 자리가 나서 확정됐습니다." }
+    : { title: d + eun + " 확정되지 않았습니다", body: "자리가 나지 않아 확정되지 않았습니다." };
+  if (act === "관리자 입력") return { title: d + ga + " 입력됐습니다", body: "사무실에서 " + eul + " 입력했습니다. (" + res + ")" };
+  var word = { "확정": "확정됐습니다", "취소": "취소됐습니다", "반려": "반려됐습니다", "대기": "대기로 바뀌었습니다", "후순위": "후순위 대기로 바뀌었습니다" }[res] || res + "(으)로 바뀌었습니다";
+  return { title: d + ga + " " + word, body: "사무실에서 바꿨습니다." + (r[7] && act === "관리자 수정" && /→/.test(r[7]) && !/^상태:/.test(r[7]) ? " (" + r[7] + ")" : "") };
+}
+function engineBell(st, p, logs, notices) {
+  var no = String(p.no);
+  var bad = checkAuth(st, no, p);
+  if (bad) return authFail(bad);
+  var from = dAdd(st.today, -BELL_DAYS), items = [], today = {};
+  (logs || []).forEach(function (r) {
+    var at = String(r[0] || ""); if (at.slice(0, 10) < from) return;
+    if (String(r[1]) === no && BELL_TYPES[r[2]] && r[6] !== "기사" && (r[4] === "자동처리" || /^관리자/.test(r[4]) || /시트/.test(r[4]))) {
+      var t = bellVacText(r);
+      items.push({ id: "v" + at + r[3] + r[4] + r[5], at: at, kind: "vac", date: r[3], title: t.title, body: t.body });
+    }
+    // 물량표: 앞으로 나갈 날(내일 이후) 물량표를 처음 올렸을 때만. 오늘 것·수정·현장 거리 수정 등은 알리지 않음
+    if (r[2] === "현장" && r[4] === "관리자 금일 현장" && /^집계표/.test(r[7] || "") && /^\d{4}-\d{2}-\d{2}$/.test(r[3]) && r[3] > st.today && r[3] <= dAdd(st.today, 7)) {
+      var m = String(r[7] || "").match(/총 (\d+)곳/);
+      if (!today[r[3]]) today[r[3]] = { at: at, n: m ? +m[1] : 0 };   // 처음 올린 것만 (수정·추가는 알리지 않음)
+    }
+  });
+  Object.keys(today).forEach(function (d) {
+    var x = today[d];
+    items.push({ id: "t" + d + x.at, at: x.at, kind: "today", date: d,
+                 title: dShort(d) + "(" + WEEK[dWeekday(d)] + ") 물량표가 올라왔습니다",
+                 body: "출하 현장 " + x.n + "곳 · 눌러서 보기" });
+  });
+  (notices || []).forEach(function (n) {
+    if (String(n[1]).slice(0, 10) < dAdd(st.today, -90) || (n[5] && n[5] < st.today) || !noticeFor(n[2], no)) return;
+    items.push({ id: "n" + n[0], at: n[1], kind: "notice", title: n[3], body: n[4] });
+  });
+  items.sort(function (a, b) { return a.at < b.at ? 1 : a.at > b.at ? -1 : 0; });
+  return { ok: true, now: st.now, items: items.slice(0, 50) };
+}
+
+/* ---------- 휴대폰 푸시 (원시그널) ----------
+   밤 10시 ~ 아침 6시에는 어떤 경우에도 울리지 않음 → 그 사이에 생긴 알림은 아침 6시에 보냄 */
+var PUSH_QUIET_FROM = 22, PUSH_QUIET_TO = 6;
+function pushSendAfter(now) {                        // now = "YYYY-MM-DD HH:MM:SS" (한국 시각)
+  var h = +String(now).slice(11, 13), d = String(now).slice(0, 10);
+  if (h >= PUSH_QUIET_FROM) return dAdd(d, 1) + " 0" + PUSH_QUIET_TO + ":00:00 GMT+0900";
+  if (h < PUSH_QUIET_TO) return d + " 0" + PUSH_QUIET_TO + ":00:00 GMT+0900";
+  return "";
+}
+// 처리 결과의 기록 → 기사님별 휴가 푸시 문구 (종 알림과 같은 기준: 본인이 직접 한 것은 제외)
+function pushVacList(logs) {
+  var out = [];
+  (logs || []).forEach(function (l) {
+    if (!l || !BELL_TYPES[l.type] || l.by === "기사" || !/^\d{3}$/.test(String(l.no))) return;
+    if (!(l.action === "자동처리" || /^관리자/.test(l.action))) return;
+    var t = bellVacText(["", l.no, l.type, l.date, l.action, l.result, l.by, l.detail || ""]);
+    out.push({ no: String(l.no), title: t.title, body: t.body });
+  });
+  return out;
+}
+
 /* =========================================================
    현장 운행거리 (관리자 페이지에서 추가·수정·삭제, 엑셀 붙여넣기)
    목록 S = [[현장명, 거리], ...]  거리는 숫자 또는 "-"(모름)
@@ -2261,6 +2421,11 @@ async function api(action, p) {
     }
   }
   const st = demoState();
+  if (action === "bell") {                                          // 체험: 이 폰에 저장된 기록·공지로 알림 만들기
+    let Lg = [], Nt = [];
+    try { Lg = JSON.parse(localStorage.getItem("demoLogs") || "[]"); Nt = JSON.parse(localStorage.getItem("demoNotices") || "[]"); } catch (e) {}
+    return engineBell(st, p, Lg, Nt);
+  }
   if (action !== "summary" && action !== "mine" && action !== "login" && action !== "logout") engineDaily(st);
   const fn = { summary: engineSummary, mine: engineMine, order: engineOrder, apply: engineApply, cancel: engineCancel, changePin: engineChangePin, login: engineLogin, logout: engineLogout }[action];
   const r = fn(st, p);
@@ -2821,9 +2986,14 @@ function startApp(animate) {
   loadVac();
   loadSheet();
   setTimeout(showA2hs, 6000);                                     // 화면이 다 뜨고 알림이 사라진 뒤 앱 추가 안내
+  BELL = []; renderBellBadge(); loadBell(true);
+  loadOneSignal(); pushSync();
+  setTimeout(openFromHash, 300);                                  // 휴대폰 알림을 눌러 들어온 경우 해당 화면으로
 }
 function logout(msg) {
+  pushLogout();
   MY = null; myTok = ""; store.set("myTok", "");
+  document.getElementById("bell-panel").classList.remove("show"); document.body.classList.remove("bell-open"); BELL = []; renderBellBadge();
   try { localStorage.removeItem("sitesCache"); localStorage.removeItem("todayCache"); localStorage.removeItem("repsCache"); } catch (e) {}
   SITES = []; DAY_CACHE = {}; $q.value = ""; setToday([], []); renderDist();
   document.getElementById("a2hs").classList.add("hidden"); document.getElementById("install-bar").classList.add("hidden"); document.getElementById("install-help").classList.add("hidden");
@@ -2917,7 +3087,7 @@ document.getElementById("ch-out").addEventListener("click", () => { api("logout"
 // 앱을 다시 볼 때마다 로그인 상태 확인 (다른 기기에서 로그인했으면 여기서 알려 줌)
 document.addEventListener("visibilitychange", async () => {
   if (document.hidden || !myCar || !myTok || !document.getElementById("login-screen").classList.contains("hidden")) return;
-  await loadMine(true); if (myTok) renderMine();
+  await loadMine(true); if (myTok) { renderMine(); loadBell(); }
 });
 document.getElementById("who-out").addEventListener("click", async () => {
   if (!(await ask("로그아웃할까요?\n\n다시 쓰려면 아이디와 비밀번호를 넣어야 합니다.", "로그아웃", "그대로 두기"))) return;
@@ -3071,6 +3241,159 @@ async function showOrder(btn) {
 }
 document.getElementById("ord-ok").addEventListener("click", () => document.getElementById("order").classList.remove("show"));
 document.getElementById("order").addEventListener("click", e => { if (e.target.id === "order") e.target.classList.remove("show"); });
+
+/* ---------- 알림 (왼쪽 위 종): 내 휴가 변경 · 물량표 · 사무실 공지 ---------- */
+let BELL = [], bellAt = 0, bellOldSeen = "";
+const bellKey = () => "bellSeen:" + myCar;
+function bellSeen() { try { return localStorage.getItem(bellKey()) || ""; } catch (e) { return ""; } }
+function setBellSeen(v) { try { localStorage.setItem(bellKey(), v); } catch (e) {} }
+async function loadBell(force) {
+  if (!myCar || !myTok) return;
+  if (!force && Date.now() - bellAt < 60000) return;             // 1분 안에 다시 부르지 않음
+  bellAt = Date.now();
+  const r = await api("bell", { no: myCar, tok: myTok });
+  if (!r || !r.ok) return;
+  BELL = r.items || [];
+  if (!bellSeen()) {                                              // 처음 쓰는 폰: 최근 3일 것만 새 알림으로
+    const d = new Date(Date.now() + 9 * 3600e3 - 3 * 864e5).toISOString().slice(0, 10);
+    setBellSeen(d + " 00:00:00");
+  }
+  renderBellBadge();
+  if (document.getElementById("bell-panel").classList.contains("show")) renderBell();
+}
+function renderBellBadge() {
+  const seen = bellSeen(), n = BELL.filter(x => x.at > seen).length, el = document.getElementById("bell-n");
+  el.textContent = n > 9 ? "9+" : String(n);
+  el.classList.toggle("hidden", !n);
+  document.getElementById("bell").setAttribute("aria-label", n ? "알림 " + n + "개 새로 옴" : "알림");
+}
+function bellTime(at) {
+  const t = kstNow().today, d = at.slice(0, 10), h = +at.slice(11, 13), mm = at.slice(14, 16);
+  const clock = (h < 12 ? "오전 " : "오후 ") + (h % 12 || 12) + ":" + mm;
+  const y = new Date(Date.parse(t) - 864e5).toISOString().slice(0, 10);
+  return (d === t ? "오늘 " : d === y ? "어제 " : (+d.slice(5, 7)) + "/" + (+d.slice(8)) + "(" + "일월화수목금토"[new Date(d + "T00:00:00Z").getUTCDay()] + ") ") + clock;
+}
+const BELL_TAG = { vac: ["휴가", "v"], today: ["물량표", "t"], notice: ["공지", "n"] };
+function renderBell() {
+  const list = document.getElementById("bell-list");
+  list.innerHTML = BELL.length ? BELL.map((x, i) => {
+    const tg = BELL_TAG[x.kind] || ["알림", "n"], unread = x.at > bellOldSeen;
+    return '<li class="bl-item' + (unread ? ' new' : '') + '" data-bi="' + i + '"><div class="bl-top"><span class="bl-tag ' + tg[1] + '">' + tg[0] + '</span>' +
+      (unread ? '<span class="bl-new">새 알림</span>' : '') + '<span class="bl-at">' + esc(bellTime(x.at)) + '</span></div>' +
+      '<b class="bl-t">' + esc(x.title) + '</b>' + (x.body ? '<div class="bl-b">' + esc(x.body).replace(/\n/g, "<br>") + '</div>' : '') +
+      (x.kind !== "notice" ? '<span class="bl-go">' + (x.kind === "vac" ? "내 휴가 보기 ›" : "물량표 보기 ›") + '</span>' : '') + '</li>';
+  }).join("") : '<li class="bl-none">최근 30일 동안 온 알림이 없습니다</li>';
+}
+function openBell() {
+  bellOldSeen = bellSeen();
+  renderBell();
+  document.getElementById("bell-panel").classList.add("show");
+  document.body.classList.add("bell-open");
+  if (BELL.length) setBellSeen(BELL[0].at > bellOldSeen ? BELL[0].at : bellOldSeen);
+  renderBellBadge();
+  loadBell(true);
+}
+function closeBell() { document.getElementById("bell-panel").classList.remove("show"); document.body.classList.remove("bell-open"); }
+document.getElementById("bell").addEventListener("click", openBell);
+document.getElementById("bell-close").addEventListener("click", closeBell);
+document.getElementById("bell-panel").addEventListener("click", e => {
+  if (e.target.id === "bell-panel") return closeBell();
+  const li = e.target.closest("[data-bi]"); if (!li) return;
+  const x = BELL[+li.dataset.bi]; if (!x || x.kind === "notice") return;
+  closeBell();
+  if (x.kind === "vac") { showView("vac"); return; }
+  // 물량표: 그 날짜 물량표를 새로 받아서 펼침
+  showView("dist"); $q.value = ""; delete DAY_CACHE[x.date];
+  if (!DAYS.includes(x.date)) DAYS = DAYS.concat(x.date).sort();
+  todayOpen = true; goDay(x.date); renderDist(); window.scrollTo(0, 0);
+});
+// 화면을 보고 있는 동안 5분마다 새 알림 확인
+setInterval(() => { if (!document.hidden) loadBell(true); }, 5 * 60000);
+
+/* ---------- 휴대폰 푸시 알림 (원시그널) ----------
+   로그인한 호수로 이름표를 붙여 두면, 구글 시트가 "214호에게" 보낸 알림이 이 휴대폰으로 옴.
+   밤 10시~아침 6시에는 울리지 않음(서버에서 아침 6시로 미룸). 실제 사이트(https)에서만 동작 */
+const OS_APP_ID = "a7ff2a0f-eac2-4a43-9989-d0946e6ddbf4", OS_SAFARI_ID = "web.onesignal.auto.1f7edc6b-077e-4a04-b244-6d0a0c671761";
+let OS = null, osLoading = false;
+function loadOneSignal() {
+  if (OS || osLoading || !API_URL || location.protocol !== "https:" || !("serviceWorker" in navigator)) return;
+  osLoading = true;
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  const s = document.createElement("script"); s.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; s.defer = true;
+  document.head.appendChild(s);
+  OneSignalDeferred.push(async function (O) {
+    try {
+      const base = location.pathname.replace(/[^/]*$/, "");      // "/hcindex/"
+      await O.init({ appId: OS_APP_ID, safari_web_id: OS_SAFARI_ID, serviceWorkerPath: base.slice(1) + "sw.js", serviceWorkerParam: { scope: base },
+                     notifyButton: { enable: false }, welcomeNotification: { disable: true } });
+      OS = O;
+      O.Notifications.addEventListener("permissionChange", () => pushSync());
+      O.User.PushSubscription.addEventListener("change", () => renderPushCard());
+    } catch (e) {}
+    pushSync();
+  });
+}
+async function pushSync() {
+  if (OS && myCar && myTok) {
+    try {
+      await OS.login(String(myCar));
+      if (OS.Notifications.permission && !OS.User.PushSubscription.optedIn) await OS.User.PushSubscription.optIn();
+    } catch (e) {}
+  }
+  renderPushCard();
+}
+async function pushLogout() { if (!OS) return; try { await OS.User.PushSubscription.optOut(); await OS.logout(); } catch (e) {} }
+function pushState() {
+  if (!OS || !myTok) return "";
+  try { if (!OS.Notifications.isPushSupported()) return ""; } catch (e) { return ""; }
+  if (OS.Notifications.permission && OS.User.PushSubscription.optedIn) return "on";
+  if (typeof Notification !== "undefined" && Notification.permission === "denied") return "denied";
+  return "off";
+}
+// 종 옆 작은 버튼: 알림을 아직 안 켰으면 "휴대폰 알림 켜기", 거부했으면 "알림 꺼짐 · 켜는 방법". 켜지면 사라짐
+function renderPushCard() {
+  const st = pushState(), el = document.getElementById("push-go"); if (!el) return;
+  el.classList.toggle("hidden", !(st === "off" || st === "denied"));
+  el.classList.toggle("off", st === "denied");
+  const narrow = window.innerWidth < 370;                          // 작은 휴대폰은 글자를 줄임
+  el.textContent = st === "denied" ? (narrow ? "알림 꺼짐" : "알림 꺼짐 · 켜는 방법") : (narrow ? "알림 켜기" : "휴대폰 알림 켜기");
+  const bs = document.getElementById("bell-push");
+  bs.classList.toggle("hidden", !st);
+  bs.innerHTML = st === "on" ? "휴대폰 알림 <b>켜짐</b> · 밤 10시~아침 6시에는 울리지 않음" : "휴대폰 알림 <b>꺼짐</b> · 첫 화면에서 켤 수 있어요";
+}
+document.getElementById("push-go").addEventListener("click", async () => {
+  if (pushState() === "denied") {
+    document.getElementById("a2hs-warn").classList.add("hidden"); guideButtons(false, false);
+    document.getElementById("a2hs-ios-title").textContent = "휴대폰 알림 켜는 방법";
+    const l = document.getElementById("a2hs-ios-steps"); l.classList.remove("ios-guide");
+    l.innerHTML = isIOS
+      ? "<li>아이폰 <b>설정</b> 앱을 여세요.</li><li><b>알림</b> → <b>현창레미콘</b>을 누르세요.</li><li><b>알림 허용</b>을 켜세요.</li>"
+      : "<li>휴대폰 <b>설정</b> → <b>애플리케이션</b>(또는 앱)으로 가세요.</li><li><b>현창레미콘</b>을 찾아 누르세요. (앱으로 설치하지 않았다면 <b>Chrome</b> 또는 <b>삼성 인터넷</b>)</li><li><b>알림</b>을 눌러 <b>알림 허용</b>을 켜세요.</li>";
+    document.getElementById("a2hs-ios").classList.add("show");
+    return;
+  }
+  if (!OS) return;
+  const b = document.getElementById("push-go"); b.disabled = true;
+  if (!(await ask("휴대폰 알림을 켤까요?\n\n내 휴가 확정·변경과 다음 날 물량표가 올라오면 휴대폰으로 알려 드립니다.\n밤 10시~아침 6시에는 울리지 않습니다.\n\n다음 창에서 '허용'을 눌러 주세요.", "켜기", "나중에"))) { b.disabled = false; return; }
+  try {
+    await OS.Notifications.requestPermission();
+    if (OS.Notifications.permission) { await OS.User.PushSubscription.optIn(); await pushSync(); toast("휴대폰 알림을 켰습니다. 밤 10시~아침 6시에는 울리지 않습니다.", true); }
+    else toast("알림이 허용되지 않았습니다. 다시 누르면 켜는 방법을 볼 수 있어요.");
+  } catch (e) { toast("알림을 켜지 못했습니다. 잠시 후 다시 해 주세요."); }
+  b.disabled = false; renderPushCard();
+});
+// 휴대폰 알림을 누르고 들어온 경우: #vac → 휴가 탭, #day=2026-10-30 → 그날 물량표
+function openFromHash() {
+  const h = location.hash || "";
+  if (!myTok || !h) return;
+  const m = h.match(/^#day=(\d{4}-\d{2}-\d{2})$/);
+  if (h === "#vac") showView("vac");
+  else if (m) { showView("dist"); $q.value = ""; delete DAY_CACHE[m[1]]; if (!DAYS.includes(m[1])) DAYS = DAYS.concat(m[1]).sort(); todayOpen = true; goDay(m[1]); renderDist(); }
+  else return;
+  try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  loadBell(true);
+}
+window.addEventListener("hashchange", openFromHash);
 
 /* ───── 시작 ───── */
 // 로그인돼 있으면 바로, 아니면 로그인 화면
