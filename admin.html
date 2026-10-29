@@ -109,7 +109,32 @@
   .segs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border-radius: 12px; padding: 4px; }
   .seg { height: 40px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 15px; font-weight: 700; cursor: pointer; }
   .seg.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-  .add-date { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .add-cal-wrap { display: grid; gap: 12px; }
+  .add-cal { border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
+  .ac-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .ac-head b { font-size: 17px; }
+  .ac-week, .ac-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; text-align: center; }
+  .ac-week span { font-size: 12px; color: var(--muted); padding: 2px 0; }
+  .ac-week .r { color: var(--red); } .ac-week .b { color: var(--accent); }
+  .ac-d { min-width: 0; height: 52px; border: 1px solid transparent; border-radius: 10px; background: var(--card); color: var(--text); font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; }
+  .ac-d b { font-size: 16px; font-weight: 700; }
+  .ac-d small { font-size: 10px; letter-spacing: -.3px; color: var(--muted); white-space: nowrap; overflow: hidden; max-width: 100%; }
+  .ac-d.off { background: var(--red-bg); color: var(--red); cursor: default; }
+  .ac-d.off small { color: var(--red); }
+  .ac-d.has { opacity: .45; cursor: default; }
+  .ac-d.today { border-color: var(--accent); }
+  .ac-d.past b { color: var(--muted); }
+  .ac-d.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .ac-d.on small { color: #fff; }
+  .ac-d:disabled { cursor: default; }
+  .ac-e { height: 52px; }
+  .ac-help { font-size: 12.5px; color: var(--muted); margin: 8px 2px 0; line-height: 1.5; }
+  .add-picked { border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .ap-head { display: flex; justify-content: space-between; align-items: center; }
+  .ap-head .link { font-size: 14px; }
+  .add-picked .picked:empty::after { content: "왼쪽(위) 달력에서 날짜를 눌러 고르세요"; color: var(--muted); font-size: 14px; }
+  @media (min-width: 1024px) { .add-cal-wrap { grid-template-columns: minmax(360px, 1fr) minmax(220px, .8fr); align-items: start; } .add-picked .picked:empty::after { content: "왼쪽 달력에서 날짜를 눌러 고르세요"; } }
+  @media (max-width: 1023px) { .add-picked .picked:empty::after { content: "위 달력에서 날짜를 눌러 고르세요"; } }
   .picked { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .picked span { background: var(--accent-bg); color: var(--accent); border-radius: 8px; padding: 6px 10px; font-size: 14px; font-weight: 600; }
   .picked button { border: 0; background: none; color: inherit; font-size: 16px; margin-left: 4px; cursor: pointer; padding: 0; }
@@ -394,9 +419,19 @@
       <div class="segs" id="add-type"></div>
       <div id="add-out-row"><p class="label">기사님 정원(하루 최대 인원)에</p><div class="segs" id="add-out" style="grid-template-columns:1fr 1fr"></div></div>
       <div id="add-reason-row" class="hidden"><p class="label">사유 <span class="muted" style="font-weight:400">· 특별휴가는 연차·여름휴가가 줄지 않습니다</span></p><input class="field" id="add-reason-in" type="text" maxlength="20" placeholder="사유를 직접 적어 주세요 (예: 빙부상, 예비군 훈련)"><p class="muted" style="font-size:13px;margin:8px 2px 0">자주 쓰는 사유 (누르면 위 칸에 들어갑니다)</p><div class="reason-chips" id="add-reason"></div></div>
-      <p class="label">날짜 <span class="muted" style="font-weight:400">· 여러 날이면 하나씩 추가하세요</span></p>
-      <div class="add-date"><input class="field" id="add-date" type="date"><button class="btn" id="add-date-btn">+ 추가</button></div>
-      <div class="picked" id="picked"></div>
+      <p class="label">날짜 <span class="muted" style="font-weight:400">· 달력에서 날짜를 누르면 선택, 다시 누르면 빠집니다 (여러 날 가능)</span></p>
+      <div class="add-cal-wrap">
+        <div class="add-cal">
+          <div class="ac-head"><button class="btn small" id="ac-prev" type="button" aria-label="이전 달">◀</button><b id="ac-title"></b><button class="btn small" id="ac-next" type="button" aria-label="다음 달">▶</button></div>
+          <div class="ac-week"><span class="r">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="b">토</span></div>
+          <div class="ac-grid" id="ac-grid"></div>
+          <p class="ac-help" id="ac-help"></p>
+        </div>
+        <div class="add-picked">
+          <div class="ap-head"><b>선택한 날짜 <span id="ap-n">0</span>일</b><button class="link" id="ap-clear" type="button">모두 빼기</button></div>
+          <div class="picked" id="picked"></div>
+        </div>
+      </div>
       <div id="add-time-row" class="hidden">
         <p class="label" id="add-time-label">시간</p>
         <select class="field" id="add-time"><option value="">시간 고르기</option><option value="09:00">9시</option><option value="10:00">10시</option><option value="11:00">11시</option><option value="12:00">12시</option><option value="13:00">13시</option><option value="14:00">14시</option><option value="15:00">15시</option><option value="16:00">16시</option></select>
@@ -2402,6 +2437,8 @@ function renderAdd() {
   $("f-no").innerHTML = '<option value="">전체 호수</option>' + CARS.map(c => '<option value="' + c.no + '">' + c.no + '호' + (c.off ? ' (제외)' : '') + '</option>').join("");
   $("add-type").innerHTML = ADMIN_TYPES.map(t => '<button class="seg' + (addForm.type === t ? ' on' : '') + '" data-type="' + t + '">' + t + '</button>').join("");
   $("picked").innerHTML = addForm.dates.map(d => '<span>' + md(d) + '<button data-del="' + d + '" aria-label="빼기">×</button></span>').join("");
+  $("ap-n").textContent = addForm.dates.length;
+  renderAddCal();
   const timed = addForm.type === "조퇴" || addForm.type === "지각", extra = addForm.type === "특별휴가";
   $("add-reason-row").classList.toggle("hidden", !extra);
   $("add-out-row").classList.toggle("hidden", addForm.type !== "연차");
@@ -2433,7 +2470,7 @@ async function submitAdd() {
   if (r.ok) {
     const first = addForm.dates.slice().sort()[0];
     addForm.dates = []; $("add-reason-in").value = ""; $("add-note").value = ""; renderAdd();
-    curDate = first; curMonth = first.slice(0, 7); showView("v-day"); refreshAll();
+    AC = null; curDate = first; curMonth = first.slice(0, 7); showView("v-day"); refreshAll();
   } else renderAdd();
 }
 
@@ -2866,6 +2903,7 @@ function viewLoad(v) {
   if (v === "v-sites") j(loadSites());
   if (v === "v-lim") j(loadLimits());
   if (v === "v-today") j(loadToday(tDate || TODAY));
+  if (v === "v-add") j(loadAddCal(addForm.dates.length ? addForm.dates[0].slice(0, 7) : (acMonth || TODAY.slice(0, 7))));
   if (v === "v-set") j(loadSet());
   if (v === "v-backup") j(loadBackup());
   if (v === "v-reps") j(loadReps());
@@ -3022,11 +3060,40 @@ $("add-no").onchange = e => { addForm.no = e.target.value; renderAdd(); };
 $("add-type").addEventListener("click", e => { const b = e.target.closest("[data-type]"); if (b) { addForm.type = b.dataset.type; renderAdd(); } });
 $("add-reason").addEventListener("click", e => { const b = e.target.closest("[data-reason]"); if (b) { $("add-reason-in").value = b.dataset.reason; renderAdd(); $("add-reason-in").focus(); } });
 $("add-reason-in").addEventListener("input", renderAdd);
-$("add-date-btn").onclick = () => {
-  const d = $("add-date").value; if (!d) return toast("날짜를 먼저 고르세요.");
-  if (!addForm.dates.includes(d)) addForm.dates.push(d);
-  addForm.dates.sort(); $("add-date").value = addDays(d, 1); renderAdd();
-};
+/* ---------- 입력: 날짜 고르는 달력 (여러 날 선택) ---------- */
+let acMonth = "", AC = null;
+async function loadAddCal(m) {
+  acMonth = m || acMonth || (TODAY || "").slice(0, 7);
+  if (!acMonth) return;
+  const r = await call("adminMonth", { month: acMonth });
+  if (r.ok && r.month === acMonth) { AC = r; renderAddCal(); }
+}
+function renderAddCal() {
+  if (!acMonth) return;
+  $("ac-title").textContent = acMonth.slice(0, 4) + "년 " + (+acMonth.slice(5)) + "월";
+  if (!AC || AC.month !== acMonth) { $("ac-grid").innerHTML = ""; return; }
+  const no = addForm.no, first = new Date(acMonth + "-01T00:00:00Z").getUTCDay();
+  let h = ""; for (let i = 0; i < first; i++) h += '<span class="ac-e"></span>';
+  AC.days.forEach(d => {
+    const mine = no && [].concat(d.leave, d.summer, d.absent, d.extra || [], (d.early || []).map(x => x.no)).includes(no);
+    const on = addForm.dates.includes(d.date);
+    const sub = d.off ? (d.holiday || "휴무") : mine ? no + "호 있음" : addForm.type === "연차" ? "연차 " + d.leave.length + "/" + d.limit : "";
+    h += '<button type="button" class="ac-d' + (d.off ? ' off' : '') + (mine ? ' has' : '') + (on ? ' on' : '') + (d.today ? ' today' : '') + (d.date < TODAY ? ' past' : '') + '"' +
+      ' data-ad="' + d.date + '"' + ((d.off || mine) && !on ? ' disabled' : '') + ' title="' + esc(d.holiday || "") + '"><b>' + d.day + '</b><small>' + esc(sub) + '</small></button>';
+  });
+  $("ac-grid").innerHTML = h;
+  $("ac-help").textContent = (no ? no + "호에 이미 휴가가 있는 날과 " : "") + "휴무일은 고를 수 없습니다." + (addForm.type === "연차" ? " 숫자는 그날 정원 안 연차 확정 인원 / 정원입니다." : "");
+}
+$("ac-grid").addEventListener("click", e => {
+  const b = e.target.closest("[data-ad]"); if (!b || b.disabled) return;
+  const d = b.dataset.ad;
+  addForm.dates = addForm.dates.includes(d) ? addForm.dates.filter(x => x !== d) : addForm.dates.concat(d).sort();
+  renderAdd();
+});
+const shiftMonth = (m, k) => { const d = new Date(m + "-01T00:00:00Z"); d.setUTCMonth(d.getUTCMonth() + k); return d.toISOString().slice(0, 7); };
+$("ac-prev").onclick = () => { AC = null; loadAddCal(shiftMonth(acMonth, -1)); renderAddCal(); };
+$("ac-next").onclick = () => { AC = null; loadAddCal(shiftMonth(acMonth, 1)); renderAddCal(); };
+$("ap-clear").onclick = () => { addForm.dates = []; renderAdd(); };
 $("picked").addEventListener("click", e => { const b = e.target.closest("[data-del]"); if (b) { addForm.dates = addForm.dates.filter(x => x !== b.dataset.del); renderAdd(); } });
 $("add-time").onchange = renderAdd;
 $("add-submit").onclick = submitAdd;
