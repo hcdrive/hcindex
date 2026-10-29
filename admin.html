@@ -36,6 +36,7 @@
 
   /* 상단 */
   .top { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .top-acts { display: flex; gap: 16px; align-items: center; }
   .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 54px; padding-bottom: 0; }
   .top b { font-size: 18px; }
   .top .sub { font-size: 13px; color: var(--muted); margin-left: 8px; }
@@ -243,7 +244,8 @@
     .side { display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; width: 230px; z-index: 6;
             background: var(--card); border-right: 1px solid var(--line); padding: 22px 12px; overflow-y: auto; box-sizing: border-box; }
     .side .brand { font-size: 20px; font-weight: 800; padding: 0 12px 4px; }
-    .side .when { font-size: 13px; color: var(--muted); padding: 0 12px 18px; }
+    .side .when { font-size: 13px; color: var(--muted); padding: 0 12px 10px; }
+    .side .side-reload { margin: 0 0 14px; border: 1px solid var(--line) !important; text-align: center !important; font-weight: 600; }
     .side .grp { font-size: 12px; font-weight: 700; color: var(--muted); padding: 16px 12px 6px; letter-spacing: .5px; }
     .side button { display: block; width: 100%; text-align: left; border: 0; background: none; color: var(--text); font: inherit; font-size: 15px;
                    padding: 10px 12px; border-radius: 10px; cursor: pointer; }
@@ -315,6 +317,7 @@
   <aside class="side" id="side">
     <div class="brand">관리자</div>
     <div class="when" id="side-today"></div>
+    <button class="reload-btn side-reload" type="button">새로고침</button>
     <button data-side="v-month">달력</button>
     <button data-side="v-day">날짜별</button>
     <button data-side="v-add">입력</button>
@@ -337,7 +340,7 @@
     <button class="out" id="side-out">로그아웃</button>
   </aside>
   <h1 class="page-title" id="page-title"></h1>
-  <div class="top"><div class="wrap"><div><b>관리자</b><span class="sub" id="today"></span></div><button class="link" id="logout">나가기</button></div></div>
+  <div class="top"><div class="wrap"><div><b>관리자</b><span class="sub" id="today"></span></div><div class="top-acts"><button class="link reload-btn" type="button">새로고침</button><button class="link" id="logout">나가기</button></div></div></div>
   <div class="wrap">
     <p class="demo hidden" id="demo">체험 모드 · 기사님 사이트 체험 모드와 같은 데이터</p>
 
@@ -389,6 +392,7 @@
       <select class="field" id="add-no"></select>
       <p class="label">구분</p>
       <div class="segs" id="add-type"></div>
+      <div id="add-out-row"><p class="label">기사님 정원(하루 최대 인원)에</p><div class="segs" id="add-out" style="grid-template-columns:1fr 1fr"></div></div>
       <div id="add-reason-row" class="hidden"><p class="label">사유 <span class="muted" style="font-weight:400">· 특별휴가는 연차·여름휴가가 줄지 않습니다</span></p><input class="field" id="add-reason-in" type="text" maxlength="20" placeholder="사유를 직접 적어 주세요 (예: 빙부상, 예비군 훈련)"><p class="muted" style="font-size:13px;margin:8px 2px 0">자주 쓰는 사유 (누르면 위 칸에 들어갑니다)</p><div class="reason-chips" id="add-reason"></div></div>
       <p class="label">날짜 <span class="muted" style="font-weight:400">· 여러 날이면 하나씩 추가하세요</span></p>
       <div class="add-date"><input class="field" id="add-date" type="date"><button class="btn" id="add-date-btn">+ 추가</button></div>
@@ -696,11 +700,13 @@ var RULES = {
   SPECIAL_WEEKDAYS: [1, 5], // 후순위 대상 요일 (1=월, 5=금)
   PRIORITY_AFTER: 2,     // 월·금·샌드위치데이 연차는 한 해에 이 횟수까지 일반 신청, 그 뒤로는 후순위
   SUMMER_DEFAULT: 3,     // '차량' 탭 여름휴가 칸이 비어 있으면 한 해 여름휴가 3일로 계산
-  VAC_OPEN: 0            // 기사님 휴가 신청: 0 = 테스트 중(막음), 1 = 열림
+  VAC_OPEN: 0,           // 기사님 휴가 신청: 0 = 테스트 중(막음), 1 = 열림
+  ORDER_SHOW_NO: 0       // 신청 순서 화면에 다른 기사님 호수: 0 = 가림, 1 = 보임
 };
 // 관리자 '설정'에서 바꿀 수 있는 숫자들 (이름 → [설명, 최소, 최대])
 var SETTING_INFO = {
   VAC_OPEN: ["기사님 휴가 신청 열기 (0 = 테스트 중, 1 = 열림)", 0, 1],
+  ORDER_SHOW_NO: ["신청 순서 화면에 다른 기사님 호수 보이기 (0 = 가림, 1 = 보임)", 0, 1],
   LIMIT: ["하루 연차 최대 인원", 1, 30],
   SPECIAL_LIMIT: ["우선순위날 하루 연차 최대 인원 (월·금·연휴 앞뒤 날)", 0, 30],
   OPEN_DAYS: ["며칠 뒤 날짜까지 신청 가능 (예: 14 → 15일 전 저녁에 열림)", 4, 60],
@@ -794,8 +800,10 @@ function openDays(st) {
 function opensOn(date) { return dAdd(date, -(RULES.OPEN_DAYS + 1)); }
 
 /* ---------- 집계 ---------- */
+// 그날 기사님 정원에 들어가는 확정 인원 (관리자가 '정원 밖'으로 넣은 개인 사유 연차는 빼고 셈)
+var OUTSIDE = "정원외";
 function confirmedOn(st, date) {
-  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정"; }).length;
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정" && r.wait !== OUTSIDE; }).length;
 }
 function usedSpecial(st, no, year) {
   return st.reqs.filter(function (r) {
@@ -1110,6 +1118,7 @@ function engineMine(st, p) {
   }).sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (r) {
     var left = dDiff(r.date, st.today);
     return { id: r.id, date: r.date, label: dShort(r.date), long: dLong(st, r.date), week: WEEK[dWeekday(r.date)], type: r.type, status: r.status, time: r.time, by: r.by,
+             createdAt: r.by === "기사" ? r.createdAt : "", order: r.type === "연차" && (r.status === "확정" || PENDING[r.status]) && left >= 0,
              reason: r.type === "특별휴가" ? String(r.note || "").split(" · ")[0] : "",
              rank: r.type === "연차" && WAIT[r.status] ? waitRank(st, r) : 0, wait: r.type === "연차" && WAIT[r.status] ? waitName(waitKind(r)) : "", label: r.type === "연차" && WAIT[r.status] ? waitLabel(st, r) : "",
              left: left, canCancel: !!ACTIVE[r.status] && r.type !== "여름휴가" && r.type !== "특별휴가" && left > RULES.LOCK_DAYS };
@@ -1121,6 +1130,39 @@ function engineMine(st, p) {
            remainNext: st.cars[no].total - leaveUsed(st, no, nextYear, true), usedSpecialNext: usedSpecial(st, no, nextYear),
            usedSpecial: usedSpecial(st, no, year), priorityAfter: RULES.PRIORITY_AFTER, specialWords: SPECIAL_WORDS, list: list,
            mustChange: mustChangePin(st, no) };
+}
+
+/* ---------- 신청 순서 보기 (그 날짜에 연차를 신청한 기사님만) ----------
+   확정된 사람(신청 시각 순) → 대기(우선순위 대기·일반 대기) 순서.
+   후순위 대기는 다른 사람에게 보이지 않음: 우선순위가 남은 분들이 부담을 느끼지 않도록 */
+function engineOrder(st, p) {
+  var no = String(p.no), date = String(p.date || "");
+  var bad = checkAuth(st, no, p);
+  if (bad) return authFail(bad);
+  var mine = null;
+  st.reqs.forEach(function (r) { if (r.no === no && r.date === date && r.type === "연차" && (r.status === "확정" || PENDING[r.status])) mine = r; });
+  if (!mine) return result(false, "이 날짜에 연차를 신청한 분만 순서를 볼 수 있습니다.");
+  var idx = {}; st.reqs.forEach(function (r, i) { idx[r.id] = i; });
+  var conf = st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정" && r.wait !== OUTSIDE; })
+    .sort(function (a, b) {
+      var oa = a.by !== "기사" ? 1 : 0, ob = b.by !== "기사" ? 1 : 0;              // 사무실 입력은 기사님 신청 뒤에
+      if (oa !== ob) return oa - ob;
+      return a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : idx[a.id] - idx[b.id];
+    });
+  var wait = waitQueue(st, date).filter(function (r) { return r.status === "대기"; });
+  var show = RULES.ORDER_SHOW_NO === 1;
+  var item = function (r, st2, k) {
+    var me = r.no === no;
+    return { n: 0, me: me, no: show || me ? r.no : "", at: r.by === "기사" ? r.createdAt : "", office: r.by !== "기사", outside: r.wait === OUTSIDE, status: st2, rank: k };
+  };
+  var list = conf.map(function (r) { return item(r, "확정", 0); })
+    .concat(wait.map(function (r, i) { return item(r, "대기", i + 1); }));
+  list.forEach(function (x, i) { x.n = i + 1; });
+  var outs = st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정" && r.wait === OUTSIDE; })
+    .map(function (r) { return item(r, "확정", 0); });
+  var res = { ok: true, date: date, long: dLong(st, date), limit: limitOn(st, date), count: list.length, list: list, outside: outs, showNo: show, special: !!specialKind(st, date) };
+  if (mine.status === "후순위") res.low = { rank: waitRank(st, mine), at: mine.createdAt, lockDays: RULES.LOCK_DAYS };
+  return res;
 }
 
 /* ---------- 비밀번호 변경 ---------- */
@@ -1188,7 +1230,7 @@ function adminDay(st, p) {
   if (!isValidDate(d)) return result(false, "날짜가 올바르지 않습니다.");
   var on = st.reqs.filter(function (r) { return r.date === d; });
   var pick = function (f) { return on.filter(f).map(function (r) {
-    return { id: r.id, no: r.no, type: r.type, status: r.status, time: r.time, by: r.by, createdAt: r.createdAt, note: r.note };
+    return { id: r.id, no: r.no, type: r.type, status: r.status, time: r.time, by: r.by, createdAt: r.createdAt, note: r.note, outside: r.wait === OUTSIDE };
   }).sort(function (a, b) { return a.no < b.no ? -1 : 1; }); };
   var queue = waitQueue(st, d).map(function (r) {
     return { id: r.id, no: r.no, status: r.status, kind: waitName(waitKind(r)), label: waitLabel(st, r), rank: waitRank(st, r), createdAt: r.createdAt };
@@ -1262,16 +1304,18 @@ function adminAdd(st, p) {
     if (dup) return result(false, no + "호는 " + dLong(st, dates[i]) + "에 이미 " + dup.type + "(" + dup.status + ")이 있습니다.");
   }
   var r = result(true, ""), over = [];
+  var outside = type === "연차" && p.outside !== false && p.outside !== 0 && p.outside !== "0";   // 기본: 정원 밖
   dates.forEach(function (d) {
-    var req = { id: uniqueId(st), no: no, date: d, type: type, status: "확정", time: time, createdAt: st.now, by: "관리자", note: note, doneAt: st.now, wait: "" };
+    var req = { id: uniqueId(st), no: no, date: d, type: type, status: "확정", time: time, createdAt: st.now, by: "관리자", note: note, doneAt: st.now, wait: outside ? OUTSIDE : "" };
     st.reqs.push(req);
     r.changes.push({ op: "add", req: req });
-    r.logs.push({ no: no, type: type, date: d, action: "관리자 입력", result: "확정", detail: [time, note].filter(Boolean).join(" · "), by: "관리자" });
-    if (type === "연차" && confirmedOn(st, d) > limitOn(st, d)) over.push(dShort(d) + "(" + limitOn(st, d) + "명)");
+    r.logs.push({ no: no, type: type, date: d, action: "관리자 입력", result: "확정", detail: [outside ? "정원 밖" : "", time, note].filter(Boolean).join(" · "), by: "관리자" });
+    if (type === "연차" && !outside && confirmedOn(st, d) > limitOn(st, d)) over.push(dShort(d) + "(" + limitOn(st, d) + "명)");
   });
   var summerOver = type === "여름휴가" && dates.some(function (d) { return summerRemain(st, no, dYear(d)) < 0; });
   var obj = { "연차": "연차를", "여름휴가": "여름휴가를", "조퇴": "조퇴를", "지각": "지각을", "결근": "결근을", "특별휴가": "특별휴가를" }[type];
   r.msg = no + "호 " + dates.map(function (d) { return dLong(st, d); }).join(", ") + " " + obj + " 입력했습니다." +
+          (outside ? " 기사님 정원과 따로 세므로 기다리는 분들 자리는 그대로입니다." : "") +
           (over.length ? " ※ " + over.join(", ") + "은 그날 최대 인원을 넘었습니다." : "") +
           (summerOver ? " ※ 여름휴가 일수(" + summerTotal(st, no) + "일)를 넘었습니다." : "");
   if (type === "연차") {
@@ -1999,7 +2043,7 @@ const store = {
 };
 let PW = store.get("adminPw");
 let TODAY = "", curDate = "", curMonth = "", CARS = [], carGroup = 1, logOffset = 0, listOffset = 0, RV = null;
-let addForm = { no: "", type: "연차", dates: [], reason: "" };
+let addForm = { no: "", type: "연차", dates: [], reason: "", outside: true };
 const ITEMS = {};            // 화면에 나온 신청 (수정 창에서 씀)
 let editing = null;
 
@@ -2295,8 +2339,9 @@ async function loadDay(date) {
   DAYDATA = d; COPYDAY[d.date] = d;
   $("day").innerHTML = html; html = "";
 
-  html += '<h2>연차 확정 (' + d.leave.length + '명)</h2>' + rows(d.leave.map(withDate), x =>
-    '<div class="main"><span class="no">' + esc(x.no) + '호</span> ' + pillHtml(x) + '<div class="meta">' + esc(x.by) + ' 입력 · ' + esc(x.createdAt) + (x.note ? ' · ' + esc(x.note) : '') + '</div></div>' +
+  const outN = d.leave.filter(x => x.outside).length;
+  html += '<h2>연차 확정 (' + d.leave.length + '명)' + (outN ? ' <span class="muted" style="font-weight:400">· 정원 안 ' + (d.leave.length - outN) + '명 + 정원 밖 ' + outN + '명</span>' : '') + '</h2>' + rows(d.leave.map(withDate), x =>
+    '<div class="main"><span class="no">' + esc(x.no) + '호</span> ' + pillHtml(x) + (x.outside ? ' <span class="pill wait">정원 밖</span>' : '') + '<div class="meta">' + esc(x.by) + ' 입력 · ' + esc(x.createdAt) + (x.note ? ' · ' + esc(x.note) : '') + '</div></div>' +
     '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>');
 
   html += '<h2>대기 줄 (' + d.queue.length + '명) <span class="muted" style="font-weight:400">' + (d.special ? '· 우선순위 대기 → 후순위 대기 순서' : '· 신청 순서대로 (우선순위와 상관없는 날)') + '</span></h2>' + rows(d.queue.map(withDate), x =>
@@ -2359,6 +2404,8 @@ function renderAdd() {
   $("picked").innerHTML = addForm.dates.map(d => '<span>' + md(d) + '<button data-del="' + d + '" aria-label="빼기">×</button></span>').join("");
   const timed = addForm.type === "조퇴" || addForm.type === "지각", extra = addForm.type === "특별휴가";
   $("add-reason-row").classList.toggle("hidden", !extra);
+  $("add-out-row").classList.toggle("hidden", addForm.type !== "연차");
+  $("add-out").innerHTML = '<button class="seg' + (addForm.outside ? ' on' : '') + '" data-out="1">정원 밖 (개인 사유)</button><button class="seg' + (!addForm.outside ? ' on' : '') + '" data-out="0">정원 안 (대신 신청)</button>';
   addForm.reason = $("add-reason-in").value.trim();
   $("add-reason").innerHTML = EXTRA_REASONS.filter(t => t !== "기타").map(t => '<button type="button" class="chip' + (addForm.reason === t ? ' on' : '') + '" data-reason="' + t + '">' + t + '</button>').join("");
   $("add-time-row").classList.toggle("hidden", !timed);
@@ -2367,7 +2414,8 @@ function renderAdd() {
   const car = CARS.find(c => c.no === addForm.no) || {};
   $("add-preview").innerHTML = ready
     ? '<b>' + addForm.no + '호 · ' + addForm.type + '</b><br>' + addForm.dates.map(md).join(", ") + (timed ? ' · ' + $("add-time").value : '') +
-      (addForm.type === "연차" ? '<br><span class="muted">연차 ' + addForm.dates.length + '일이 빠집니다. (지금 남은 연차 ' + car.remain + '일)</span>' : '') +
+      (addForm.type === "연차" ? '<br><span class="muted">연차 ' + addForm.dates.length + '일이 빠집니다. (지금 남은 연차 ' + car.remain + '일)</span>' +
+        '<br><span class="muted">' + (addForm.outside ? '정원 밖: 기사님 정원(하루 최대 인원)에 들어가지 않아, 기다리는 분들 자리를 차지하지 않습니다.' : '정원 안: 기사님 정원에 1자리로 들어갑니다.') + '</span>' : '') +
       (addForm.type === "결근" ? '<br><span class="muted">결근은 연차가 줄지 않고 인원 제한도 없습니다.</span>' : '') +
       (extra ? '<br>사유: <b>' + esc(addForm.reason) + '</b><br><span class="muted">특별휴가는 연차·여름휴가가 줄지 않고 하루 인원에도 들어가지 않습니다.</span>' : '') +
       (addForm.type === "여름휴가" ? '<br><span class="muted">여름휴가 ' + addForm.dates.length + '일이 빠집니다. (연차는 줄지 않음 · 지금 남은 여름휴가 ' + car.summerRemain + '일)</span>' : '')
@@ -2379,7 +2427,7 @@ async function submitAdd() {
   const msg = addForm.no + "호 " + addForm.type + (addForm.type === "특별휴가" ? " (" + addForm.reason + ")" : "") + "\n" + addForm.dates.map(md).join(", ") + (timed ? "\n" + $("add-time").value : "") + "\n\n바로 확정으로 입력할까요?";
   if (!(await ask(msg, "입력하기", "다시 고르기"))) return;
   $("add-submit").disabled = true;
-  const r = await call("adminAdd", { no: addForm.no, type: addForm.type, dates: addForm.dates, time: timed ? $("add-time").value : "",
+  const r = await call("adminAdd", { no: addForm.no, type: addForm.type, dates: addForm.dates, time: timed ? $("add-time").value : "", outside: addForm.type === "연차" ? addForm.outside : false,
     note: addForm.type === "특별휴가" ? [addForm.reason, $("add-note").value.trim()].filter(Boolean).join(" · ") : $("add-note").value.trim() });
   toast(r.msg, r.ok);
   if (r.ok) {
@@ -2755,6 +2803,10 @@ async function loadSet() {
     ? '<li class="set-row vac-open-row"><div class="lab">기사님 휴가 신청</div>' +
       '<div class="hint">' + (s.value === 1 ? '<b style="color:var(--green)">지금 열려 있습니다.</b> 기사님이 휴가·조퇴·지각·결근을 신청할 수 있습니다.' : '<b style="color:var(--red)">지금 테스트 중입니다.</b> 기사님 휴가 탭에는 "휴가 신청은 아직 테스트 중입니다"만 보입니다. 관리자 입력은 그대로 됩니다.') + '</div>' +
       '<div class="segs" style="grid-template-columns:1fr 1fr;margin-top:8px"><button class="seg' + (s.value !== 1 ? ' on' : '') + '" data-vacopen="0">테스트 중 (막기)</button><button class="seg' + (s.value === 1 ? ' on' : '') + '" data-vacopen="1">신청 열기</button></div></li>'
+    : s.key === "ORDER_SHOW_NO"
+    ? '<li class="set-row"><div class="lab">신청 순서 화면에 다른 기사님 호수</div>' +
+      '<div class="hint">' + (s.value === 1 ? '<b>보이기:</b> 같은 날짜를 신청한 분들의 호수와 신청 시각이 보입니다.' : '<b>가리기:</b> 신청 시각과 순서만 보이고, 다른 분은 "다른 기사님"으로 표시됩니다.') + ' 후순위 대기는 어느 쪽이든 다른 분께 보이지 않습니다.</div>' +
+      '<div class="segs" style="grid-template-columns:1fr 1fr;margin-top:8px"><button class="seg' + (s.value !== 1 ? ' on' : '') + '" data-showno="0">가리기</button><button class="seg' + (s.value === 1 ? ' on' : '') + '" data-showno="1">보이기</button></div></li>'
     : '<li class="set-row"><div class="lab">' + esc(s.label) + '</div>' +
     '<div class="hint">기본값 ' + s.def + (s.key === "OPEN_HOUR" ? ' · 지금 ' + esc(r.openText) : '') + ' · ' + s.min + '~' + s.max + '</div>' +
     '<div class="inline"><input class="field" type="number" inputmode="numeric" min="' + s.min + '" max="' + s.max + '" value="' + s.value + '" id="set-' + s.key + '">' +
@@ -2800,20 +2852,64 @@ function showView(v) {
   const pt = $("page-title"); pt.textContent = v === "v-paste" ? "현장 운행거리 · 엑셀 붙여넣기" : sb ? sb.textContent : "";
   const cur = document.getElementById(v);
   if (cur) { const bk = cur.querySelector(":scope > .back:not([data-sub='v-more'])"); cur.insertBefore(pt, bk ? bk.nextSibling : cur.firstChild); }
-  if (v === "v-logs") loadLogs();
-  if (v === "v-cars") loadCars();
-  if (v === "v-list") { if (!$("f-month").value) $("f-month").value = (curMonth || TODAY.slice(0, 7)); loadList(); }
-  if (v === "v-hol") loadHol();
-  if (v === "v-sites") loadSites();
-  if (v === "v-lim") loadLimits();
-  if (v === "v-today") loadToday(tDate || TODAY);
-  if (v === "v-set") loadSet();
-  if (v === "v-backup") loadBackup();
-  if (v === "v-reps") loadReps();
-  if (v === "v-month" && curMonth) loadMonth(curMonth);
-  if (v === "v-day" && curDate && TODAY) loadDay(curDate);
+  viewLoad(v);
   window.scrollTo(0, 0);
 }
+// 화면별 자료 불러오기 (메뉴 이동·새로고침 공통)
+function viewLoad(v) {
+  const jobs = [];
+  const j = p => jobs.push(p);
+  if (v === "v-logs") j(loadLogs());
+  if (v === "v-cars") j(loadCars());
+  if (v === "v-list") { if (!$("f-month").value) $("f-month").value = (curMonth || TODAY.slice(0, 7)); j(loadList()); }
+  if (v === "v-hol") j(loadHol());
+  if (v === "v-sites") j(loadSites());
+  if (v === "v-lim") j(loadLimits());
+  if (v === "v-today") j(loadToday(tDate || TODAY));
+  if (v === "v-set") j(loadSet());
+  if (v === "v-backup") j(loadBackup());
+  if (v === "v-reps") j(loadReps());
+  if (v === "v-month" && curMonth) j(loadMonth(curMonth));
+  if (v === "v-day" && curDate && TODAY) j(loadDay(curDate));
+  return Promise.all(jobs);
+}
+
+/* ---------- 새로고침: 시트의 최신 내용을 다시 받아 지금 화면 그대로 다시 그림 ---------- */
+let reloading = false, lastLoad = Date.now();
+async function reloadNow(quiet) {
+  if (reloading || !PW && API_URL) return;
+  reloading = true;
+  document.querySelectorAll(".reload-btn").forEach(b => { b.disabled = true; b.dataset.t = b.textContent; b.textContent = "불러오는 중…"; });
+  try {
+    const w = await call("adminWaitDates");
+    if (w.ok) {
+      const oldToday = TODAY;
+      TODAY = w.today; RV = w.rules; renderWaitDates(w.dates);
+      if (oldToday && oldToday !== TODAY) {                          // 날짜가 바뀌었으면 오늘 기준으로
+        if (curDate === oldToday) curDate = TODAY;
+        if (curMonth === oldToday.slice(0, 7)) curMonth = TODAY.slice(0, 7);
+      }
+      $("today").textContent = "오늘 " + md(TODAY); $("side-today").textContent = "오늘 " + md(TODAY);
+    }
+    COPYDAY = {}; prefetchCopyDays();
+    const v = (document.querySelector(".view.on") || {}).id || "";
+    const jobs = [viewLoad(v), loadCars()];
+    if (v !== "v-month" && curMonth) jobs.push(loadMonth(curMonth));
+    if (v !== "v-day" && curDate) jobs.push(loadDay(curDate));
+    await Promise.all(jobs);
+    lastLoad = Date.now();
+    if (!quiet) toast(w.ok ? "최신 내용으로 새로고침했습니다." : (w.msg || "새로고침하지 못했습니다. 인터넷 연결을 확인해 주세요."), w.ok);
+  } catch (e) { if (!quiet) toast("새로고침하지 못했습니다. 인터넷 연결을 확인해 주세요."); }
+  finally {
+    reloading = false;
+    document.querySelectorAll(".reload-btn").forEach(b => { b.disabled = false; if (b.dataset.t) b.textContent = b.dataset.t; });
+  }
+}
+document.querySelectorAll(".reload-btn").forEach(b => b.onclick = () => reloadNow());
+// 다른 앱을 보다가 1분 넘게 지나 돌아오면 자동으로 새로고침
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && !$("app").classList.contains("hidden") && Date.now() - lastLoad > 60000) reloadNow(true);
+});
 
 /* ---------- 이벤트 ---------- */
 $("login-btn").onclick = login;
@@ -3107,6 +3203,16 @@ $("set-list").addEventListener("click", async e => {
   toast(r.ok ? (open ? "기사님 휴가 신청을 열었습니다." : "기사님 휴가 신청을 막았습니다. (테스트 중)") : r.msg, r.ok);
   if (r.ok) loadSet();
 });
+
+$("set-list").addEventListener("click", async e => {
+  const b = e.target.closest("[data-showno]"); if (!b || b.classList.contains("on")) return;
+  const v = +b.dataset.showno;
+  const r = await call("adminSetSetting", { key: "ORDER_SHOW_NO", value: v });
+  toast(r.ok ? (v ? "신청 순서 화면에 호수를 보입니다." : "신청 순서 화면에서 다른 분 호수를 가립니다.") : r.msg, r.ok);
+  if (r.ok) loadSet();
+});
+
+$("add-out").addEventListener("click", e => { const b = e.target.closest("[data-out]"); if (!b) return; addForm.outside = b.dataset.out === "1"; renderAdd(); });
 
 </script>
 </body>

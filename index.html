@@ -75,6 +75,10 @@
   .a2hs { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom)); z-index: 30; display: flex; align-items: center; gap: 10px;
           background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.15); max-width: 520px; margin: 0 auto; }
   .a2hs.hidden { display: none; }
+  .install-bar { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+  .install-bar.hidden { display: none; }
+  .install-help { display: block; margin: -8px auto 14px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+  .install-help.hidden { display: none; }
   .a2hs-ic { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); flex: none; }
   .a2hs-t { flex: 1; display: flex; flex-direction: column; font-size: 15px; line-height: 1.35; }
   .a2hs-t span { font-size: 13px; color: var(--muted); }
@@ -83,6 +87,44 @@
   .a2hs-steps { margin: 4px 0 18px; padding-left: 22px; font-size: 16px; line-height: 1.6; }
   .a2hs-steps li { margin-bottom: 8px; }
   .a2hs-steps b { color: var(--accent); }
+  /* 아이폰 그림 안내 */
+  .ios-guide { padding-left: 0 !important; list-style: none; counter-reset: ig; }
+  .ios-guide > li { counter-increment: ig; position: relative; padding-left: 38px; margin-bottom: 18px !important; }
+  .ios-guide > li::before { content: counter(ig); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .ios-guide > li.ig-done { padding-left: 0; font-size: 15px; color: var(--muted); }
+  .ios-guide > li.ig-done::before { display: none; }
+  .ig-t { font-size: 17px; line-height: 1.5; margin-bottom: 8px; }
+  .ig-t b { color: var(--accent); }
+  .ig-pic { background: #f2f2f7; border-radius: 16px; padding: 12px; color: #1c1c1e; font-size: 16px; }
+  .ig-pic svg { flex: none; }
+  .ig-bar { display: flex; align-items: center; gap: 6px; padding: 10px 8px; }
+  .ig-c { width: 34px; height: 34px; border-radius: 50%; background: #fff; display: inline-flex; align-items: center; justify-content: center; color: #8e8e93; flex: none; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .ig-url { flex: 1; min-width: 0; height: 40px; border-radius: 20px; background: #fff; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 3px; font-size: 13.5px; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); white-space: nowrap; overflow: hidden; }
+  .ig-url > svg { margin-left: auto; color: #3a3a3c; }
+  .ig-hit { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #e5484d; background: #fff; flex: none; }
+  .ig-menu { padding: 6px; background: #fff; border: 1px solid #e5e5ea; }
+  .ig-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #8e8e93; }
+  .ig-row.on { color: #1c1c1e; font-weight: 700; box-shadow: inset 0 0 0 3px #e5484d; background: #fff5f5; }
+  .ig-sheet { padding: 0; overflow: hidden; background: #f2f2f7; }
+  .ig-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; }
+  .ig-head .ig-c { width: 32px; height: 32px; color: #1c1c1e; }
+  .a2hs-steps .ig-head b { color: #1c1c1e; }
+  .ig-add { background: #1e7cf2; color: #fff; font-weight: 800; border-radius: 18px; padding: 6px 16px; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #e5484d; }
+  .ig-app { display: flex; align-items: center; gap: 12px; background: #fff; padding: 10px 12px; font-weight: 700; }
+  .ig-app img { width: 44px; height: 44px; border-radius: 10px; border: 1px solid #e5e5ea; }
+  .ig-tg { display: flex; align-items: center; justify-content: space-between; background: #fff; margin-top: 10px; padding: 12px; }
+  .ig-tg i { width: 46px; height: 28px; border-radius: 14px; background: #34c759; position: relative; }
+  .ig-tg i::after { content: ""; position: absolute; right: 2px; top: 2px; width: 24px; height: 24px; border-radius: 50%; background: #fff; }
+  .ios-guide .a2hs-note { margin-top: 6px; font-size: 14px; }
+  .a2hs-note { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .a2hs-warn { background: #fff4dc; color: #3b2f1a; border-radius: 12px; padding: 12px 14px; margin: -6px 0 16px; font-size: 15px; line-height: 1.55; }
+  .a2hs-warn.hidden { display: none; }
+  .a2hs-warn > b { color: #9a5b00; }
+  #a2hs-warn p { margin: 4px 0 6px; text-align: left; font-weight: 400; font-size: 15px; line-height: 1.55; }
+  .a2hs-warn ol { margin: 0; padding-left: 20px; }
+  .a2hs-warn li { margin-bottom: 4px; }
+  .a2hs-steps-wrap { max-height: 70vh; overflow-y: auto; }
+  #a2hs-ios .ask-box { max-height: 88vh; overflow-y: auto; }
   .login-screen.hidden, .who.hidden, #lg-main.hidden, #lg-change.hidden { display: none; }
   .link-btn { border: 0; background: none; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; padding: 8px; margin-top: 6px; cursor: pointer; }
   .login-box { max-width: 420px; margin: 0 auto; padding: 18vh 24px 40px; }
@@ -340,6 +382,26 @@
   .ask.show { display: flex; }
   .ask-box { width: 100%; max-width: 380px; background: var(--bg); border-radius: 16px; padding: 22px 18px 16px; }
   .ask-box p { margin: 0 0 20px; font-size: 17px; line-height: 1.55; white-space: pre-line; text-align: center; font-weight: 600; }
+  .req-at { font-size: 14px; color: var(--muted); margin-top: 3px; }
+  .order-btn { display: block; width: 100%; margin-top: 10px; height: 44px; font-size: 16px; font-weight: 700; color: var(--accent); background: var(--bg); }
+  .ord-box { max-width: 420px; }
+  .ord-title { font-size: 19px; font-weight: 800; }
+  .ord-sub { font-size: 14px; color: var(--muted); margin: 4px 0 10px; }
+  .ord-list { list-style: none; margin: 0 0 10px; padding: 0; max-height: 52vh; overflow-y: auto; }
+  .ord-row { display: grid; grid-template-columns: 42px 1fr auto; align-items: center; gap: 4px; padding: 10px 6px; border-bottom: 1px solid var(--line); font-size: 16px; }
+  .ord-row.me { background: var(--accent-bg, #eaf2ff); border-radius: 10px; }
+  .ord-n { font-weight: 800; color: var(--muted); }
+  .ord-mid { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+  .ord-t { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .ord-who { font-size: 14px; color: var(--muted); }
+  .ord-row.me .ord-who { color: var(--accent); font-weight: 800; }
+  .ord-st { font-size: 14px; font-weight: 800; white-space: nowrap; }
+  .ord-st.ok { color: var(--green); } .ord-st.wt { color: #9a6200; }
+  .ord-cut { text-align: center; font-size: 13px; color: var(--muted); padding: 8px 0 6px; border-bottom: 2px dashed var(--line); }
+  .ord-none { padding: 16px 0; text-align: center; color: var(--muted); }
+  .ord-low { background: var(--card); border-radius: 10px; padding: 10px 12px; font-size: 15px; line-height: 1.5; margin-bottom: 10px; }
+  .ord-low.hidden { display: none; }
+  .ord-note { font-size: 13.5px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
   .news-head { font-size: 19px; font-weight: 800; text-align: center; margin-bottom: 12px; }
   .news-list { list-style: none; margin: 0 0 16px; padding: 0; max-height: 55vh; overflow-y: auto; }
   .news-list li { padding: 12px 4px; border-top: 1px solid var(--line); font-size: 16px; line-height: 1.5; }
@@ -405,6 +467,14 @@
   <div class="ask-box">
     <div class="news-head" id="a2hs-ios-title">홈 화면에 추가하기</div>
     <ol class="a2hs-steps" id="a2hs-ios-steps"></ol>
+    <div class="a2hs-warn hidden" id="a2hs-warn">
+      <b>'안전하지 않은 앱' 경고가 나오면</b>
+      <p>플레이스토어 앱이 아니라서 나오는 안내입니다. 회사 사이트를 바탕화면에 연결하는 것이라 휴대폰 사진·연락처 등에는 접근하지 않습니다.</p>
+      <ol>
+        <li>경고 창에서 <b>세부정보 더보기</b>를 누른 뒤 <b>무시하고 설치</b>(또는 <b>그래도 설치</b>)를 누르세요.</li>
+        <li>그래도 설치가 막히면 <b>⋮</b> 메뉴에서 <b>홈 화면에 추가</b> → <b>바로가기 만들기</b>를 누르세요. 바탕화면 아이콘은 똑같이 생깁니다.</li>
+      </ol>
+    </div>
     <button class="btn primary wide" id="a2hs-ios-ok" style="height:50px;font-size:17px">알겠어요</button>
   </div>
 </div>
@@ -415,6 +485,12 @@
  <div class="dist-grid">
  <div class="dist-left">
   <h1>운행거리검색</h1>
+  <div class="install-bar hidden" id="install-bar">
+    <img src="icon-192.png" alt="" class="a2hs-ic">
+    <div class="a2hs-t"><b>현창레미콘 앱 설치</b><span>아이콘으로 바로 열려요</span></div>
+    <button type="button" class="a2hs-go" id="install-go">설치하기</button>
+  </div>
+  <button type="button" class="install-help hidden" id="install-help">설치가 잘 안 되나요?</button>
   <label class="search">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="q" type="search" placeholder="현장명을 입력하세요" autocomplete="off" enterkeyhint="search">
@@ -493,6 +569,17 @@
     <div class="news-head" id="rep-pop-name"></div>
     <div id="rep-pop-body"></div>
     <button class="btn wide" id="rep-pop-ok" style="height:50px;font-size:17px">닫기</button>
+  </div>
+</div>
+<!-- 신청 순서 보기 -->
+<div class="ask" id="order">
+  <div class="ask-box news-box ord-box">
+    <div class="ord-title" id="ord-title"></div>
+    <div class="ord-sub" id="ord-sub"></div>
+    <ul class="ord-list" id="ord-list"></ul>
+    <div class="ord-low hidden" id="ord-low"></div>
+    <div class="ord-note">확정된 분이 취소하면 대기 순서대로 자동 확정됩니다.<br>신청 시각은 기록에 남아 사무실도 바꿀 수 없습니다.</div>
+    <button class="btn primary wide" id="ord-ok" style="height:52px;font-size:17px">닫기</button>
   </div>
 </div>
 <!-- 새 소식 (확정·취소 알림) -->
@@ -760,11 +847,13 @@ var RULES = {
   SPECIAL_WEEKDAYS: [1, 5], // 후순위 대상 요일 (1=월, 5=금)
   PRIORITY_AFTER: 2,     // 월·금·샌드위치데이 연차는 한 해에 이 횟수까지 일반 신청, 그 뒤로는 후순위
   SUMMER_DEFAULT: 3,     // '차량' 탭 여름휴가 칸이 비어 있으면 한 해 여름휴가 3일로 계산
-  VAC_OPEN: 0            // 기사님 휴가 신청: 0 = 테스트 중(막음), 1 = 열림
+  VAC_OPEN: 0,           // 기사님 휴가 신청: 0 = 테스트 중(막음), 1 = 열림
+  ORDER_SHOW_NO: 0       // 신청 순서 화면에 다른 기사님 호수: 0 = 가림, 1 = 보임
 };
 // 관리자 '설정'에서 바꿀 수 있는 숫자들 (이름 → [설명, 최소, 최대])
 var SETTING_INFO = {
   VAC_OPEN: ["기사님 휴가 신청 열기 (0 = 테스트 중, 1 = 열림)", 0, 1],
+  ORDER_SHOW_NO: ["신청 순서 화면에 다른 기사님 호수 보이기 (0 = 가림, 1 = 보임)", 0, 1],
   LIMIT: ["하루 연차 최대 인원", 1, 30],
   SPECIAL_LIMIT: ["우선순위날 하루 연차 최대 인원 (월·금·연휴 앞뒤 날)", 0, 30],
   OPEN_DAYS: ["며칠 뒤 날짜까지 신청 가능 (예: 14 → 15일 전 저녁에 열림)", 4, 60],
@@ -858,8 +947,10 @@ function openDays(st) {
 function opensOn(date) { return dAdd(date, -(RULES.OPEN_DAYS + 1)); }
 
 /* ---------- 집계 ---------- */
+// 그날 기사님 정원에 들어가는 확정 인원 (관리자가 '정원 밖'으로 넣은 개인 사유 연차는 빼고 셈)
+var OUTSIDE = "정원외";
 function confirmedOn(st, date) {
-  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정"; }).length;
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정" && r.wait !== OUTSIDE; }).length;
 }
 function usedSpecial(st, no, year) {
   return st.reqs.filter(function (r) {
@@ -1174,6 +1265,7 @@ function engineMine(st, p) {
   }).sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (r) {
     var left = dDiff(r.date, st.today);
     return { id: r.id, date: r.date, label: dShort(r.date), long: dLong(st, r.date), week: WEEK[dWeekday(r.date)], type: r.type, status: r.status, time: r.time, by: r.by,
+             createdAt: r.by === "기사" ? r.createdAt : "", order: r.type === "연차" && (r.status === "확정" || PENDING[r.status]) && left >= 0,
              reason: r.type === "특별휴가" ? String(r.note || "").split(" · ")[0] : "",
              rank: r.type === "연차" && WAIT[r.status] ? waitRank(st, r) : 0, wait: r.type === "연차" && WAIT[r.status] ? waitName(waitKind(r)) : "", label: r.type === "연차" && WAIT[r.status] ? waitLabel(st, r) : "",
              left: left, canCancel: !!ACTIVE[r.status] && r.type !== "여름휴가" && r.type !== "특별휴가" && left > RULES.LOCK_DAYS };
@@ -1185,6 +1277,39 @@ function engineMine(st, p) {
            remainNext: st.cars[no].total - leaveUsed(st, no, nextYear, true), usedSpecialNext: usedSpecial(st, no, nextYear),
            usedSpecial: usedSpecial(st, no, year), priorityAfter: RULES.PRIORITY_AFTER, specialWords: SPECIAL_WORDS, list: list,
            mustChange: mustChangePin(st, no) };
+}
+
+/* ---------- 신청 순서 보기 (그 날짜에 연차를 신청한 기사님만) ----------
+   확정된 사람(신청 시각 순) → 대기(우선순위 대기·일반 대기) 순서.
+   후순위 대기는 다른 사람에게 보이지 않음: 우선순위가 남은 분들이 부담을 느끼지 않도록 */
+function engineOrder(st, p) {
+  var no = String(p.no), date = String(p.date || "");
+  var bad = checkAuth(st, no, p);
+  if (bad) return authFail(bad);
+  var mine = null;
+  st.reqs.forEach(function (r) { if (r.no === no && r.date === date && r.type === "연차" && (r.status === "확정" || PENDING[r.status])) mine = r; });
+  if (!mine) return result(false, "이 날짜에 연차를 신청한 분만 순서를 볼 수 있습니다.");
+  var idx = {}; st.reqs.forEach(function (r, i) { idx[r.id] = i; });
+  var conf = st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정" && r.wait !== OUTSIDE; })
+    .sort(function (a, b) {
+      var oa = a.by !== "기사" ? 1 : 0, ob = b.by !== "기사" ? 1 : 0;              // 사무실 입력은 기사님 신청 뒤에
+      if (oa !== ob) return oa - ob;
+      return a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : idx[a.id] - idx[b.id];
+    });
+  var wait = waitQueue(st, date).filter(function (r) { return r.status === "대기"; });
+  var show = RULES.ORDER_SHOW_NO === 1;
+  var item = function (r, st2, k) {
+    var me = r.no === no;
+    return { n: 0, me: me, no: show || me ? r.no : "", at: r.by === "기사" ? r.createdAt : "", office: r.by !== "기사", outside: r.wait === OUTSIDE, status: st2, rank: k };
+  };
+  var list = conf.map(function (r) { return item(r, "확정", 0); })
+    .concat(wait.map(function (r, i) { return item(r, "대기", i + 1); }));
+  list.forEach(function (x, i) { x.n = i + 1; });
+  var outs = st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "확정" && r.wait === OUTSIDE; })
+    .map(function (r) { return item(r, "확정", 0); });
+  var res = { ok: true, date: date, long: dLong(st, date), limit: limitOn(st, date), count: list.length, list: list, outside: outs, showNo: show, special: !!specialKind(st, date) };
+  if (mine.status === "후순위") res.low = { rank: waitRank(st, mine), at: mine.createdAt, lockDays: RULES.LOCK_DAYS };
+  return res;
 }
 
 /* ---------- 비밀번호 변경 ---------- */
@@ -1252,7 +1377,7 @@ function adminDay(st, p) {
   if (!isValidDate(d)) return result(false, "날짜가 올바르지 않습니다.");
   var on = st.reqs.filter(function (r) { return r.date === d; });
   var pick = function (f) { return on.filter(f).map(function (r) {
-    return { id: r.id, no: r.no, type: r.type, status: r.status, time: r.time, by: r.by, createdAt: r.createdAt, note: r.note };
+    return { id: r.id, no: r.no, type: r.type, status: r.status, time: r.time, by: r.by, createdAt: r.createdAt, note: r.note, outside: r.wait === OUTSIDE };
   }).sort(function (a, b) { return a.no < b.no ? -1 : 1; }); };
   var queue = waitQueue(st, d).map(function (r) {
     return { id: r.id, no: r.no, status: r.status, kind: waitName(waitKind(r)), label: waitLabel(st, r), rank: waitRank(st, r), createdAt: r.createdAt };
@@ -1326,16 +1451,18 @@ function adminAdd(st, p) {
     if (dup) return result(false, no + "호는 " + dLong(st, dates[i]) + "에 이미 " + dup.type + "(" + dup.status + ")이 있습니다.");
   }
   var r = result(true, ""), over = [];
+  var outside = type === "연차" && p.outside !== false && p.outside !== 0 && p.outside !== "0";   // 기본: 정원 밖
   dates.forEach(function (d) {
-    var req = { id: uniqueId(st), no: no, date: d, type: type, status: "확정", time: time, createdAt: st.now, by: "관리자", note: note, doneAt: st.now, wait: "" };
+    var req = { id: uniqueId(st), no: no, date: d, type: type, status: "확정", time: time, createdAt: st.now, by: "관리자", note: note, doneAt: st.now, wait: outside ? OUTSIDE : "" };
     st.reqs.push(req);
     r.changes.push({ op: "add", req: req });
-    r.logs.push({ no: no, type: type, date: d, action: "관리자 입력", result: "확정", detail: [time, note].filter(Boolean).join(" · "), by: "관리자" });
-    if (type === "연차" && confirmedOn(st, d) > limitOn(st, d)) over.push(dShort(d) + "(" + limitOn(st, d) + "명)");
+    r.logs.push({ no: no, type: type, date: d, action: "관리자 입력", result: "확정", detail: [outside ? "정원 밖" : "", time, note].filter(Boolean).join(" · "), by: "관리자" });
+    if (type === "연차" && !outside && confirmedOn(st, d) > limitOn(st, d)) over.push(dShort(d) + "(" + limitOn(st, d) + "명)");
   });
   var summerOver = type === "여름휴가" && dates.some(function (d) { return summerRemain(st, no, dYear(d)) < 0; });
   var obj = { "연차": "연차를", "여름휴가": "여름휴가를", "조퇴": "조퇴를", "지각": "지각을", "결근": "결근을", "특별휴가": "특별휴가를" }[type];
   r.msg = no + "호 " + dates.map(function (d) { return dLong(st, d); }).join(", ") + " " + obj + " 입력했습니다." +
+          (outside ? " 기사님 정원과 따로 세므로 기다리는 분들 자리는 그대로입니다." : "") +
           (over.length ? " ※ " + over.join(", ") + "은 그날 최대 인원을 넘었습니다." : "") +
           (summerOver ? " ※ 여름휴가 일수(" + summerTotal(st, no) + "일)를 넘었습니다." : "");
   if (type === "연차") {
@@ -2107,7 +2234,7 @@ async function api(action, p) {
   }
   const st = demoState();
   if (action !== "summary" && action !== "mine" && action !== "login" && action !== "logout") engineDaily(st);
-  const fn = { summary: engineSummary, mine: engineMine, apply: engineApply, cancel: engineCancel, changePin: engineChangePin, login: engineLogin, logout: engineLogout }[action];
+  const fn = { summary: engineSummary, mine: engineMine, order: engineOrder, apply: engineApply, cancel: engineCancel, changePin: engineChangePin, login: engineLogin, logout: engineLogout }[action];
   const r = fn(st, p);
   DEMO_MEM = { cars: st.cars, reqs: st.reqs, holidays: st.holidays, holidayNames: st.holidayNames, settings: st.settings, dayLimits: st.dayLimits, blocks: st.blocks };
   try { localStorage.setItem("demoState", JSON.stringify(DEMO_MEM)); } catch (e) {}
@@ -2232,11 +2359,13 @@ function renderMine() {
       (list.length ? '<ul class="reqs">' + list.map(x =>
         '<li><div class="req-main"><b>' + esc(x.long) + '</b> ' + esc(x.type) + (x.reason ? ' (' + esc(x.reason) + ')' : '') + (x.time ? ' ' + esc(x.time) : '') +
           ' <span class="pill ' + (isUsed(x) ? 'used' : STATUS_CLS[x.status]) + '">' + esc(pillText(x)) + '</span>' +
+          (x.createdAt && x.order ? '<div class="req-at">' + esc(atText(x.createdAt)) + ' 신청</div>' : '') +
           (x.status === "후순위" ? '<div class="hint">후순위 대기 ' + x.rank + '번째입니다. 우선순위 대기하는 분들이 먼저 확정되고, 그다음 후순위 대기 순서대로 확정됩니다. 휴가 ' + L() + '일 전까지 자리가 나지 않으면 확정되지 않습니다.</div>' : '') +
           (x.status === "대기" ? '<div class="hint">' + (x.label || "대기") + ' ' + x.rank + '번째입니다. 확정된 분이 취소하면 ' + (x.label || "대기") + ' 순서대로 자동 확정됩니다. ' +
             '휴가 ' + L() + '일 전까지 자리가 나지 않으면 확정되지 않습니다.</div>' : '') +
           (x.status === "반려" && x.rank && x.left >= 0 ? '<div class="hint">자리가 다 차서 확정되지 않았습니다. ' + (x.label || "대기") + ' ' + x.rank + '번째입니다. 자리가 나면 ' + (x.label === "대기" ? '신청 순서대로' : '우선순위 대기, 후순위 대기 순서대로') + ' 관리자가 확정합니다.</div>' : '') +
           (!x.canCancel && (x.status === "확정" || x.status === "후순위") && x.left > 0 ? '<div class="hint">취소는 관리자에게 문의</div>' : '') +
+          (x.order ? '<button class="btn order-btn" data-order="' + esc(x.date) + '">신청 순서 보기</button>' : '') +
         '</div>' + (x.canCancel ? '<button class="btn small" data-cancel="' + esc(x.id) + '">취소</button>' : '') + '</li>').join("") + '</ul>'
         : '<p class="none">최근 신청 내역이 없습니다</p>') +
       '<div class="links"><button class="link" id="open-pw">비밀번호 변경</button></div>';
@@ -2430,8 +2559,17 @@ const isIOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === "MacIntel"
 const inKakao = /KAKAOTALK/i.test(UA), inApp = inKakao || /NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);
 let installEvt = null;
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
-window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; showA2hs(); });
-window.addEventListener("appinstalled", () => { hideA2hs(true); toast("홈 화면에 '현창레미콘' 앱이 추가됐습니다.", true); });
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; showA2hs(); showInstallBtn(); });
+window.addEventListener("appinstalled", () => { hideA2hs(true); installDone = true; showInstallBtn(); toast("홈 화면에 '현창레미콘' 앱이 추가됐습니다.", true); });
+const isAndroid = /Android/i.test(UA), isSamsung = /SamsungBrowser/i.test(UA);
+let installDone = false;
+// 첫 화면(운행거리검색)에 늘 보이는 '앱 설치' 버튼: 로그인했고, 앱으로 연 게 아니면 언제든 다시 누를 수 있음
+function showInstallBtn() {
+  const el = document.getElementById("install-bar"); if (!el) return;
+  const can = !!API_URL && !!myTok && !isStandalone() && !installDone && (installEvt || isIOS || isAndroid || inApp);
+  el.classList.toggle("hidden", !can);
+  document.getElementById("install-help").classList.toggle("hidden", !can || !isAndroid);
+}
 function a2hsSnoozed() { try { return Number(localStorage.getItem("a2hsLater") || 0) > Date.now(); } catch (e) { return false; } }
 function showA2hs() {
   if (!API_URL || isStandalone() || a2hsSnoozed() || !myTok) return;     // 로그인한 뒤에만, 앱으로 열었으면 안 보임
@@ -2445,22 +2583,64 @@ function hideA2hs(forever) {
   try { localStorage.setItem("a2hsLater", String(Date.now() + (forever ? 3650 : 7) * 864e5)); } catch (e) {}
 }
 document.getElementById("a2hs-x").addEventListener("click", () => hideA2hs(false));   // 일주일 뒤 다시 안내
-document.getElementById("a2hs-go").addEventListener("click", async () => {
+document.getElementById("a2hs-go").addEventListener("click", () => openInstall(false));
+document.getElementById("install-go").addEventListener("click", () => openInstall(true));
+document.getElementById("install-help").addEventListener("click", () => { const keep = installEvt; installEvt = null; openInstall(true); installEvt = keep; });
+async function openInstall(fromBar) {
   if (installEvt) {
     installEvt.prompt();
     const c = await installEvt.userChoice.catch(() => ({}));
     installEvt = null;
-    if (c && c.outcome === "accepted") hideA2hs(true); else hideA2hs(false);
-    return;
+    if (c && c.outcome === "accepted") { hideA2hs(true); installDone = true; showInstallBtn(); return; }
+    hideA2hs(false); showInstallBtn();
+    if (!fromBar) return;
   }
-  const steps = inApp
+  const already = "이미 설치하셨다면 휴대폰 바탕화면의 <b>현창레미콘</b> 아이콘으로 여시면 됩니다.";
+  const steps = !inApp && isAndroid
+    ? (isSamsung
+      ? ["화면 아래 오른쪽의 <b>메뉴 ≡</b> 버튼을 누르세요.", "<b>현재 페이지 추가</b> → <b>홈 화면</b>을 누르세요.", "<b>추가</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다.", already]
+      : ["화면 오른쪽 위의 <b>점 세 개 ⋮</b>를 누르세요.", "<b>앱 설치</b> 또는 <b>홈 화면에 추가</b>를 누르세요.", "<b>설치(추가)</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다.", already])
+    : inApp
     ? ["화면 오른쪽 아래(또는 위)의 <b>점 세 개 ⋮</b> 또는 <b>공유</b> 버튼을 누르세요.", "<b>다른 브라우저로 열기</b>를 누르세요. (아이폰은 <b>Safari로 열기</b>)", "새로 열린 화면에서 다시 로그인하면 <b>앱으로 추가하기</b> 안내가 나옵니다."]
-    : ["화면 아래 가운데의 <b>공유 버튼</b>(네모에서 화살표가 위로 나온 모양)을 누르세요.", "목록을 위로 올려 <b>홈 화면에 추가</b>를 누르세요.", "오른쪽 위 <b>추가</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다."];
-  document.getElementById("a2hs-ios-title").textContent = inApp ? "카톡 밖에서 열어 주세요" : "홈 화면에 추가하기";
-  document.getElementById("a2hs-ios-steps").innerHTML = steps.map(t => "<li>" + t + "</li>").join("");
+    : /CriOS/i.test(UA)
+    ? ["주소창 오른쪽 위의 <b>공유 버튼</b>(네모에서 화살표가 위로 나온 모양)을 누르세요.", "목록을 위로 올려 <b>홈 화면에 추가</b>를 누르세요.", "오른쪽 위 <b>추가</b>를 누르면 바탕화면에 <b>현창레미콘</b> 아이콘이 생깁니다.", already]
+    : null;   // 아이폰 사파리: 그림 안내 (IOS_GUIDE)
+  document.getElementById("a2hs-warn").classList.toggle("hidden", !(isAndroid && !inApp));
+  document.getElementById("a2hs-ios-title").textContent = inApp ? "카톡 밖에서 열어 주세요" : "앱 설치하기";
+  const list = document.getElementById("a2hs-ios-steps");
+  list.classList.toggle("ios-guide", !steps);
+  list.innerHTML = steps ? steps.map(t => "<li>" + t + "</li>").join("") : IOS_GUIDE + "<li class=\"ig-done\">" + already + "</li>";
   document.getElementById("a2hs-ios").classList.add("show");
-});
+}
 document.getElementById("a2hs-ios-ok").addEventListener("click", () => { document.getElementById("a2hs-ios").classList.remove("show"); hideA2hs(false); });
+
+/* ---------- 아이폰 사파리 설치 그림 안내 (화면 모양을 단순하게 다시 그림) ---------- */
+const IG = {
+  menu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>',
+  share: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M7 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',
+  add: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+  book: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4h10v16l-5-4-5 4z"/></svg>',
+  find: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="12" height="16" rx="2"/><circle cx="15" cy="16" r="3"/><path d="M17.2 18.2 20 21M8 7h6M8 10h4"/></svg>',
+  mark: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 17l3-9 3 9M10 14h4"/></svg>',
+  back: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  reload: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M19 12a7 7 0 1 1-2.1-5M19 4v4h-4"/></svg>',
+  tabs: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',
+  x: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+};
+const igRow = (ic, t, on) => '<div class="ig-row' + (on ? ' on' : '') + '">' + IG[ic] + '<span>' + t + '</span></div>';
+const IOS_GUIDE =
+  '<li><div class="ig-t">화면 맨 아래 주소창 왼쪽의 <b>줄 세 개 버튼</b>을 누르세요.</div>' +
+    '<div class="ig-pic ig-bar"><span class="ig-c">' + IG.back + '</span><span class="ig-url"><span class="ig-hit">' + IG.menu + '</span>hcdrive.github.io' + IG.reload + '</span><span class="ig-c">' + IG.tabs + '</span></div>' +
+    '<div class="a2hs-note">화면 아래에 <b>공유 버튼</b>(네모에 위 화살표)이 바로 보이는 아이폰은 그것을 누르고 3번으로 가세요.</div></li>' +
+  '<li><div class="ig-t">메뉴에서 <b>공유</b>를 누르세요.</div>' +
+    '<div class="ig-pic ig-menu">' + igRow("share", "공유", true) + igRow("book", "북마크에 추가") + '</div></li>' +
+  '<li><div class="ig-t">목록을 위로 올려 <b>홈 화면에 추가</b>를 누르세요.</div>' +
+    '<div class="ig-pic ig-menu">' + igRow("find", "페이지에서 찾기") + igRow("add", "홈 화면에 추가", true) + igRow("mark", "마크업") + '</div></li>' +
+  '<li><div class="ig-t"><b>웹 앱으로 열기</b>가 켜져 있는지 보고, 오른쪽 위 <b>추가</b>를 누르세요.</div>' +
+    '<div class="ig-pic ig-sheet"><div class="ig-head"><span class="ig-c">' + IG.x + '</span><b>홈 화면에 추가</b><span class="ig-add">추가</span></div>' +
+    '<div class="ig-app"><img src="apple-touch-icon.png" alt=""><span>현창레미콘</span></div>' +
+    '<div class="ig-tg"><span>웹 앱으로 열기</span><i></i></div></div>' +
+    '<div class="a2hs-note">바탕화면에 <b>현창레미콘</b> 아이콘이 생기면 끝입니다. 다음부터는 그 아이콘으로 여세요.</div></li>';
 
 /* ---------- 새 소식: 지난번에 본 뒤로 관리자·자동 처리로 바뀐 내 신청 ----------
    이 폰에 지난번 '내 신청' 상태를 적어 두고, 다음에 열 때 달라진 것만 알려 줌 */
@@ -2517,6 +2697,7 @@ function startApp(animate) {
     setTimeout(() => document.body.classList.remove("app-enter"), 700);
   } else ls.classList.add("hidden");
   document.getElementById("who-no").textContent = myCar + "호";
+  showInstallBtn();
   document.getElementById("who").classList.remove("hidden");
   group = groupOf(myCar);
   loadVac();
@@ -2527,7 +2708,7 @@ function logout(msg) {
   MY = null; myTok = ""; store.set("myTok", "");
   try { localStorage.removeItem("sitesCache"); localStorage.removeItem("todayCache"); localStorage.removeItem("repsCache"); } catch (e) {}
   SITES = []; DAY_CACHE = {}; $q.value = ""; setToday([], []); renderDist();
-  document.getElementById("a2hs").classList.add("hidden");
+  document.getElementById("a2hs").classList.add("hidden"); document.getElementById("install-bar").classList.add("hidden"); document.getElementById("install-help").classList.add("hidden");
   showLogin(msg);
 }
 // 폼 제출(submit)을 쓰지 않음: 미리보기 창처럼 폼 제출이 막힌 곳에서도 로그인 버튼이 동작하도록
@@ -2650,6 +2831,7 @@ document.getElementById("mine").addEventListener("click", async e => {
   const id = e.target.id;
   if (id === "open-form") openForm();
   else if (id === "open-pw") openPw();
+  else if (e.target.dataset.order) showOrder(e.target);
   else if (e.target.dataset.cancel) {
     const x = MY.list.find(v => v.id === e.target.dataset.cancel);
     if (!(await ask(x.long + " " + x.type + " 신청을 취소할까요?", "취소하기", "그대로 두기"))) return;
@@ -2727,6 +2909,50 @@ document.getElementById("pwsheet").addEventListener("click", async e => {
   closePw(); toast(r.msg, true);
   await loadMine(true); renderMine();
 });
+
+/* ---------- 신청 순서 보기 ---------- */
+// "2026-10-05 21:00:41" → "10/5(월) 오후 9:00:41"
+function atText(s) {
+  s = String(s || ""); if (s.length < 19) return s;
+  const d = s.slice(0, 10), h = +s.slice(11, 13), wk = "일월화수목금토"[new Date(d + "T00:00:00Z").getUTCDay()];
+  return (+d.slice(5, 7)) + "/" + (+d.slice(8, 10)) + "(" + wk + ") " + clockText(s);
+}
+function clockText(s) {
+  const h = +s.slice(11, 13), ap = h < 12 ? "오전" : "오후", hh = h % 12 === 0 ? 12 : h % 12;
+  return ap + " " + hh + ":" + s.slice(14, 16) + ":" + s.slice(17, 19);
+}
+async function showOrder(btn) {
+  const keep = btn.textContent; btn.disabled = true; btn.textContent = "불러오는 중…";
+  const r = await api("order", { no: myCar, tok: myTok, date: btn.dataset.order });
+  btn.disabled = false; btn.textContent = keep;
+  if (!r.ok) { if (r.kicked || r.badPin) return loadVac(); return toast(r.msg || "순서를 불러오지 못했습니다."); }
+  let html = "", cut = false;
+  const firstDay = (r.list.find(y => y.at) || {}).at, day0 = firstDay ? firstDay.slice(0, 10) : "";
+  r.list.forEach(x => {
+    if (x.status === "대기" && !cut) { cut = true; html += '<li class="ord-cut">여기까지 확정 · 아래는 대기 순서</li>'; }
+    const who = x.me ? esc(myCar) + '호 (나)' : x.no ? esc(x.no) + '호' : '다른 기사님';
+    const when = x.office ? '사무실 입력' : x.at.slice(0, 10) === day0 ? clockText(x.at) : atText(x.at);   // 첫 신청과 같은 날이면 시각만
+    html += '<li class="ord-row' + (x.me ? ' me' : '') + '"><span class="ord-n">' + x.n + '번</span>' +
+      '<span class="ord-mid"><span class="ord-t">' + esc(when) + '</span><span class="ord-who">' + who + '</span></span>' +
+      '<span class="ord-st ' + (x.status === "확정" ? 'ok' : 'wt') + '">' + (x.status === "확정" ? '확정' : '대기 ' + x.rank + '번') + '</span></li>';
+  });
+  if (!r.list.length) html = '<li class="ord-none">아직 확정·대기 중인 신청이 없습니다</li>';
+  if (r.outside && r.outside.length) {
+    html += '<li class="ord-cut">정원과 따로 · 사무실 입력 (개인 사유)</li>' + r.outside.map(x =>
+      '<li class="ord-row' + (x.me ? ' me' : '') + '"><span class="ord-n">-</span><span class="ord-mid"><span class="ord-t">사무실 입력</span><span class="ord-who">' +
+      (x.me ? esc(myCar) + '호 (나)' : x.no ? esc(x.no) + '호' : '다른 기사님') + '</span></span><span class="ord-st ok">확정</span></li>').join("");
+  }
+  document.getElementById("ord-title").textContent = r.long + " 연차 신청 순서";
+  document.getElementById("ord-sub").textContent = "자리 " + r.limit + "명 · 신청 " + r.count + "명" + (firstDay ? " · " + atText(firstDay).split(" ")[0] + " 신청분" : "");
+  document.getElementById("ord-list").innerHTML = html;
+  document.getElementById("ord-low").innerHTML = r.low
+    ? '<b>나: 후순위 대기 ' + r.low.rank + '번째</b><br>위 순서의 분들이 먼저 확정되고, 휴가 ' + r.low.lockDays + '일 전에 남은 자리가 있으면 후순위 대기 순서대로 확정됩니다. (' + esc(atText(r.low.at)) + ' 신청)'
+    : "";
+  document.getElementById("ord-low").classList.toggle("hidden", !r.low);
+  document.getElementById("order").classList.add("show");
+}
+document.getElementById("ord-ok").addEventListener("click", () => document.getElementById("order").classList.remove("show"));
+document.getElementById("order").addEventListener("click", e => { if (e.target.id === "order") e.target.classList.remove("show"); });
 
 /* ───── 시작 ───── */
 // 로그인돼 있으면 바로, 아니면 로그인 화면
