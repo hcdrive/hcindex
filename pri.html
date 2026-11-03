@@ -1,0 +1,709 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>선배차 · 평균</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>:root { --bg: #f4f6f9; --card: #fff; --fg: #16181d; --muted: #6b7280; --line: #e3e6ea; --accent: #1a56db; --accent-bg: #e8f0fe;
+  --red: #d93025; --red-bg: #fdecea; --green: #188038; --green-bg: #e6f4ea; --amber: #a15c00; --amber-bg: #fff3c4; --violet: #6b3fb5; --violet-bg: #efe7fb; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Noto Sans KR", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; font-size: 15px; }
+button { font-family: inherit; }
+.top { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--line); }
+.top .in { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; gap: 14px; padding: 10px 20px; flex-wrap: wrap; }
+.brand { font-size: 19px; font-weight: 900; } .brand small { font-size: 13px; color: var(--muted); font-weight: 700; margin-left: 6px; }
+.tag-demo { font-size: 12px; font-weight: 800; color: var(--amber); background: var(--amber-bg); border-radius: 6px; padding: 3px 8px; }
+.dnav { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.dnav button { height: 40px; min-width: 40px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; font-size: 18px; font-weight: 800; cursor: pointer; color: var(--accent); }
+.dnav button:disabled { opacity: .35; cursor: default; }
+.dnav .dt { position: relative; height: 40px; min-width: 170px; display: flex; align-items: center; justify-content: center; border: 1.5px solid var(--accent); border-radius: 10px; font-weight: 900; font-size: 16px; padding: 0 12px; cursor: pointer; }
+.dnav .dt input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dnav .today { font-size: 14px; color: var(--fg); padding: 0 12px; }
+main { max-width: 1400px; margin: 0 auto; padding: 18px 20px 60px; display: grid; gap: 16px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+.card h2 { margin: 0 0 12px; font-size: 17px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; } .card h2 small { font-size: 13px; color: var(--muted); font-weight: 600; }
+.card h2 .r { margin-left: auto; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.kpi { border-radius: 14px; padding: 12px 14px; background: var(--bg); border: 1.5px solid transparent; }
+.kpi small { display: block; font-size: 13px; font-weight: 800; color: var(--muted); } .kpi b { font-size: 30px; font-weight: 900; line-height: 1.15; } .kpi b i { font-style: normal; font-size: 14px; margin-left: 2px; color: var(--muted); }
+.kpi span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; min-height: 16px; }
+.kpi.main { background: var(--accent-bg); } .kpi.main b { color: var(--accent); }
+.kpi.red b { color: var(--red); } .kpi.amb b { color: var(--amber); } .kpi.grn b { color: var(--green); } .kpi.vio b { color: var(--violet); }
+.grid2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; } @media (max-width: 1000px) { .grid2 { grid-template-columns: 1fr; } }
+.chip { display: inline-block; font-size: 12px; font-weight: 800; border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
+.s-run { background: var(--green-bg); color: var(--green); } .s-mh { background: #e8eaf6; color: #3949ab; } .s-sum { background: #fff1d6; color: #9a5b00; }
+.s-ab { background: var(--red-bg); color: var(--red); } .s-home { background: #fff3c4; color: #7a5a00; } .s-go { background: #e3f3d6; color: #2f6b12; }
+.s-early { background: #ffe1e1; color: #b42318; } .s-late { background: #e3ecff; color: #1a56db; } .s-mnt { background: #eceff3; color: #3c4553; }
+table.t { width: 100%; border-collapse: collapse; font-size: 14px; } table.t th { position: sticky; top: 0; background: #f8f9fb; font-size: 12.5px; color: var(--muted); font-weight: 800; text-align: right; padding: 8px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.t td { padding: 7px 8px; border-bottom: 1px solid #eef0f3; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.t th:first-child, table.t td:first-child, table.t .l { text-align: left; } table.t tr:hover td { background: #fafbff; }
+table.t .no { font-weight: 900; font-size: 15px; } table.t .z { color: #c3c8d0; }
+.tw { overflow: auto; max-height: 640px; border: 1px solid var(--line); border-radius: 12px; }
+.seg { display: inline-flex; background: var(--bg); border-radius: 10px; padding: 3px; gap: 2px; } .seg button { border: 0; background: none; height: 34px; padding: 0 12px; border-radius: 8px; font-weight: 800; color: var(--muted); cursor: pointer; font-size: 14px; }
+.seg button.on { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); align-items: center; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: #188038; color: #fff; padding: 12px 18px; border-radius: 12px; font-weight: 700; opacity: 0; transition: .25s; z-index: 50; max-width: 90vw; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 700px) { .top .in { padding: 10px 12px; } main { padding: 12px 10px 50px; } .dnav { margin-left: 0; width: 100%; } .dnav .dt { flex: 1; } .kpi b { font-size: 24px; } }
+main > *, .grid2 > * { min-width: 0; }
+/* 팝업 뒷배경: 열 때 서서히 어두워지고, 닫을 때 서서히 밝아짐 */
+.sheet.show, .mpop.open { animation: bdIn .25s ease; } @keyframes bdIn { from { background-color: rgba(0,0,0,0); } }
+.sheet.closing, .mpop.closing { background-color: rgba(0,0,0,0) !important; transition: background-color .3s ease; }
+.vtabs { display: inline-flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: 12px; }
+.vtabs button { border: 0; background: none; height: 38px; padding: 0 16px; border-radius: 9px; font-weight: 800; font-size: 15px; color: var(--muted); cursor: pointer; }
+.vtabs button.on { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+#st { table-layout: fixed; } #st th:last-child, #st td:last-child { width: 140px; text-align: center !important; } #st td.s-nm { white-space: normal; font-size: 15.5px; font-weight: 700; line-height: 1.4; } #st td.s-d { font-size: 16px; } #st mark { background: #fff3a8; padding: 0 1px; border-radius: 3px; }
+#st th, #st td { border-right: 1px solid #e3e6ea; } #st th:last-child, #st td:last-child { border-right: 0; } @media (max-width: 700px) { #st th:last-child, #st td:last-child { width: 96px; } }
+@media (max-width: 700px) { .vtabs { width: 100%; display: flex; } .vtabs button { flex: 1; padding: 0 4px; font-size: 14px; white-space: nowrap; } }
+#v-site .flt { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; } #s-q { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 0 14px; font: inherit; font-size: 17px; background: var(--card); color: var(--fg); } #s-q:focus { outline: none; border-color: var(--accent); }
+.vtabs[hidden], .vtabs [hidden] { display: none !important; }
+.hdr-r { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hbtn { height: 40px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 800; color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hbtn svg { width: 18px; height: 18px; } .hbtn span { color: var(--muted); font-weight: 700; } #acc-chip b { color: var(--accent); } #acc-chip span { color: var(--accent); font-weight: 800; }
+.acc-box, .app-box, .ntf-box { max-width: 480px; } .acc-sec { font-size: 13.5px; font-weight: 800; color: var(--muted); margin: 14px 0 6px; } .acc-sec b { color: var(--accent); margin-left: 4px; }
+.acc-dev { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; } .acc-dev li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #eef0f3; } .acc-dev li:last-child { border-bottom: 0; }
+.acc-dev li > div { flex: 1; display: grid; } .acc-dev b { font-size: 15px; } .acc-dev b i { font-style: normal; font-size: 12px; color: var(--green); background: var(--green-bg); border-radius: 6px; padding: 1px 6px; margin-left: 4px; } .acc-dev small { color: var(--muted); font-size: 12.5px; } .acc-dev .btn { height: 34px; font-size: 13px; }
+.acc-pw { display: grid; gap: 8px; } .acc-pw label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(--muted); } .acc-pw label small { font-weight: 700; }
+.acc-pw input { height: 48px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 12px; font: inherit; font-size: 20px; letter-spacing: 4px; } .acc-pw input:focus { outline: none; border-color: var(--accent); }
+.acc-pw .btn { height: 48px; font-size: 16px; } .acc-msg { margin: 0; color: var(--red); font-size: 14px; font-weight: 800; min-height: 0; } .acc-msg:empty { display: none; }
+.app-g { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .app-g > div { background: var(--bg); border-radius: 12px; padding: 10px 12px; } .app-g ol { margin: 6px 0 0; padding-left: 18px; font-size: 14px; line-height: 1.6; } @media (max-width: 520px) { .app-g { grid-template-columns: 1fr; } }
+.ntf-perm { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff3c4; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; font-size: 14px; color: #7a5a00; } .ntf-perm .btn { height: 38px; margin-left: auto; } .ntf-perm .ok { color: var(--green); }
+.ntf-l { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; } .ntf-l li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #eef0f3; } .ntf-l li:last-child { border-bottom: 0; }
+.ntf-l li > div { flex: 1; display: grid; gap: 3px; } .ntf-l b { font-size: 16px; } .ntf-l small { color: var(--muted); font-size: 13px; line-height: 1.45; } .ntf-pv { justify-self: start; border: 0; background: none; color: var(--accent); font: inherit; font-size: 13px; font-weight: 800; padding: 2px 0; cursor: pointer; text-decoration: underline; }
+.tgl { flex: none; width: 54px; height: 32px; border-radius: 999px; border: 0; background: #cfd4dc; position: relative; cursor: pointer; transition: background .2s; } .tgl i { position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .2s; } .tgl.on { background: var(--green); } .tgl.on i { left: 25px; }
+.pushd { position: fixed; left: 10px; right: 10px; top: 10px; z-index: 70; max-width: 440px; margin: 0 auto; display: flex; gap: 10px; align-items: center; background: rgba(245,245,247,.97); border-radius: 18px; padding: 11px 13px; box-shadow: 0 10px 30px rgba(0,0,0,.25); transform: translateY(-140%); transition: transform .45s cubic-bezier(.2,1,.3,1); }
+.pushd.show { transform: none; } .pd-ic { flex: none; width: 40px; height: 40px; border-radius: 10px; background: #fff; object-fit: cover; border: 1px solid #e3e6ea; } .pd-tx { flex: 1; display: grid; } .pd-tx b { font-size: 14px; } .pd-tx span { font-size: 14px; color: #333; } .pushd small { align-self: flex-start; color: #888; font-size: 12px; }
+.kp-x { margin-left: auto; width: 44px; height: 44px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; font-size: 26px; line-height: 1; cursor: pointer; }
+.kp-h { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; } .kp-h > div { flex: 1; }
+.app-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; } .app-ic { width: 72px; height: 72px; border-radius: 16px; border: 1px solid var(--line); background: #fff; } .app-hd > div { display: grid; } .app-hd b { font-size: 18px; } .app-hd small { color: var(--muted); font-size: 13px; }
+#ntf-open span { color: var(--fg); font-weight: 800; }
+.demo-tg { border: 1.5px dashed var(--amber); background: #fffbea; color: var(--amber); border-radius: 8px; height: 30px; padding: 0 10px; font-weight: 800; font-size: 12.5px; cursor: pointer; } .demo-tg.on { background: var(--amber); color: #fff; border-style: solid; }
+
+/* ===== 폰 화면 위쪽 고정 줄 줄이기: 1줄 = 제목 + 앱 설치 · 알림 · 계정 / 2줄 = 일별·월 합계 탭 / 3줄 = 날짜 · 시안 버튼은 숨김 ===== */
+.acc-ic { display: none; } .acc-dm { display: none; } #acc-chip .acc-id { font-style: normal; }
+@media (max-width: 700px) {
+  .top .in { gap: 8px; padding: 8px 10px; }
+  .top .brand { order: 1; flex: 1; min-width: 0; font-size: 20px; white-space: nowrap; } .top .brand small { display: none; }
+  .top .hdr-r { order: 2; flex-wrap: nowrap; gap: 5px; }
+  .top .vtabs { order: 3; } .top .dnav { order: 4; }
+  .top .tag-demo, .top .demo-tg { display: none !important; }
+  .top .hbtn { height: 36px; padding: 0 9px; font-size: 13.5px; gap: 4px; }
+  #ntf-open span, #acc-chip .acc-nm, #acc-chip .acc-dev, #acc-chip .acc-id { display: none; } #acc-chip .acc-dm { display: inline; color: var(--accent); font-weight: 800; }
+  .acc-ic { display: block; }
+  .top .vtabs { padding: 3px; } .top .vtabs button { height: 34px; }
+  .top .dnav button, .top .dnav .dt { height: 36px; } .top .dnav .today { white-space: nowrap; flex: none; padding: 0 10px; } .top .dnav .dt { min-width: 0; }
+}
+/* 현장 메모 (관리자가 적은 위치별 거리 안내) */
+#st td.s-nm .s-memo { margin-top: 6px; font-size: 13.5px; font-weight: 600; color: #7a5a00; background: #fff8e1; border-radius: 8px; padding: 6px 10px; line-height: 1.55; white-space: pre-line; }
+#st td.s-nm .s-memo b { color: #a15c00; font-weight: 900; margin-right: 6px; }
+
+.cg { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.cg .gh { font-size: 13px; font-weight: 900; color: var(--muted); margin-bottom: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; } .cg .gh > span:first-child { flex-basis: 100%; font-size: 14px; color: var(--fg); }
+.cg .gh .go, .cg .gh .home { font-size: 11.5px; border-radius: 6px; padding: 1px 6px; white-space: nowrap; } .cg .gh .go { background: #e3f3d6; } .cg .gh .home { background: #fff3c4; }
+.cg .gh .go { color: #2f6b12; } .cg .gh .home { color: #7a5a00; }
+.cg ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.cg > div { border: 1.5px solid #d5dbe5; border-radius: 12px; padding: 0 6px 6px; background: #fff; overflow: hidden; }
+
+.cg .gh { margin: 0 -6px 6px !important; padding: 7px 8px !important; background: #33415c; justify-content: center; min-height: 0 !important; }
+.cg .gh > span:first-child { color: #fff !important; font-size: 15px !important; font-weight: 900; text-align: center; letter-spacing: 1px; }
+.cg li .cr { font-size: 21px; font-weight: 900; letter-spacing: -.3px; line-height: 1.2; } .cg li .cr .chip { letter-spacing: -.3px; font-size: 10.5px !important; padding: 1px 4px !important; flex: none; } .cg ul, .cg li, .cg > div { min-width: 0; } .cg li .cr { gap: 2px !important; }
+.cg li .cr { display: flex; align-items: center; justify-content: space-between; gap: 4px; } .cg li .cr { padding-bottom: 3px; margin-bottom: 3px; border-bottom: 1px solid rgba(0,0,0,.14); } .cg li .av { display: block; font-size: 13px; font-weight: 800; }
+.cg li { display: block; border-radius: 8px; padding: 5px 8px; font-weight: 900; font-size: 15px; background: var(--bg); border: 1.5px solid transparent; }
+.cg li.off { opacity: .9; } .cg li.st-leave { background: #e8eaf6; } .cg li.st-sum { background: #fff1d6; } .cg li.st-ab { background: var(--red-bg); } .cg li.st-home { background: #fff8d6; }
+.cg li.st-go { background: #eef8e6; } .cg li.st-rest { background: #fff; border: 1.5px dashed #d5dbe5; } .cg li.st-rest .cr { color: #b3b9c3; } .s-rest { background: #eceff3; color: #8a919c; }
+.cg li.pri { border-style: solid !important; } .wk-grp { border-color: #f0b35e !important; background: #fffaf2 !important; } .wk-grp .lv-gh { color: #a15c00 !important; border-color: #f6d9ae !important; } .wk-grp .cars b { background: #e6f4ea; color: #188038; }
+.wk-note { grid-column: span 3; background: #fff4e6 !important; border: 1.5px solid #f08c00 !important; } .wk-note small { color: #a15c00 !important; font-size: 15px !important; } .wk-note span { font-size: 14px !important; color: var(--fg) !important; margin-top: 6px !important; line-height: 1.5; } 
+.cg li.pri { border-color: #f08c00; }
+.cg li .chip { font-size: 11px; padding: 1px 5px; }
+.cg li .pv { display: block; font-size: 13px; font-weight: 800; color: var(--fg); white-space: nowrap; letter-spacing: -.4px; } .cg li .pv .yd { font-style: normal; font-size: 11.5px; color: #a15c00; }
+.cg-note:empty { display: none; } .cg-note { margin: 0 0 8px; font-size: 13.5px; color: var(--muted); } .cg-note b { color: var(--fg); }
+@media (max-width: 900px) { .cg { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* ===== 조별 차량 가로 배치: 한 조 = 한 줄 (왼쪽 조 이름 + 10대) ===== */
+.cg, .cg.m5, .cg.m10 { grid-template-columns: 1fr !important; gap: 6px; }
+.cg > div { display: grid; grid-template-columns: 46px minmax(0, 1fr); padding: 0 !important; }
+.cg .gh { margin: 0 !important; padding: 0 !important; border-radius: 0; display: flex; align-items: center; justify-content: center; }
+.cg .gh > span:first-child { font-size: 15px !important; letter-spacing: 0; }
+.cg ul { grid-template-columns: repeat(10, minmax(0, 1fr)); padding: 5px; gap: 5px; }
+.cg li { padding: 5px 7px; }
+.cg li .cr { height: 30px; } .cg li .cr .no { line-height: 1; }
+/* 번호 아래 줄에 상태 글씨 (모든 칸 같은 높이) */
+.cg li .cr { display: grid; grid-template-rows: 24px 16px; height: auto; align-items: center; justify-content: start; gap: 0 !important; }
+.cg li .cr .no { font-size: 20px; } .cg li .cr .chip { justify-self: start; white-space: nowrap; }
+.mpop-in > .cg { flex: none; }
+/* 칸끼리 구분이 잘 되게: 회색 테두리 + 조금 더 진한 바탕 (선배차는 주황 테두리 그대로) */
+.cg li { border: 1.5px solid #c3cad5 !important; background: #eef1f5; box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+.cg li.pri { border-color: #f08c00 !important; box-shadow: inset 0 0 0 1px #f08c00; }
+.cg li.st-rest { border-style: dashed !important; background: #fff; }
+/* 칸 순서: 호수 / 평균 차이 / 전날 회전수 / 상태 — 상태 줄은 비어 있어도 같은 높이로 */
+.cg li .cr { display: block !important; height: auto !important; } .cg li .cr .no { display: block; line-height: 24px; }
+.cg li .av { font-size: 14px; font-weight: 900; padding-bottom: 3px; border-bottom: 1px solid rgba(0,0,0,.14); }
+.cg li .cr { border-bottom: 0 !important; padding-bottom: 0 !important; margin-bottom: 1px !important; }   /* 가로선은 평균과 상태 사이 */
+.cg li .stl { height: 18px; margin-top: 3px; display: flex; align-items: center; } .cg li .stl .chip { font-size: 10.5px !important; padding: 1px 5px !important; white-space: nowrap; }
+@media (max-width: 700px) { .cg li .stl { height: 16px; } .cg li .stl .chip { font-size: 9.5px !important; padding: 0 3px !important; } .cg li .av { font-size: 12.5px; } }
+@media (max-width: 1250px) { .cg li { padding-left: 5px; padding-right: 4px; } .cg li .pv { font-size: 12px; } .cg li .pv .yd { font-size: 10.5px; letter-spacing: -.6px; } }
+@media (min-width: 701px) and (max-width: 1250px) { .cg ul { grid-template-columns: repeat(5, minmax(0, 1fr)); } .cg li .pv { font-size: 13px; } .cg li .pv .yd { font-size: 11.5px; } }
+.cg-mode { display: none; }
+@media (max-width: 700px) {
+  .cg-mode { display: flex; gap: 6px; align-items: center; font-size: 12.5px; font-weight: 800; color: #a15c00; }
+  .cg-mode button { flex: 1; height: 34px; border: 1.5px dashed #e0b25a; background: #fffbea; color: #a15c00; border-radius: 8px; font: inherit; font-weight: 800; cursor: pointer; }
+  .cg-mode button.on { background: #a15c00; border-style: solid; border-color: #a15c00; color: #fff; }
+  .cg > div { grid-template-columns: 30px minmax(0, 1fr); } .cg .gh > span:first-child { font-size: 13px !important; }
+  .cg li { padding: 4px 5px; } .cg li .cr .no { font-size: 17px; } .cg li .cr { grid-template-rows: 20px 15px; }
+  .cg li .cr .chip { font-size: 9.5px !important; padding: 0 3px !important; } .cg li .pv, .cg li .av { font-size: 12px; }
+  /* 5대씩: 한 조가 두 줄 */
+  .cg.m5 ul { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 4px; gap: 4px; }
+  /* 10대 한 줄: 옆으로 밀어서 봄 */
+  .cg.m10 { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .cg.m10 > div { width: max-content; min-width: 100%; } .cg.m10 ul { grid-template-columns: repeat(10, 64px); }
+}
+@media (max-width: 370px) { .cg > div { grid-template-columns: 24px minmax(0, 1fr); } .cg .gh > span:first-child { font-size: 12px !important; } .cg.m5 li { padding: 4px 3px; } .cg li .pv { letter-spacing: -.6px; } }
+.day-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: -2px 0 10px; }
+.day-h .db { font-size: 24px; font-weight: 900; color: #d93025; line-height: 1.1; }
+.day-h .db.fut { color: #1a56db; } .day-h .db.past { color: #6b7280; }
+.day-h .dt { font-size: 18px; font-weight: 900; } .day-h .dk { font-size: 15px; font-weight: 800; color: var(--muted); }
+.t-seg { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 4px 0 6px; } .t-seg-l { font-size: 14px; font-weight: 900; color: var(--muted); }
+@media (max-width: 700px) { .t-seg .seg { width: 100%; } .t-seg .seg button { flex: 1; } .t-seg-l { display: none; } }
+.lv-list { display: grid; gap: 8px; } .lv-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid #eef0f3; } .lv-row:last-child { border-bottom: 0; }
+.lv-row .k { min-width: 92px; } .lv-row .cars { display: flex; flex-wrap: wrap; gap: 6px; } .lv-row .cars b { background: var(--bg); border-radius: 8px; padding: 3px 9px; font-size: 15px; } .lv-row .none { color: #c3c8d0; font-size: 14px; }
+.pri-box { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; } .pri-box div { background: #fff4e6; border: 2px solid #f08c00; border-radius: 12px; padding: 8px 14px; text-align: center; min-width: 86px; }
+.nopri { flex: 1; display: grid; gap: 4px; background: var(--bg); border: 2px dashed #c9ced6; border-radius: 12px; padding: 12px 16px; text-align: left !important; }
+.nopri b { font-size: 18px !important; color: var(--fg); } .nopri span { font-size: 14px; color: var(--muted); line-height: 1.5; } .nopri small { font-size: 13px !important; color: var(--muted) !important; } .nopri em { font-style: normal; font-weight: 900; color: var(--red); }
+.demo-tg { border: 1.5px dashed var(--amber); background: #fffbea; color: var(--amber); border-radius: 8px; height: 30px; padding: 0 10px; font-weight: 800; font-size: 12.5px; cursor: pointer; } .demo-tg.on { background: var(--amber); color: #fff; border-style: solid; }
+.pri-note { flex-basis: 100%; margin: 2px 0 0; font-size: 13px; color: var(--muted); line-height: 1.5; } .pri-box .pri-note b { color: var(--red); display: inline; font-size: 13px; font-weight: 900; }
+.pri-box b { display: block; font-size: 22px; font-weight: 900; } .pri-box small { font-size: 12.5px; color: #a15c00; font-weight: 800; }
+.bar { display: block; height: 10px; position: absolute; top: 50%; transform: translateY(-50%); } .bar.neg { background: #e5484d; right: 50%; border-radius: 5px 0 0 5px; } .bar.pos { background: #188038; left: 50%; border-radius: 0 5px 5px 0; }
+#avg-t th { z-index: 3; } .dvw { z-index: 0; } #avg-t td.dv { position: relative; z-index: 0; }
+td.dv { width: 46%; padding-left: 4px !important; padding-right: 4px !important; } .dvw { position: relative; height: 18px; }
+.dvw::before { content: ""; position: absolute; left: 50%; top: -8px; bottom: -8px; border-left: 1.5px solid #9aa1ab; }
+th.dv-h { text-align: center !important; } th.dv-h span { display: inline-block; width: 33%; } th.dv-h span:first-child { text-align: left; color: #d93025; } th.dv-h span:last-child { text-align: right; color: #188038; }
+.neg { color: var(--red); font-weight: 800; } .pos { color: var(--green); font-weight: 800; }
+.tn-today { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--violet-bg); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
+.tn-today .sum { display: grid; gap: 1px; padding-right: 14px; border-right: 1.5px solid #d6c7f2; } .tn-today .sum small { font-size: 12.5px; font-weight: 800; color: var(--violet); } .tn-today .sum b { font-size: 22px; font-weight: 900; color: var(--violet); line-height: 1.1; } .tn-today .sum b i { font-style: normal; font-size: 13px; margin-left: 1px; }
+.tn-today .cars { display: flex; flex-wrap: wrap; gap: 6px; } .tn-today .cars span { background: #fff; border: 1px solid #d6c7f2; border-radius: 8px; padding: 4px 10px; font-size: 14px; color: var(--muted); font-weight: 700; } .tn-today .cars span b { color: var(--fg); font-size: 16px; font-weight: 900; margin-right: 4px; }
+.tn-today .none { color: var(--muted); font-size: 14px; }
+.lv-grp { border: 1.5px solid #f3b4b4; background: #fffafa; border-radius: 12px; padding: 4px 12px; margin-bottom: 4px; }
+.lv-gh { display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 900; color: #b42318; padding: 8px 0 4px; border-bottom: 1px solid #f3d0d0; }
+.lv-gh b { font-size: 17px; } .lv-gh small { margin-left: auto; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.lv-grp .lv-row:last-child { border-bottom: 0; }
+.s-allx { background: #b42318; color: #fff; } .lv-all { border-bottom: 1.5px dashed #f3b4b4 !important; } .lv-all .cars b { background: #fdecea; color: #b42318; }
+.cg li .swl { display: block; white-space: nowrap; font-size: 12px; font-weight: 800; color: #6b3fb5; margin-top: 2px; } .cg li .swl.took { color: #2f6b12; }
+.s-sw { background: #efe7fb; color: #6b3fb5; } .swp i { font-style: normal; color: var(--muted); } .swp em { font-style: normal; font-size: 12px; font-weight: 800; border-radius: 6px; padding: 1px 6px; margin-left: 2px; } .swp em.k-go { color: #2f6b12; background: #e3f3d6; } .swp em.k-home { color: #7a5a00; background: #fff3c4; }
+.swt { font-style: normal; font-size: 12px; font-weight: 800; color: #6b3fb5; background: #efe7fb; border-radius: 6px; padding: 1px 6px; }
+.wast { font-style: normal; font-size: 12px; font-weight: 800; color: #3949ab; background: #e8eaf6; border-radius: 6px; padding: 1px 6px; }
+.lv-chg { border-top: 1.5px dashed #f3b4b4; } .lv-chg .chg-n { flex-basis: 100%; font-size: 12.5px; color: var(--muted); }
+.dbig { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; background: var(--card); border: 2px solid var(--accent); border-radius: 18px; padding: 14px 20px; position: relative; }
+.dbig-d { display: flex; align-items: center; gap: 12px; } .dbig-d b { font-size: 40px; font-weight: 900; letter-spacing: -.5px; line-height: 1.1; }
+.dbig-d span { font-size: 15px; font-weight: 900; border-radius: 8px; padding: 5px 10px; } .t-today { background: var(--accent); color: #fff; } .t-past { background: #6b7280; color: #fff; } .t-fut { background: #f08c00; color: #fff; }
+.dbig-conf { font-size: 14px; color: var(--muted); font-weight: 700; } .dbig-conf b { color: var(--fg); } @media (min-width: 1000px) { .dbig-conf { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); } }
+.dbig-btn { height: 52px; border: 0; border-radius: 12px; background: #f08c00; color: #fff; font-size: 17px; font-weight: 900; padding: 0 20px; cursor: pointer; } .dbig-btn small { font-size: 14px; opacity: .85; margin-left: 4px; }
+body.fut .dbig { border-color: #f08c00; background: #fff8ef; } body.fut .dbig-btn { background: var(--accent); }
+@media (min-width: 1000px) { .dbig-btn { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); } }
+@media (max-width: 700px) { .dbig-d b { font-size: 28px; } }
+.tm { font-style: normal; font-size: 13px; font-weight: 800; color: #b42318; background: #ffe1e1; border-radius: 6px; padding: 1px 6px; margin-left: 2px; white-space: nowrap; }
+.nx-off b { display: flex; flex-wrap: wrap; gap: 4px 12px; } .nx-n { font-style: normal; font-size: 15px; font-weight: 900; color: var(--fg); margin-left: 6px; } .nx .nx-n b { display: inline; font-size: 22px; color: #d93025; margin-right: 1px; } .nx-off small { margin-bottom: 6px; }
+.nxt { font-style: normal; font-size: 12px; font-weight: 800; color: #b42318; background: #fdecea; border-radius: 6px; padding: 1px 6px; margin-left: 2px; }
+.nx { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; } .nx div { background: var(--bg); border-radius: 12px; padding: 10px 12px; } .nx small { display: block; font-size: 12.5px; color: var(--muted); font-weight: 800; } .nx b { font-size: 16px; }
+.mopen, .mpop-h { display: none; }
+@media (max-width: 700px) {
+  .pc-only { display: none !important; }
+  .mopen { display: block; width: 100%; height: 52px; border: 1.5px solid var(--accent); background: var(--accent-bg); color: var(--accent); border-radius: 12px; font-size: 17px; font-weight: 900; cursor: pointer; margin-top: 4px; }
+  .mpop { display: none; } body.popon { overflow: hidden; }
+  .mpop.open { display: flex; position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); align-items: flex-end; }
+  .mpop-in { background: var(--card); width: 100%; max-height: 90vh; border-radius: 18px 18px 0 0; padding: 14px 12px 16px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+  .mpop-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; } .mpop-h b { font-size: 18px; font-weight: 900; }
+  .mpop-h .mpop-x { margin-left: auto; width: 44px; height: 44px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; font-size: 26px; line-height: 1; cursor: pointer; }
+  .mpop-h .seg { width: 100%; } .mpop-h .seg button { flex: 1; }
+  .mpop .tw { max-height: none !important; flex: 1; min-height: 0; } .mpop .note, .mpop .legend { margin: 0; }
+  .c-cg h2 small { display: none; }
+  .nx-off .nxt { display: none; }
+  .grid2 { display: contents; }
+  .c-avg { order: 1; } .c-lv { order: 2; } .c-nx { order: 3; } .c-cg { order: 4; } .c-tn { order: 5; }
+}
+.btn { height: 38px; border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 0 14px; font-weight: 800; cursor: pointer; font-size: 14px; }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+.sheet { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: none; align-items: center; justify-content: center; z-index: 40; padding: 16px; }
+.sheet.show { display: flex; } .sheet .box { overflow-x: hidden; background: var(--card); border-radius: 18px; width: 100%; max-width: 560px; max-height: 92vh; overflow: auto; padding: 18px 20px; }
+.sheet h3 { margin: 0 0 4px; font-size: 20px; } .sheet .sub { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
+.acts { display: grid; grid-template-columns: 1fr 1.6fr; gap: 10px; margin-top: 14px; } .acts .btn { height: 48px; font-size: 16px; }
+.kp-h { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+.cf-box { max-width: 480px; } .cf-warn { display: inline-block; background: #fdecea; color: #b42318; font-weight: 900; font-size: 13px; border-radius: 6px; padding: 3px 9px; margin-bottom: 8px; }
+.chg-box { max-width: 520px; } .chg-l { list-style: none; margin: 4px 0 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.chg-l li { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #eef0f3; font-size: 16px; } .chg-l li:last-child { border-bottom: 0; }
+.chg-l b { font-size: 18px; min-width: 52px; } .cdesc { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; } .cdesc .o { color: var(--muted); text-decoration: line-through; } .cdesc .n { font-weight: 900; } .cdesc small { color: var(--muted); font-size: 13px; }
+.cbadge { font-size: 12.5px; font-weight: 900; border-radius: 6px; padding: 3px 8px; white-space: nowrap; min-width: 66px; text-align: center; } .c-add { background: var(--red-bg); color: var(--red); } .c-del { background: #eceff3; color: #3c4553; } .c-mod { background: #fff3c4; color: #7a5a00; }
+.chg-chip { border: 1.5px solid #f3b4b4; background: var(--red-bg); color: var(--red); border-radius: 999px; font: inherit; font-size: 13px; font-weight: 900; padding: 3px 10px; cursor: pointer; }
+@media (max-width: 999px) { .dbig-d { flex-wrap: wrap; justify-content: center; row-gap: 8px; } .dbig-d b { white-space: nowrap; } }
+.dbig .chg-chip { font-size: 15px; padding: 6px 14px; } @media (min-width: 1000px) { .dbig .chg-chip { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); } }
+.nxc { white-space: nowrap; } .nxc .nxt { margin-left: 4px; }
+.s-sp { background: var(--violet-bg); color: var(--violet); }
+.spw { font-style: normal; font-size: 12.5px; font-weight: 800; color: var(--violet); background: var(--violet-bg); border-radius: 6px; padding: 1px 6px; margin-left: 2px; }
+.nx-rf { display: inline-flex; align-items: center; gap: 8px; } #nx-at { font-size: 13px; color: var(--muted); font-weight: 700; }
+.rf-btn { height: 36px; padding: 0 14px; font-size: 14px; border: 1.5px solid var(--accent); color: var(--accent); background: var(--accent-bg); }
+body.v-site-on main > *:not(#v-site) { display: none !important; } body.v-site-on .dnav, body.v-site-on .demo-tg { display: none !important; }
+.swp i.nw, .nw { font-style: normal; color: #fff !important; font-size: 11.5px; font-weight: 900; color: #fff; background: #d93025; border-radius: 6px; padding: 1px 6px; margin-left: 3px; vertical-align: 1px; white-space: nowrap; }
+.lv-new { font-size: 12.5px; color: var(--muted); font-weight: 700; margin: 0 0 8px; } .lv-new .nw { margin: 0 2px 0 0; }
+.pri-ex { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 10px; display: grid; gap: 8px; }
+.pri-ex[hidden] { display: none; }
+.px-h b { font-size: 15px; } .px-h small { color: var(--muted); font-size: 12.5px; }
+.px-on { display: flex; flex-wrap: wrap; gap: 6px; } .px-none { color: var(--muted); font-size: 13.5px; }
+.px-chip { border: 1.5px solid #f2a0a0; background: #fdecea; color: #b42318; border-radius: 999px; padding: 5px 10px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; } .px-chip i { font-style: normal; margin-left: 2px; }
+.px-open { justify-self: start; border: 1.5px solid var(--accent); background: #e8f0fe; color: #1a56db; border-radius: 10px; padding: 8px 14px; font: inherit; font-size: 14.5px; font-weight: 800; cursor: pointer; }
+.px-pick { display: grid; gap: 8px; } .px-pick input { height: 42px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 12px; font: inherit; font-size: 15px; }
+.px-tip { margin: 0; font-size: 12.5px; color: var(--muted); }
+.px-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; } @media (max-width: 560px) { .px-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.px-grid button { height: 46px; border: 1.5px solid var(--line); background: var(--bg); border-radius: 8px; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; display: grid; place-content: center; line-height: 1.1; padding: 0; }
+.px-grid button small { font-size: 10.5px; color: var(--muted); font-weight: 700; } .px-grid button.cand { border-color: #f08c00; } .px-grid button.on { background: #d93025; border-color: #d93025; color: #fff; } .px-grid button.on small { color: #fde; }
+
+/* 처음 불러오기 덮개 (부모 페이지가 자료를 줄 때까지) */
+.boot { position: fixed; inset: 0; z-index: 90; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; } .boot[hidden] { display: none; }
+.boot-in { display: grid; gap: 12px; justify-items: center; text-align: center; font-size: 16px; font-weight: 800; color: var(--muted); }
+.boot-sp { width: 28px; height: 28px; border: 3px solid #d5dbe5; border-top-color: var(--accent); border-radius: 50%; animation: bootspin .8s linear infinite; } @keyframes bootspin { to { transform: rotate(360deg); } }
+.toast.bad { background: #b42318; }
+/* 관리자 '선배차·평균': 평균·선배차 · 평균 그래프 · 조별 차량만 */
+main > section.card:not(.c-avg):not(.c-cg), .c-nx, .c-lv, .c-tn, #vtabs, .hdr-r, #chg, #chg-open { display: none !important; }
+main .grid2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+@media (min-width: 1100px) { main .grid2:first-of-type { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head><body>
+<div class="boot" id="boot"><div class="boot-in"><span class="boot-sp"></span>불러오는 중…</div></div>
+<header class="top"><div class="in">
+  <div class="brand">선배차 · 평균 <small>관리자 · 출하실 화면과 같은 내용</small></div><div class="vtabs" id="vtabs"><button data-v="main" class="on">운행 현황</button><button data-v="site">현장 거리</button></div>
+  <div class="dnav"><button id="d-prev" aria-label="이전 날">‹</button><label class="dt"><span id="d-t"></span><input type="date" id="d-in" enterkeyhint="done"></label><button id="d-next" aria-label="다음 날">›</button><button class="today" id="d-today">오늘</button></div>
+</div></header>
+<main>
+  <section class="dbig" id="dbig"><div class="dbig-d"><span id="dbig-tag"></span><b id="dbig-t"></b><button type="button" class="chg-chip" id="chg-open" hidden></button></div></section>
+  <section class="card"><h2>운행 차량 <small id="k-sub"></small></h2><div class="kpis" id="kpis"></div>
+    <p class="note">기사님 화면의 '연차'는 이 화면에서 <b>정비휴무</b>로 표시됩니다. 여름휴가는 그대로 표시됩니다.</p></section>
+  <section class="card c-nx"><h2>다음 근무일 예정 <small id="nx-sub"></small><span class="r nx-rf"><span id="nx-at"></span><button type="button" class="btn rf-btn" id="nx-rf">새로고침</button></span></h2><div class="nx" id="nx"></div></section>
+  <div class="grid2">
+    <section class="card c-avg"><h2>평균 · 선배차 <small id="avg-sub"></small></h2>
+      <div class="day-h" id="pri-h"></div>
+      <div class="pri-box" id="pri"></div>
+      <div class="pri-ex" id="pri-ex" hidden></div>
+      <button type="button" class="mopen" data-pop="avg-pop">평균 그래프 보기</button>
+      <div class="mpop" id="avg-pop"><div class="mpop-in">
+        <div class="mpop-h"><b>평균 그래프</b><button type="button" class="mpop-x" aria-label="닫기">×</button></div>
+        <div class="t-seg"><span class="t-seg-l">순위표</span><span class="seg"><button data-av="lo" class="on">낮은 순</button><button data-av="hi">높은 순</button><button data-av="no">호차 순</button></span></div>
+        <div class="tw" style="max-height:460px"><table class="t" id="avg-t"></table></div>
+        <p class="note">평균 차이 = <span id="avg-from">기록 시작일</span>부터 선택한 날까지 (내 회전 − 하루 <span id="avg-n">60</span>대 평균) 합계. 위쪽 선배차는 이날의 선배차입니다(전 근무일까지 누적 −3 이하 중 낮은 순 5대 · 이날 출근하지 않거나 지각한 차량은 빼고 다음 순번).</p></div></div></section>
+    <section class="card c-lv"><h2>휴무 · 결근 · 조퇴 · 지각</h2><div class="day-h" id="lv-h"></div><div class="lv-list" id="lv"></div></section>
+  </div>
+  <div class="grid2">
+    <section class="card c-cg"><h2>조별 차량 <small>호수 아래 평균 차이 · 상태 · 주황 테두리는 선배차</small></h2>
+      <button type="button" class="mopen" data-pop="cg-pop">조별 차량 보기</button>
+      <div class="mpop" id="cg-pop"><div class="mpop-in"><div class="mpop-h"><b>조별 차량</b><button type="button" class="mpop-x" aria-label="닫기">×</button></div><div class="cg-mode" id="cg-mode"><button type="button" data-cgm="m5" class="on">5대씩 두 줄</button><button type="button" data-cgm="m10">10대 한 줄 (옆으로 밀기)</button></div><p class="cg-note" id="cg-note"></p><div class="cg m5" id="cg"></div>
+      <div class="legend"><span class="chip s-mh">정비휴무</span><span class="chip s-sum">여름휴가</span><span class="chip s-ab">결근</span><span class="chip s-home">집대기</span><span class="chip s-go">퇴근조</span><span class="chip s-early">조퇴</span><span class="chip s-late">지각</span><span class="chip s-mnt">차량고장</span><span class="chip s-sw">교대</span><span class="chip s-rest">비번</span></div></div></div></section>
+    <section class="card c-tn"><h2>터널 출입 <small id="tn-sub">기록 전체 기준 · 우선 배차 참고</small></h2>
+      <div class="tn-today" id="tn-today"></div>
+      <button type="button" class="mopen" data-pop="tn-pop">터널 전체 기록 보기</button>
+      <div class="mpop" id="tn-pop"><div class="mpop-in"><div class="mpop-h"><b>터널 전체 기록</b><button type="button" class="mpop-x" aria-label="닫기">×</button></div>
+      <div class="t-seg"><span class="t-seg-l">순위표</span><span class="seg"><button data-tn="lo" class="on">낮은 순</button><button data-tn="hi">높은 순</button><button data-tn="no">호차 순</button></span></div>
+      <div class="tw" style="max-height:460px"><table class="t" id="tn-t"></table></div></div></div></section>
+  </div>
+  <section class="card" id="v-site" hidden>
+    <h2>현장 거리 검색 <small>띄어쓰기로 여러 단어를 넣으면 모두 들어간 현장만 (예: 금강 대야미)</small></h2>
+    <div class="flt"><input type="search" id="s-q" placeholder="현장 이름 검색" autocomplete="off" enterkeyhint="search" style="flex:1;max-width:520px;height:48px;font-size:17px"></div>
+    <p class="note" id="s-cnt" style="margin:0 2px 8px"></p>
+    <div class="tw" style="max-height:none"><table class="t" id="st"></table></div>
+    <button type="button" class="btn" id="s-more" hidden style="margin-top:10px;width:100%;height:46px">더 보기</button>
+  </section>
+</main>
+<div class="sheet" id="chg"><div class="box chg-box">
+  <div class="cf-warn">변동 알림</div>
+  <div class="kp-h"><div><h3 id="chg-t"></h3><div class="sub" id="chg-s">어제 '다음 근무일'에서 본 내용과 달라진 차량입니다. 집대기로 바뀐 것은 알리지 않습니다.</div></div></div>
+  <ul class="chg-l" id="chg-l"></ul>
+  <div class="acts" style="grid-template-columns:1fr"><button class="btn pri" id="chg-ok">확인</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";
+const APP_VER = "20261103a";
+const PAGE_KEY = "ship";
+const $ = id => document.getElementById(id);
+const toast = (m, bad) => { const t = $("toast"); t.textContent = m; t.classList.toggle("bad", !!bad); t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), bad ? 3600 : 2400); };
+</script>
+<script>
+function appMain(S0) {
+/* ===== 출하실·관리팀 공통 자료·계산 (서버 officeSync 응답 S0으로 채움 · applySync로 다시 채움) ===== */
+let SYNC = S0;                                   // 마지막 officeSync 응답
+let CARS = [], GROUP = {};
+const groupOf = c => GROUP[c] || Math.min(6, Math.ceil((+c - 200) / 10));
+const W = "일월화수목금토";
+const wd = d => new Date(d + "T00:00:00").getDay();
+const md = d => (+d.slice(5, 7)) + "/" + (+d.slice(8)) + "(" + W[wd(d)] + ")";
+const mdL = d => (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일 (" + W[wd(d)] + ")";
+let HOLI = {};
+const isOff = d => wd(d) === 0 || wd(d) === 6 || !!HOLI[d];
+const addDay = (d, k) => { const x = new Date(d + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + k); return x.toISOString().slice(0, 10); };
+let TODAY = S0.today, NOW_HM = "", REC_START = S0.from;
+// 주말·공휴일 출근 (관리자 '공휴일 출근'에서 고른 차량만 운행 · 나머지는 비번 0회로 평균에 들어감)
+let WEEKEND = {};
+const isWork = d => !isOff(d) || (WEEKEND[d] || []).length > 0;
+let DAYS, NEXT;
+function calcDays() { DAYS = []; for (let x = REC_START; x <= TODAY; x = addDay(x, 1)) if (isWork(x)) DAYS.push(x); let x = addDay(TODAY, 1); while (!isWork(x)) x = addDay(x, 1); NEXT = x; }
+// 서버 자료 (officeSync)
+let REAL = {}, REAL_SITES = {}, CARRY = {}, LEAVE_SEED = {}, LEAVE_TIME = {}, CHG_AT = {}, SPECIAL_WHY = {}, DUTY = {}, EDITS = {}, CHK = {}, TUN = {}, PRI_EX = {}, SHIP_D = {}, VAC = {};
+let SITE_LIST = [], SITE_MEMO = {}, SITE_TAB_ON = true, ACCT_EDIT_ON = true, DEVICES = [], TUN_SITES = [];
+const isReal = d => !!REAL[d];
+const fmt = n => (Math.round(n * 100) / 100).toLocaleString("ko-KR");
+const won = n => Math.round(n).toLocaleString("ko-KR") + "원";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const atShort = s => { s = String(s || ""); return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(5, 16).replace("-", "/") : s; };   // "2026-10-31 17:00" → "10/31 17:00"
+
+// ※ 기사 화면의 '연차'는 출하실·관리팀 화면에서 '정비휴무'로 표시
+const SHOW_LV = t => t === "연차" ? "정비휴무" : t;
+const ltime = (c, d) => (LEAVE_TIME[d] || {})[c] || "";
+function leaveOf(c, d) { const L = LEAVE_SEED[d]; return L && L[c] ? L[c] : ""; }
+function dutyBase(c, d) { const D = DUTY[d]; if (!D) return ""; const g = groupOf(c); return (D.home || []).includes(g) ? "home" : (D.go || []).includes(g) ? "go" : ""; }
+// 기사 화면과 같은 규칙: 집대기 교대를 먼저 (넘긴 차량은 받은 차량의 원래 차례를 가짐), 그다음 퇴근 교대를 차례대로
+function dutyOf(c, d) { const D = DUTY[d]; if (!D) return ""; const sw = D.sw || [];
+  let t = dutyBase(c, d);
+  sw.filter(x => x[2] === "home").forEach(([a, b]) => { if (a === c) t = dutyBase(b, d) === "go" ? "go" : ""; if (b === c) t = "home"; });
+  sw.filter(x => x[2] === "go").forEach(([a, b]) => { if (a === c && t === "go") t = ""; if (b === c) t = "go"; });
+  return t; }
+const tookFrom = (c, d, k) => { const sw = (DUTY[d] || {}).sw || [], x = sw.filter(y => y[1] === c && y[2] === k).pop(); if (x) return x[0];
+  if (k === "go") { const h = sw.find(y => y[0] === c && y[2] === "home" && dutyBase(y[1], d) === "go"); if (h) return h[1]; }   // 집대기를 넘기고 그 차량의 퇴근을 받음
+  return ""; };
+// 교대 정보: { other, took(대신 맡음), kind }
+function swapOf(c, d) { const x = ((DUTY[d] || {}).sw || []).find(([a, b]) => a === c || b === c); return x ? { other: x[0] === c ? x[1] : x[0], took: x[1] === c, kind: x[2] } : null; }
+
+// 서버 수정 기록(날짜→호수→[{at,by,why,ch:[{k,from,to}]}]) → 화면용 { by, v(지금 값), orig(기사님 원래 값), why, at, list }
+function convEdits(E) { const o = {};
+  Object.keys(E || {}).forEach(d => Object.keys(E[d] || {}).forEach(c => { const L = (E[d][c] || []).filter(x => x && x.ch && x.ch.length); if (!L.length) return;
+    const v = {}, orig = {}; L.forEach(x => x.ch.forEach(ch => { if (!(ch.k in orig)) orig[ch.k] = ch.from; v[ch.k] = ch.to; }));
+    const last = L[L.length - 1]; (o[d] = o[d] || {})[c] = { by: last.by || "관리팀", v, orig, why: last.why || "", at: atShort(last.at), list: L }; }));
+  return o; }
+function applySync(S) {
+  SYNC = S; TODAY = S.today; NOW_HM = String(S.now || "").slice(11, 16); REC_START = S.from || TODAY.slice(0, 8) + "01";
+  const cl = (S.cars || []).filter(c => c && !c.off).map(c => String(c.no)); GROUP = {}; (S.cars || []).forEach(c => { if (c && c.group) GROUP[String(c.no)] = +c.group; });
+  CARS = cl.length ? cl.sort((a, b) => a - b) : Array.from({ length: 60 }, (_, i) => String(201 + i));
+  HOLI = Object.assign({}, S.holidayNames || {}); (S.holidays || []).forEach(d => { if (!HOLI[d]) HOLI[d] = "공휴일"; });
+  WEEKEND = S.weekendWork || {}; DUTY = S.duty || {}; SPECIAL_WHY = JSON.parse(JSON.stringify(S.special || {}));
+  REAL = S.real || {}; REAL_SITES = S.sites || {}; CARRY = S.carry || {};
+  EDITS = convEdits(S.edits); CHK = S.chk || {}; TUN = S.tun || {}; PRI_EX = S.priEx || {}; VAC = S.vac || {};
+  Object.keys(SHIP_D).forEach(k => delete SHIP_D[k]); Object.keys(S.ship || {}).forEach(d => { let v = S.ship[d]; if (typeof v === "string") { try { v = JSON.parse(v); } catch (e) { v = null; } } if (v && Array.isArray(v.rows)) SHIP_D[d] = v; });
+  SITE_LIST = (S.sites2 || []).map(r => [String(r[0]), r[1]]); SITE_MEMO = {}; Object.keys(S.siteMeta || {}).forEach(n => { if (S.siteMeta[n] && S.siteMeta[n].m) SITE_MEMO[n] = S.siteMeta[n].m; });
+  SITE_TAB_ON = S.siteTab !== 0; ACCT_EDIT_ON = S.acctEdit !== 0; DEVICES = S.devices || []; TUN_SITES = (S.rates && S.rates.tunnel) || [];
+  // 휴가·근무 지정: 기록이 있는 날은 기록에서(leave → 종류, absent → 결근, work+part → 조퇴·지각), 그 밖(미래)은 확정 신청(vac)에서
+  LEAVE_SEED = {}; LEAVE_TIME = {}; CHG_AT = {};
+  Object.keys(REAL).forEach(d => { const L = LEAVE_SEED[d] = {}; Object.keys(REAL[d]).forEach(c => { const x = REAL[d][c]; if (!x) return;
+    if (x.st === "leave") L[c] = x.lv || "연차"; else if (x.st === "absent") L[c] = "결근"; else if (x.st === "work" && x.part) L[c] = x.part;
+    if (x.st === "leave" && x.lv === "특별휴가" && x.why) (SPECIAL_WHY[d] = SPECIAL_WHY[d] || {})[c] = x.why; }); });
+  Object.keys(VAC).forEach(d => { const L = LEAVE_SEED[d] = LEAVE_SEED[d] || {}; (VAC[d] || []).forEach(v => { const c = String(v.no), x = (REAL[d] || {})[c];
+    if (!L[c] && !(x && x.st === "work" && !x.part)) L[c] = v.type;   // 기록에 없는 차량(미래·아직 입력 전)만 신청으로 채움
+    if (v.time) (LEAVE_TIME[d] = LEAVE_TIME[d] || {})[c] = v.time;
+    if (v.at) (CHG_AT[d] = CHG_AT[d] || {})[c] = atShort(v.at);
+    if (v.type === "특별휴가" && v.note && !(SPECIAL_WHY[d] || {})[c]) (SPECIAL_WHY[d] = SPECIAL_WHY[d] || {})[c] = v.note; }); });
+  calcDays();
+}
+// 하루 기록: 서버 기록이 있으면 그대로, 없으면 신청·근무 지정으로 상태만 (입력 전 = none)
+function baseRec(c, d) {
+  const x = (REAL[d] || {})[c];
+  if (x) { const r = JSON.parse(JSON.stringify(x));
+    if (r.st === "work") { r.part = r.part || ""; r.go = dutyOf(c, d) === "go"; }
+    else if (r.st === "leave") { r.lv = r.lv || "연차"; if (r.lv === "특별휴가") r.why = r.why || (SPECIAL_WHY[d] || {})[c] || ""; }
+    else if (r.st === "absent") { r.lv = "결근"; r.ga = +r.ga || 0; }
+    else if (r.st === "home") { const lv = leaveOf(c, d); r.was = lv === "연차" || lv === "결근" ? lv : ""; }
+    return r; }
+  if (isOff(d)) return WEEKEND[d] && WEEKEND[d].includes(c) ? { st: "none" } : { st: "rest" };   // 주말 출근 차량이 아니면 비번
+  const lv = leaveOf(c, d), du = dutyOf(c, d);
+  // 집대기 조의 연차·결근 신청은 집대기로 바뀜 (차감 안 됨) · 여름휴가·특별휴가는 그대로
+  if (du === "home" && lv !== "여름휴가" && lv !== "특별휴가") return { st: "home", was: lv === "연차" || lv === "결근" ? lv : "" };
+  if (lv === "연차" || lv === "여름휴가" || lv === "특별휴가") return { st: "leave", lv, why: lv === "특별휴가" ? ((SPECIAL_WHY[d] || {})[c] || "") : "" };
+  if (lv === "결근") return { st: "absent", lv: "결근", ga: 0 };
+  return { st: "none", part: lv === "조퇴" || lv === "지각" ? lv : "", go: du === "go" };
+}
+function rec(c, d) { const r = baseRec(c, d); const e = (EDITS[d] || {})[c]; if (e && r.st === "work") r.edited = e;
+  const k = (CHK[d] || {})[c]; if (k && r.st === "work") r.ok = { at: String(k).replace(/^관리팀\s*/, "") }; return r; }
+const conv = r => r.st !== "work" ? 0 : r.real + r.jan * 0.5 + r.yard * 0.5 + r.wait + r.early * 0.5 + r.late;     // 급여 환산 회전
+const avgVal = r => r.st === "work" ? r.real + r.yard * 0.5 + r.ga : r.st === "absent" ? r.ga : 0;                  // 평균에 반영
+function dayStat(d) {
+  const R = {}; CARS.forEach(c => R[c] = rec(c, d));
+  const n = k => CARS.filter(k).length;
+  const tot = CARS.reduce((a, c) => a + avgVal(R[c]), 0);
+  return { R, run: n(c => R[c].st === "work"), leave: n(c => R[c].st === "leave" && R[c].lv === "연차"), summer: n(c => R[c].st === "leave" && R[c].lv !== "연차"),
+    absent: n(c => R[c].st === "absent"), home: n(c => R[c].st === "home"), go: n(c => R[c].go), early: n(c => R[c].part === "조퇴"), late: n(c => R[c].part === "지각"),
+    mnt: n(c => R[c].part === "정비"), rest: n(c => R[c].st === "rest"), none: n(c => R[c].st === "none"), wk: isOff(d), avg: tot / (CARS.length || 1) };
+}
+// 누적 평균 차이 (이월 + 기록 시작일부터) · 우선배차
+function cumUpTo(d) { const acc = {}; CARS.forEach(c => acc[c] = CARRY[c] || 0); DAYS.filter(x => x <= d).forEach(x => { const S = dayStat(x); CARS.forEach(c => acc[c] += avgVal(S.R[c]) - S.avg); }); return acc; }
+// 터널 (리프트) 횟수: 서버 tun(차량 → ["2026-10-15 월판선", …]) 기준 · 보는 날의 달 전까지 누적 + 그 달
+const tunDate = s => String(s).slice(0, 10);
+function tunPrev(upto) { const o = {}, m0 = upto.slice(0, 7) + "-01"; CARS.forEach(c => o[c] = (TUN[c] || []).filter(s => tunDate(s) < m0).length); return o; }
+function tunMonth(upto) { const o = {}, m = upto.slice(0, 7); CARS.forEach(c => o[c] = (TUN[c] || []).filter(s => { const t = tunDate(s); return t.slice(0, 7) === m && t <= upto; }).length); return o; }
+// ===== 팝업 애니메이션 (기사 페이지와 같은 느낌 · 단, 누른 위치와 상관없이 화면 가운데에서 커지고 가운데로 작아짐) =====
+const REDUCE = (() => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } })();
+const toCenter = pn => { const r = pn.getBoundingClientRect(); return Math.round(innerWidth / 2 - r.left) + "px " + Math.round(innerHeight / 2 - r.top) + "px"; };
+function popIn(sh, pn) { sh.classList.remove("closing"); if (!pn || REDUCE) return; clearTimeout(pn._g);
+  pn.style.transition = "none"; pn.style.transform = "none"; pn.style.opacity = "";
+  pn.style.transformOrigin = toCenter(pn); pn.style.transform = "scale(.25)"; pn.style.opacity = "0"; void pn.offsetWidth;
+  pn.style.transition = "transform .42s cubic-bezier(.2,1.15,.35,1), opacity .2s ease"; pn.style.transform = ""; pn.style.opacity = "";
+  pn._g = setTimeout(() => { pn.style.transition = ""; pn.style.transformOrigin = ""; }, 450); }
+function popOut(sh, pn, done) { if (!pn || REDUCE) return done(); clearTimeout(pn._g);
+  pn.style.transformOrigin = toCenter(pn); pn.style.transition = "transform .3s cubic-bezier(.55,0,.75,.2), opacity .14s ease .1s";
+  pn.style.transform = "scale(.25)"; pn.style.opacity = "0"; sh.classList.add("closing");
+  pn._g = setTimeout(() => { done(); sh.classList.remove("closing"); pn.style.transition = "none"; pn.style.transform = ""; pn.style.opacity = ""; pn.style.transformOrigin = ""; }, 300); }
+// ===== 전날 본 '다음 근무일 예정' 저장 (기기마다 날짜별 한 번 · localStorage planSnap_<날짜>) =====
+const snapKey = d => "planSnap_" + d;
+function loadSnap(d) { try { return JSON.parse(localStorage.getItem(snapKey(d)) || "null"); } catch (e) { return null; } }
+function saveSnap(d, p) { try { localStorage.setItem(snapKey(d), JSON.stringify(p)); } catch (e) {} }
+function snapshots() { [TODAY, NEXT].forEach(d => { if (!loadSnap(d)) saveSnap(d, planOf(d)); });
+  try { const old = addDay(TODAY, -3); for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (k && k.startsWith("planSnap_") && k.slice(9) < old) localStorage.removeItem(k); } } catch (e) {} }
+function changesOf(d) { const S = loadSnap(d); return S ? diffPlan(S, planOf(d), d, CHG_AT[d]) : []; }
+applySync(S0);
+
+// ===== 현장 거리 검색 (관리자 '현장 운행거리'와 같은 목록 · 보기만) · 목록 SITE_LIST·메모 SITE_MEMO는 서버(sites2·siteMeta)에서 =====
+const sKey = x => String(x || "").replace(/\s+/g, "").toLowerCase();
+const sDist = d => d === "-" || d === "" || d == null ? '<span class="z">거리 없음</span>' : typeof d === "number" || /^\d+(\.\d+)?$/.test(d) ? '<b>' + d + '</b> km' : esc(d);
+let S_SHOW = 100;
+function drawSite() { const q = ($("s-q").value || "").trim().toLowerCase(), T = q.split(/\s+/).filter(Boolean);
+  const H = SITE_LIST.filter(r => { const k = sKey(r[0] + " " + (SITE_MEMO[r[0]] || "")); return T.every(t => k.includes(t)); });
+  $("s-cnt").textContent = T.length ? "검색 결과 " + H.length + "개 (전체 " + SITE_LIST.length + "개)" : "전체 " + SITE_LIST.length + "개 · 현장 이름을 검색해 보세요";
+  const L = H.slice(0, S_SHOW), mark = n => { let h = esc(n); T.forEach(t => { const i = n.toLowerCase().indexOf(t); if (i >= 0) h = h.replace(esc(n.substr(i, t.length)), '<mark>' + esc(n.substr(i, t.length)) + '</mark>'); }); return h; };
+  $("st").innerHTML = '<tr><th class="l">현장</th><th>거리</th></tr>' + (L.map(r => '<tr><td class="l s-nm">' + mark(r[0]) + (SITE_MEMO[r[0]] ? '<div class="s-memo"><b>메모</b>' + esc(SITE_MEMO[r[0]]) + '</div>' : '') + '</td><td class="s-d">' + sDist(r[1]) + '</td></tr>').join("") || '<tr><td colspan="2" class="l" style="padding:18px;color:var(--muted)">검색 결과가 없습니다.</td></tr>');
+  $("s-more").hidden = H.length <= S_SHOW; }
+$("s-q").oninput = () => { S_SHOW = 100; drawSite(); };
+$("s-more").onclick = () => { S_SHOW += 100; drawSite(); };
+// 관리자 페이지 설정(siteTab): 이 화면에서 '현장 거리' 탭을 보일지 · 숨기면 탭 버튼이 없어지고, 남은 탭이 하나뿐이면 탭 줄 자체를 숨김
+function applySiteTab(on) { const stb = document.querySelector('#vtabs [data-v="site"]'), vt = document.getElementById("vtabs"); if (!stb) return;
+  stb.hidden = !on; if (!on && stb.classList.contains("on")) { const f = vt.querySelector("[data-v]:not([hidden])"); if (f) f.click(); }
+  vt.hidden = [...vt.querySelectorAll("[data-v]")].filter(x => !x.hidden).length <= 1; }
+applySiteTab(SITE_TAB_ON);
+
+// 탭: 운행 현황 / 현장 거리
+document.addEventListener("click", e => { const b = e.target.closest("#vtabs [data-v]"); if (!b) return; const site = b.dataset.v === "site";
+  document.querySelectorAll("#vtabs [data-v]").forEach(x => x.classList.toggle("on", x === b)); document.body.classList.toggle("v-site-on", site); $("v-site").hidden = !site; if (site) drawSite(); scrollTo(0, 0); });
+let NAV = DAYS.slice();   // 출하실은 오늘까지만 (다음날로 넘어가지 않음 · 다음 근무일은 아래 박스로)
+let D = TODAY, TN = "lo", AV = "lo";
+const lab = r => r.st === "rest" ? ["비번", "s-rest"] : r.st === "leave" ? (r.lv === "연차" ? ["정비휴무", "s-mh"] : r.lv === "특별휴가" ? [r.why || "특별휴가", "s-sp"] : [r.lv, "s-sum"]) : r.st === "absent" ? ["결근", "s-ab"] : r.st === "home" ? ["집대기", "s-home"]
+  : r.part === "조퇴" ? ["조퇴", "s-early"] : r.part === "지각" ? ["지각", "s-late"] : r.part === "정비" ? ["차량고장", "s-mnt"] : r.go ? ["퇴근조", "s-go"] : null;
+function draw() {
+  const S = dayStat(D), R = S.R, i = NAV.indexOf(D), fut = D > TODAY;
+  $("lv-h").innerHTML = '<span class="db' + (D === TODAY ? '' : fut ? ' fut' : ' past') + '">' + (D === TODAY ? "오늘" : fut ? "예정" : "지난 날") + '</span><span class="dt">' + mdL(D) + '</span><span class="dk">출근하지 않거나 늦는 차량</span>';
+  $("d-t").textContent = mdL(D); $("d-in").value = D; $("d-in").max = NAV[NAV.length - 1]; $("d-prev").disabled = i <= 0; $("d-next").disabled = i >= NAV.length - 1;
+  document.body.classList.toggle("fut", fut);
+  { const n = typeof changesOf === "function" ? changesOf(D).length : 0; $("chg-open").hidden = !n || D > TODAY; $("chg-open").textContent = "어제 예정에서 변동 " + n + "건"; }
+  $("dbig-t").textContent = mdL(D); $("dbig-tag").textContent = (fut ? "운행 예정" : D === TODAY ? "오늘" : "지난 날짜") + (S.wk ? " · " + (HOLI[D] || W[wd(D)] + "요일") + " 근무" : ""); $("dbig-tag").className = fut ? "t-fut" : D === TODAY ? "t-today" : "t-past";
+  $("k-sub").textContent = mdL(D) + " · 전체 " + CARS.length + "대";
+  const K = (c, l, v, s, u) => '<div class="kpi ' + c + '"><small>' + l + '</small><b>' + v + '<i>' + (u || "대") + '</i></b>' + '<span>' + (s || "") + '</span></div>';   // 설명이 없어도 빈 줄을 두어 상자 높이를 모두 같게
+  if (S.wk) { $("kpis").innerHTML = K("main", "운행 차량", S.run, (HOLI[D] || W[wd(D)] + "요일") + " 출근 차량") + K("", "비번", S.rest, "출근 차량 아님 · 0회로 평균에 반영") +
+    '<div class="kpi wk-note"><small>' + (HOLI[D] || "토요일") + ' 근무</small><span>관리자가 고른 ' + S.run + '대만 운행합니다. 퇴근조·집대기·휴가는 이날 적용하지 않습니다.</span></div>'; }
+  else $("kpis").innerHTML = K("main", "운행 차량", S.run, CARS.length + "대 중" + (S.none && D === TODAY ? " · 입력 전 " + S.none + "대" : "")) + K("", "정비휴무", S.leave) + K("amb", "여름휴가 등", S.summer) + K("red", "결근", S.absent) + K("amb", "집대기", S.home) +
+    K("grn", "퇴근조", S.go) + K("red", "조퇴", S.early) + K("", "지각", S.late) + K("", "차량고장", S.mnt);
+  const acc = cumUpTo(fut ? TODAY : D);
+  // 선배차 = 보고 있는 날짜(당일)의 선배차. 기준은 전 근무일까지 누적 평균 (전날 밤에 정해진 것)
+  // 당일 결근·정비휴무·여름휴가·특별휴가·집대기 등으로 출근하지 않은 차량과 지각 차량은 빼고 다음 순번이 들어감
+  let pbD = addDay(fut ? TODAY : D, fut ? 0 : -1); while (pbD >= DAYS[0] && !isWork(pbD)) pbD = addDay(pbD, -1);
+  const accP = pbD >= DAYS[0] ? cumUpTo(pbD) : Object.fromEntries(CARS.map(c => [c, CARRY[c] || 0]));
+  const tgt = D, noPriDay = isOff(D);   // 토요일·공휴일 출근은 선배차 운영 안 함
+  const priAll = noPriDay ? [] : CARS.filter(c => accP[c] <= -3).sort((a, b) => accP[a] - accP[b] || a - b), pri = [], priSkip = [];
+  const EXD = PRI_EX[tgt] || {};   // 관리자가 '선배차 제외'로 고른 차량 (그날만 · 관리자 페이지에서 정함)
+  drawPriEx(tgt, noPriDay, priAll, accP);
+  for (const c of priAll) { if (pri.length >= 5) break; if ((R[c].st === "work" || R[c].st === "none") && R[c].part !== "지각" && !EXD[c]) pri.push(c); else priSkip.push(c); }   // 지각도 선배차에서 뺌 · 아직 입력 전(none)인 차량은 출근으로 봄
+  // 전날(바로 앞 근무일) 회전수 = 실 회전 + 영내작업 × 0.5 (합친 숫자만 표시)
+  let pvD = addDay(D, -1); while (!isWork(pvD) && pvD > REC_START) pvD = addDay(pvD, -1);
+  // 표시: 실 회전 "3회", 영내작업이 있으면 "3회+영1"
+  const pvT = c => { const r = rec(c, pvD); if (r.st !== "work") return "–"; const y = +r.yard || 0; return (+r.real || 0) + "회" + (y ? '<i class="yd">+영' + y + '</i>' : ""); };
+  $("cg-note").innerHTML = '';
+  $("cg").innerHTML = [1, 2, 3, 4, 5, 6].map(g => { const L = CARS.filter(c => groupOf(c) === g), du = DUTY[D] || { go: [], home: [] };
+    return '<div><div class="gh"><span>' + g + '조</span>' + '' + '</div><ul>' +
+      L.map(c => { const r = R[c], l = lab(r), cls = r.st === "leave" ? (r.lv === "연차" ? "st-leave" : "st-sum") : r.st === "absent" ? "st-ab" : r.st === "home" ? "st-home" : r.st === "rest" ? "st-rest" : r.go ? "st-go" : "";
+        const v = acc[c]; return '<li data-stk="' + c + '" class="' + cls + (pri.includes(c) ? ' pri' : '') + '"><div class="cr"><span class="no">' + c + '</span></div><small class="av ' + (v < 0 ? 'neg' : 'pos') + '">' + (v > 0 ? '+' : '') + fmt(v) + '</small><div class="stl">' + (l ? '<span class="chip ' + l[1] + '">' + l[0] + '</span>' : '') + '</div></li>'; }).join("") + '</ul></div>'; }).join("");
+  const grp = (f) => CARS.filter(c => f(R[c]));
+  const swRow = d => { const L = (DUTY[d] || {}).sw || []; if (!L.length) return '';
+    return '<div class="lv-row"><span class="k"><span class="chip s-sw">교대</span> <b>' + L.length + '건</b></span><span class="cars">' + L.map(([a, b, k]) => { return '<b class="swp">' + a + ' <i>→</i> ' + b + ' <em class="k-' + k + '">' + { go: "퇴근", home: "집대기" }[k] + '</em>' + '' + '</b>'; }).join("") + '</span></div>'; };
+  // 신규 표시: 어제 본 예정에서 새로 들어오거나 바뀐 결근·조퇴·지각만 (교대·집대기에는 표시 안 함)
+  const NEWC = new Set(changesOf(D).filter(x => x.k !== "del").map(x => x.c));   // 교대는 신규 표시 안 함
+  const row = (k, cls, L) => '<div class="lv-row"><span class="k"><span class="chip ' + cls + '">' + k + '</span> <b>' + L.length + '대</b></span><span class="cars">' + (L.length ? L.map(c => '<b>' + c + (ltime(c, D) && /조퇴|지각/.test(k) ? ' <i class="tm">' + (k === "조퇴" ? ltime(c, D) + " 퇴근" : ltime(c, D) + " 출근") + '</i>' : '') + (k === "집대기" && R[c].was ? ' <i class="wast">' + SHOW_LV(R[c].was) + ' 신청</i>' : '') + (/퇴근조|집대기/.test(k) && tookFrom(c, D, k === "집대기" ? "home" : "go") ? ' <i class="swt">' + tookFrom(c, D, k === "집대기" ? "home" : "go") + ' 대신</i>' : '') + (NEWC.has(c) && !/퇴근조|집대기/.test(k) ? ' <i class="nw">신규</i>' : '') + '</b>').join("") : '<span class="none">없음</span>') + '</span></div>';
+  const off3 = grp(r => r.st === "leave" || r.st === "absent").length;
+  if (S.wk) { $("lv").innerHTML = '<div class="lv-grp wk-grp"><div class="lv-gh">' + (HOLI[D] || "토요일") + ' 출근 차량 <b>' + S.run + '대</b><small>관리자가 고른 차량만 운행</small></div>' +
+      '<div class="lv-row"><span class="cars">' + grp(r => r.st === "work").map(c => '<b>' + c + '</b>').join("") + '</span></div></div>' +
+      '<div class="lv-row"><span class="k"><span class="chip s-rest">비번</span> <b>' + S.rest + '대</b></span><span class="cars"><span class="none">출근 차량이 아닌 나머지 · 0회로 평균에 반영 (불이익 없음)</span></span></div>'; }
+  else
+  $("lv").innerHTML = '<div class="lv-grp"><div class="lv-gh">결근 신청 예정차량 <b>' + off3 + '대</b><small>출근하지 않는 차량</small></div>' +
+    '<div class="lv-row lv-all"><span class="k"><span class="chip s-allx">전체</span> <b>' + off3 + '대</b></span><span class="cars">' + (off3 ? grp(r => r.st === "leave" || r.st === "absent").sort((x, y) => x - y).map(c => '<b>' + c + (NEWC.has(c) ? ' <i class="nw">신규</i>' : '') + '</b>').join("") : '<span class="none">없음</span>') + '</span></div>' +
+    row("정비휴무", "s-mh", grp(r => r.st === "leave" && r.lv === "연차")) + row("여름휴가", "s-sum", grp(r => r.st === "leave" && r.lv === "여름휴가")) +
+    row("결근", "s-ab", grp(r => r.st === "absent")) +
+    ((L => !L.length ? '' : '<div class="lv-row"><span class="k"><span class="chip s-sp">그 외</span> <b>' + L.length + '대</b></span><span class="cars">' + (L.length ? L.map(c => '<b>' + c + ' <i class="spw">' + esc(R[c].why || "특별휴가") + '</i>' + (NEWC.has(c) ? ' <i class="nw">신규</i>' : '') + '</b>').join("") : '<span class="none">없음</span>') + '</span></div>')(grp(r => r.st === "leave" && r.lv === "특별휴가"))) +
+    ((L => L.length ? '<div class="lv-row lv-chg"><span class="k"><span class="chip s-home">집대기로 바뀜</span> <b>' + L.length + '대</b></span><span class="cars">' + L.map(c => '<b>' + c + ' <i class="wast">' + SHOW_LV(R[c].was) + (tookFrom(c, D, "home") ? ' · 교대' : '') + '</i></b>').join("") + '</span><small class="chg-n">신청했지만 집대기가 되어 결근 차량에서 빠짐 · 차감 안 됨</small></div>' : '')(grp(r => r.st === "home" && r.was))) + '</div>' + row("집대기", "s-home", grp(r => r.st === "home")) + row("조퇴", "s-early", grp(r => r.part === "조퇴")) + row("지각", "s-late", grp(r => r.part === "지각")) +
+    row("퇴근조", "s-go", grp(r => r.go)) + swRow(D) + row("차량고장", "s-mnt", grp(r => r.part === "정비"));
+  // 평균
+  const dayH = (k, d) => { const t = d === TODAY, f = d > TODAY; return '<span class="db' + (t ? '' : f ? ' fut' : ' past') + '">' + (t ? "오늘" : f ? "예정" : "지난 날") + '</span><span class="dt">' + mdL(d) + '</span><span class="dk">' + k + '</span>'; };
+  $("pri-h").innerHTML = dayH("선배차", D);
+  $("avg-sub").textContent = fut ? md(TODAY) + "까지 기준 · " + md(D) + " 선배차" : "그날 평균 " + fmt(S.avg) + "회";
+  $("pri").innerHTML = noPriDay ? '<div class="nopri"><b>선배차 없음 · ' + (HOLI[tgt] ? '공휴일' : W[wd(tgt)] + '요일') + ' 근무</b><span>' + md(tgt) + '은 ' + (HOLI[tgt] ? '공휴일' : W[wd(tgt)] + '요일') + ' 출근이라 선배차를 운영하지 않습니다. 관리자가 고른 차량만 운행합니다.</span><small>다음 평일 근무일부터 다시 선배차가 있습니다.</small></div>' : pri.length ? pri.map((c, k) => '<div><small>' + (k + 1) + '번째</small><b>' + c + '</b><small>' + fmt(accP[c]) + '</small></div>').join("") + '<p class="pri-note">' + (pbD >= DAYS[0] ? md(pbD) + '까지 누적 기준' : '기록 시작일') + ' · 누적 −3 이하 중 낮은 순 5대' + (priSkip.length ? '<br><b>빠짐:</b> ' + priSkip.map(c => c + '호(' + (EXD[c] ? '관리자 제외' + (EXD[c] !== 1 ? ' · ' + esc(EXD[c]) : '') : ((lab(R[c]) || ["휴무"])[0])) + ')').join(", ") + ' → 다음 순번이 선배차' : '') + '</p>' : (() => { const lo = CARS.slice().sort((a, b) => accP[a] - accP[b])[0];
+    return '<div class="nopri"><b>선배차 없음</b><span>평균 차이가 −3 이하인 차량이 없습니다. 모든 차량 평균이 비슷해서 이날은 평소 순번대로 배차합니다.</span><small>가장 낮은 차량 <em>' + lo + '호 ' + fmt(accP[lo]) + '</em> · 기준 −3</small></div>'; })();
+  const mx = Math.max(...CARS.map(c => Math.abs(acc[c]))) || 1;
+  $("avg-t").innerHTML = '<tr><th>순서</th><th class="l">호차</th><th>조</th><th>당일</th><th class="dv-h"><span>− 적게</span><span>0</span><span>많이 +</span></th><th>평균 차이</th></tr>' +
+    CARS.slice().sort((a, b) => AV === "no" ? a - b : AV === "hi" ? acc[b] - acc[a] || a - b : acc[a] - acc[b] || a - b).map((c, k) => { const v = acc[c], r = R[c];
+      return '<tr><td>' + (k + 1) + '</td><td class="l no">' + c + '</td><td>' + groupOf(c) + '조</td><td>' + (fut ? '<span class="z">' + ((lab(r) || ["예정"])[0]) + '</span>' : r.st === "work" || r.st === "absent" ? fmt(avgVal(r)) : '<span class="z">' + (lab(r) || ["-"])[0] + '</span>') + '</td>' +
+        '<td class="dv"><div class="dvw"><span class="bar ' + (v < 0 ? 'neg' : 'pos') + '" style="width:' + (Math.abs(v) / mx * 50).toFixed(1) + '%"></span></div></td><td class="' + (v < 0 ? 'neg' : 'pos') + '">' + (v > 0 ? "+" : "") + fmt(v) + '</td></tr>'; }).join("");
+  // 터널
+  const TM = tunMonth(D), TP = tunPrev(D), T = CARS.map(c => ({ c, m: TM[c], y: TM[c] + TP[c] })), av = T.reduce((a, x) => a + x.y, 0) / (CARS.length || 1);   // 터널 평균은 월별이 아니라 기록 전체(총합)로
+  $("tn-sub").textContent = "기록 전체 기준 · 1대 평균 " + fmt(av) + "회 · 우선 배차 참고";
+  const todayT = fut ? [] : CARS.filter(c => R[c].st === "work" && R[c].lift);
+  $("tn-today").innerHTML = '<div class="sum"><small>' + md(D) + ' 터널</small><b>' + todayT.reduce((a, c) => a + R[c].lift, 0) + '<i>회</i></b></div>' +
+    '<div class="cars">' + (todayT.length ? todayT.map(c => '<span><b>' + c + '</b>' + R[c].lift + '회</span>').join("") : '<span class="none">' + (fut ? '아직 운행 전' : '터널 간 차량 없음') + '</span>') + '</div>';
+  $("tn-t").innerHTML = '<tr><th>순서</th><th class="l">호차</th><th>' + (+D.slice(5, 7)) + '월</th><th>누적</th><th>평균과 차이</th></tr>' +
+    T.sort((a, b) => TN === "no" ? a.c - b.c : TN === "hi" ? b.y - a.y || a.c - b.c : a.y - b.y || a.c - b.c).map((x, k) => { const df = x.y - av; return '<tr><td>' + (k + 1) + '</td><td class="l no">' + x.c + '</td><td>' + x.m + '</td><td>' + x.y + '</td><td class="' + (df < 0 ? 'neg' : 'pos') + '">' + (df > 0 ? "+" : "") + fmt(df) + '</td></tr>'; }).join("");
+  // 다음 근무일
+  $("nx").closest(".card").hidden = fut;
+  const nx = NAV[i + 1] || NEXT;
+  $("nx-sub").textContent = mdL(nx) + (isOff(nx) && WEEKEND[nx] ? " · " + (HOLI[nx] || W[wd(nx)] + "요일") + " 근무 " + WEEKEND[nx].length + "대 (" + WEEKEND[nx].join(", ") + ")" : "");
+  const live = D === TODAY, P = live ? nxPlan(nx).plan : planOf(nx), E = Object.keys(P).sort((a, b) => a - b);
+  $("nx-rf").hidden = !live; $("nx-at").textContent = live ? NXV.at + " 기준 · 매일 아침 7시 · 오후 4시 자동 업데이트" : "";
+  const offL = E.filter(c => P[c][0] === "ab"), pt = k => E.filter(c => P[c][0] === k);
+  const offTag = c => P[c][1] === "연차" ? "정비휴무" : P[c][1];
+  $("nx").innerHTML = '<div class="nx-off"><small>결근 신청 예정차량 <em class="nx-n"><b>' + offL.length + '</b>대</em></small><b>' + (offL.map(c => '<span class="nxc">' + c + ' <i class="nxt">' + esc(offTag(c)) + '</i></span>').join("") || "없음") + '</b></div>' +
+    '<div><small>조퇴 예정 <em class="nx-n"><b>' + pt("er").length + '</b>대</em> · 예상 퇴근 시간</small><b>' + (pt("er").map(c => c + ' <i class="tm">' + (P[c][2] || "시간 미정") + '</i>').join(", ") || "없음") + '</b></div>' +
+    '<div><small>지각 예정 <em class="nx-n"><b>' + pt("la").length + '</b>대</em> · 예상 출근 시간</small><b>' + (pt("la").map(c => c + ' <i class="tm">' + (P[c][2] || "시간 미정") + '</i>').join(", ") || "없음") + '</b></div>';
+}
+$("d-prev").onclick = () => { const i = NAV.indexOf(D); if (i > 0) { D = NAV[i - 1]; draw(); } };
+$("d-next").onclick = () => { const i = NAV.indexOf(D); if (i < NAV.length - 1) { D = NAV[i + 1]; draw(); } };
+$("d-today").onclick = () => { D = TODAY; draw(); };
+$("d-in").onchange = e => { const v = e.target.value; const k = NAV.filter(x => x <= v).pop(); if (k) { D = k; draw(); } };
+
+// 폰 화면 팝업
+const popClose = () => { document.querySelectorAll(".mpop.open:not(.closing)").forEach(x => popOut(x, x.querySelector(".mpop-in"), () => { x.classList.remove("open"); if (!document.querySelector(".mpop.open")) document.body.classList.remove("popon"); })); };
+document.addEventListener("click", e => { const o = e.target.closest("[data-pop]"); if (o) { const pp = $(o.dataset.pop); pp.classList.add("open"); pp.querySelectorAll(".mpop-in, .tw").forEach(x => x.scrollTop = 0); popIn(pp, pp.querySelector(".mpop-in")); document.body.classList.add("popon"); return; }
+  if (e.target.closest(".mpop-x") || e.target.classList.contains("mpop")) popClose(); });
+document.addEventListener("click", e => { const b = e.target.closest("[data-av]"); if (!b) return; AV = b.dataset.av; document.querySelectorAll("[data-av]").forEach(x => x.classList.toggle("on", x.dataset.av === AV)); draw(); });
+document.addEventListener("click", e => { const b = e.target.closest("[data-tn]"); if (!b) return; TN = b.dataset.tn; document.querySelectorAll("[data-tn]").forEach(x => x.classList.toggle("on", x.dataset.tn === TN)); draw(); });
+// ===== 변동 알림: 어제 본 '다음 근무일' 결근·조퇴·지각과 오늘 실제 신청 비교 (집대기 제외) =====
+function planOf(d) { const o = {}; if (isOff(d)) return o;
+  CARS.forEach(c => { const lv = leaveOf(c, d), du = dutyOf(c, d); if (!lv) return;
+    if (lv === "조퇴") o[c] = ["er", "조퇴", ltime(c, d)]; else if (lv === "지각") o[c] = ["la", "지각", ltime(c, d)];
+    else if (["연차", "여름휴가", "특별휴가", "결근"].includes(lv)) { if (du === "home" && (lv === "연차" || lv === "결근")) return; o[c] = ["ab", lv === "특별휴가" ? ((SPECIAL_WHY[d] || {})[c] || lv) : lv]; } });
+  return o; }
+const planTxt = x => x[0] === "ab" ? SHOW_LV(x[1]) : x[1] + (x[2] ? " " + x[2] : "");
+function showSheet(id) { const el = $(id); el.classList.add("show"); el.querySelectorAll(".box").forEach(x => x.scrollTop = 0); popIn(el, el.querySelector(".box")); }
+function hideSheet(id) { const el = $(id); if (!el.classList.contains("show") || el.classList.contains("closing")) return; popOut(el, el.querySelector(".box"), () => el.classList.remove("show")); }
+function openChg() { const L = changesOf(D); if (!L.length) return;
+  showChg((D === TODAY ? "오늘 " : "") + mdL(D) + " 결근·조퇴·지각 변동 " + L.length + "건", "어제 '다음 근무일 예정'에서 본 내용과 달라진 차량입니다. 집대기로 바뀐 것은 알리지 않습니다.", L); }
+
+// ===== 다음 근무일 예정: 아침 7시 · 오후 4시 자동 업데이트 · 새로고침 버튼 · 바뀐 것이 있으면 팝업 =====
+let NXV = null;   // { d: 다음 근무일, plan: 화면에 보여준 예정, at: 기준 시각 }
+const nowHM = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(11, 16);
+function nxPlan(nx) { if (!NXV || NXV.d !== nx) NXV = { d: nx, plan: planOf(nx), at: NOW_HM || nowHM() };
+  return NXV; }
+function diffPlan(S, A, d, at) { const out = [];
+  new Set(Object.keys(S).concat(Object.keys(A))).forEach(c => { const a = S[c], b = A[c];
+    if (!a && b) out.push({ c, k: "add", to: planTxt(b, c, d), at: (at || {})[c] || "" });
+    else if (a && !b) { if (dutyOf(c, d) === "home") return; out.push({ c, k: "del", from: planTxt(a, c, d) }); }
+    else if (planTxt(a, c, d) !== planTxt(b, c, d)) out.push({ c, k: "mod", from: planTxt(a, c, d), to: planTxt(b, c, d) }); });
+  const O = { add: 0, mod: 1, del: 2 }; return out.sort((x, y) => O[x.k] - O[y.k] || x.c - y.c); }
+function showChg(title, sub, L) { $("chg-t").textContent = title; $("chg-s").textContent = sub;
+  const KL = { add: ["새로 신청", "c-add"], del: ["취소", "c-del"], mod: ["바뀜", "c-mod"] };
+  $("chg-l").innerHTML = L.map(x => '<li><span class="cbadge ' + KL[x.k][1] + '">' + KL[x.k][0] + '</span><b>' + x.c + '호</b><span class="cdesc">' +
+    (x.k === "add" ? '<span class="n">' + esc(x.to) + '</span>' + (x.at ? '<small>' + x.at + ' 신청</small>' : '') : x.k === "del" ? '<span class="o">' + esc(x.from) + '</span><small>예정이었으나 취소</small>' : '<span class="o">' + esc(x.from) + '</span> → <span class="n">' + esc(x.to) + '</span>') + '</span></li>').join("");
+  showSheet("chg"); }
+async function refreshNext(auto) { const v = NXV; if (!v || refreshNext.busy) return; refreshNext.busy = true; const b = $("nx-rf"); b.disabled = true; b.textContent = "받는 중…";
+  const r = await syncNow(); refreshNext.busy = false; b.disabled = false; b.textContent = "새로고침"; if (!r || !r.ok) return toast(r && r.msg ? r.msg : "서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.", true);
+  const was = v.at, A = planOf(v.d), L = diffPlan(v.plan, A, v.d);
+  v.plan = A; v.at = auto ? auto : (NOW_HM || nowHM()); draw();
+  if (L.length) showChg("다음 근무일 " + mdL(v.d) + " 예정 변동 " + L.length + "건", (auto ? (auto === "16:00" ? "오후 4시" : "아침 7시") + " 자동 업데이트 · " : "새로고침 · ") + was + " 기준과 달라진 차량입니다. 집대기로 바뀐 것은 알리지 않습니다.", L);
+  else toast("변동 없음 · " + v.at + " 기준으로 새로 고쳤습니다."); }
+// 아침 7시 · 오후 4시가 되면 자동 업데이트 (화면을 켜 둔 채로 그 시각을 넘기면 · 하루 두 번)
+const AUTO_AT = ["07:00", "16:00"];
+const kstDay = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+const AUTO_DONE = {}; AUTO_AT.forEach(t => { if (nowHM() >= t) AUTO_DONE[kstDay() + t] = 1; });   // 이미 지난 시각은 열 때 넘김
+$("chg-open").onclick = openChg;
+$("nx-rf").onclick = () => refreshNext(false);
+$("chg").onclick = e => { if (e.target.id === "chg" || e.target.closest("#chg-ok")) hideSheet("chg"); };
+
+document.addEventListener("click", e => { const b = e.target.closest("[data-cgm]"); if (!b) return; document.querySelectorAll("[data-cgm]").forEach(x => x.classList.toggle("on", x === b)); const g = document.getElementById("cg"); g.classList.remove("m5", "m10"); g.classList.add(b.dataset.cgm); g.scrollLeft = 0; });
+// ===== 조별 차량 호수를 누르면 주식 차트처럼 평균 차이 흐름 (재미 요소) =====
+let STK_C = "", STK_R = 10;
+function stkSeries(c) { const upto = D > TODAY ? TODAY : D, out = []; let a = 0; DAYS.filter(x => x <= upto).forEach(x => { const S = dayStat(x); a += avgVal(S.R[c]) - S.avg; out.push([x, a]); }); return out; }
+function stkDraw() { const all = stkSeries(STK_C), L = STK_R ? all.slice(-STK_R) : all; if (!L.length) return;
+  const sg = v => (v > 0.005 ? "+" : v < -0.005 ? "−" : "") + Math.abs(v).toFixed(2), last = L[L.length - 1][1], prev = all.length > 1 ? all[all.length - 2][1] : 0, ch = last - prev;
+  $("stk-t").textContent = STK_C + "호 · " + groupOf(STK_C) + "조";
+  $("stk-v").textContent = sg(last) + "회"; $("stk-v").className = last > 0.005 ? "up" : last < -0.005 ? "dn" : "eq";
+  $("stk-d").innerHTML = '<span class="' + (ch > 0.005 ? 'up' : ch < -0.005 ? 'dn' : 'eq') + '">' + (ch > 0.005 ? '▲ ' : ch < -0.005 ? '▼ ' : '') + Math.abs(ch).toFixed(2) + '</span> <span style="color:var(--muted);font-weight:700">전날 대비 (' + md(L[L.length - 1][0]) + ')</span>';
+  const W0 = 600, H0 = 260, pl = 42, pr = 14, pt = 14, pb = 26, vs = L.map(x => x[1]), mx = Math.max(0.5, ...vs), mn = Math.min(-0.5, ...vs), pad = (mx - mn) * .12, top = mx + pad, bot = mn - pad;   // 평균 0선이 항상 보이게 0을 범위에 넣음
+  const X = i => pl + (L.length === 1 ? (W0 - pl - pr) / 2 : i * (W0 - pl - pr) / (L.length - 1)), Y = v => pt + (top - v) * (H0 - pt - pb) / (top - bot), y0 = Y(0), z0 = 0 >= bot && 0 <= top, yb = H0 - pb;
+  const pts = L.map((x, i) => [X(i), Y(x[1])]), path = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const cU = "#4ade80", cD = "#f87171", col = last >= 0 ? cU : cD, step = Math.max(1, Math.ceil(L.length / 6));
+  const grid = [top - pad, (top + bot) / 2, bot + pad].map(v => '<line x1="' + pl + '" x2="' + (W0 - pr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="#1e293b"/><text x="' + (pl - 6) + '" y="' + (Y(v) + 4) + '" fill="#64748b" font-size="11" text-anchor="end">' + sg(v) + '</text>').join("");
+  const xl = L.map((x, i) => (i % step || L.length - 1 - i < step * .6) && i !== L.length - 1 ? "" : '<text x="' + X(i) + '" y="' + (H0 - 8) + '" fill="#64748b" font-size="11" text-anchor="middle">' + (+x[0].slice(5, 7)) + "/" + (+x[0].slice(8)) + '</text>').join("");
+  const bars = L.map((x, i) => { const d = i ? x[1] - L[i - 1][1] : x[1] - (all[all.length - L.length - 1] || [0, 0])[1]; return '<rect x="' + (X(i) - 3) + '" y="' + (H0 - pb - Math.min(18, Math.abs(d) * 6)) + '" width="6" height="' + Math.min(18, Math.abs(d) * 6) + '" fill="' + (d >= 0 ? '#22c55e' : '#ef4444') + '" opacity=".45"/>'; }).join("");
+  const lp = pts[pts.length - 1];
+  $("stk-ch").innerHTML = '<svg viewBox="0 0 ' + W0 + ' ' + H0 + '" role="img" aria-label="' + STK_C + '호 평균 차이 차트"><defs><linearGradient id="stkg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + col + '" stop-opacity=".35"/><stop offset="1" stop-color="' + col + '" stop-opacity="0"/></linearGradient><clipPath id="stk-up"><rect x="0" y="0" width="' + W0 + '" height="' + y0 + '"/></clipPath><clipPath id="stk-dn"><rect x="0" y="' + y0 + '" width="' + W0 + '" height="' + H0 + '"/></clipPath></defs>' + grid +
+    (z0 ? '<line x1="' + pl + '" x2="' + (W0 - pr) + '" y1="' + y0 + '" y2="' + y0 + '" stroke="#94a3b8" stroke-dasharray="4 4"/><text x="' + (W0 - pr) + '" y="' + (y0 - 5) + '" fill="#94a3b8" font-size="11" text-anchor="end">평균 0</text>' : '') + bars +
+    // 0보다 위는 초록, 아래는 빨강 (0선이 범위 안이면 선과 바탕을 0에서 잘라 두 색으로)
+    (z0 ? '<path d="' + path + ' L' + lp[0].toFixed(1) + ' ' + y0 + ' L' + pts[0][0].toFixed(1) + ' ' + y0 + ' Z" fill="' + cU + '" fill-opacity=".22" clip-path="url(#stk-up)"/><path d="' + path + ' L' + lp[0].toFixed(1) + ' ' + y0 + ' L' + pts[0][0].toFixed(1) + ' ' + y0 + ' Z" fill="' + cD + '" fill-opacity=".22" clip-path="url(#stk-dn)"/>' +
+      '<path class="stk-line" d="' + path + '" fill="none" stroke="' + cU + '" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#stk-up)"/><path class="stk-line" d="' + path + '" fill="none" stroke="' + cD + '" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#stk-dn)"/>'
+    : '<path d="' + path + ' L' + lp[0].toFixed(1) + ' ' + yb + ' L' + pts[0][0].toFixed(1) + ' ' + yb + ' Z" fill="url(#stkg)"/><path class="stk-line" d="' + path + '" fill="none" stroke="' + col + '" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>') +
+    '<circle cx="' + lp[0] + '" cy="' + lp[1] + '" r="5" fill="' + col + '"><animate attributeName="r" values="5;8;5" dur="1.6s" repeatCount="indefinite"/></circle>' + xl + '</svg>';
+  $("stk-ch").querySelectorAll(".stk-line").forEach(ln => { try { const len = ln.getTotalLength(); ln.style.strokeDasharray = len; ln.style.strokeDashoffset = len; ln.getBoundingClientRect(); ln.style.transition = "stroke-dashoffset .8s ease-out"; ln.style.strokeDashoffset = 0; } catch (e) {} });
+  const hi = L.reduce((a, b) => b[1] > a[1] ? b : a), lo = L.reduce((a, b) => b[1] < a[1] ? b : a);
+  const accNow = cumUpTo(L[L.length - 1][0]), rank = CARS.slice().sort((a, b) => accNow[b] - accNow[a]).indexOf(STK_C) + 1;
+  $("stk-st").innerHTML = '<div><small>최고</small><b class="' + (hi[1] >= 0 ? 'up' : 'dn') + '">' + sg(hi[1]) + '</b><em>' + md(hi[0]) + '</em></div><div><small>최저</small><b class="' + (lo[1] >= 0 ? 'up' : 'dn') + '">' + sg(lo[1]) + '</b><em>' + md(lo[0]) + '</em></div><div><small>' + CARS.length + '대 중 순위</small><b>' + rank + '위</b><em>많이 탄 순</em></div>'; }
+document.addEventListener("click", e => { const li = e.target.closest("[data-stk]"); if (li) { STK_C = li.dataset.stk; stkDraw(); showSheet("stk"); return; }
+  const r = e.target.closest("[data-rng]"); if (r) { STK_R = +r.dataset.rng; document.querySelectorAll("[data-rng]").forEach(x => x.classList.toggle("on", x === r)); stkDraw(); return; }
+  if (e.target.id === "stk" || e.target.closest("[data-close='stk']")) hideSheet("stk"); });
+$("d-in").min = REC_START; snapshots(); draw();
+// ===== 선배차 제외 (관리자가 날짜마다 고름 · 서버 priEx: 날짜 → { 호수: 사유|1 }) =====
+var PX_OPEN = false, PX_BUSY = false;
+function drawPriEx(d, noPri, cand, acc) { const el = $("pri-ex"); el.hidden = false; const EX = PRI_EX[d] || {}, ex = Object.keys(EX).sort();
+  el.innerHTML = '<div class="px-h"><b>선배차 제외 차량</b> <small>' + md(d) + ' 그날만 · 고르면 빼고 다음 순번이 선배차</small></div>' +
+    '<div class="px-on">' + (ex.length ? ex.map(c => '<button type="button" class="px-chip" data-pxdel="' + c + '">' + c + '호' + (EX[c] !== 1 ? ' · ' + esc(EX[c]) : '') + ' <i>×</i></button>').join("") : '<span class="px-none">제외한 차량 없음</span>') + '</div>' +
+    (noPri ? '' : '<button type="button" class="px-open" id="px-open">' + (PX_OPEN ? '고르기 닫기' : '제외 차량 고르기') + '</button>') +
+    (PX_OPEN && !noPri ? '<div class="px-pick"><input type="text" id="px-why" maxlength="20" enterkeyhint="done" placeholder="사유 (선택 · 예: 장비 점검, 본인 요청)">' +
+      '<p class="px-tip">주황 테두리 = 지금 선배차 후보(누적 −3 이하) · 누르면 제외 / 다시 누르면 풀림</p><div class="px-grid">' +
+      CARS.map(c => '<button type="button" data-px="' + c + '" class="' + (EX[c] ? 'on' : '') + (cand.includes(c) ? ' cand' : '') + '">' + c + '<small>' + fmt(acc[c]) + '</small></button>').join("") + '</div></div>' : ''); }
+async function priExSet(d, c, why) { if (PX_BUSY) return false; PX_BUSY = true;
+  const o = JSON.parse(JSON.stringify(PRI_EX)); o[d] = o[d] || {}; if (why === null) delete o[d][c]; else o[d][c] = why || 1; if (!Object.keys(o[d]).length) delete o[d];
+  const r = await api("adminKvSet", { kind: "set", key: "priEx", value: o, label: md(d) + " 선배차 제외 " + (why === null ? "풀림" : "지정"), detail: c + "호" + (why ? " · " + why : "") });
+  PX_BUSY = false; if (!r.ok) { toast(r.msg || "저장하지 못했습니다.", true); return false; }
+  Object.keys(PRI_EX).forEach(k => delete PRI_EX[k]); Object.assign(PRI_EX, o); return true; }
+document.addEventListener("click", async e => { const t = e.target;
+  if (t.closest("#px-open")) { PX_OPEN = !PX_OPEN; const y = window.scrollY; draw(); window.scrollTo(0, y); return; }
+  const a = t.closest("[data-px]"); if (a) { const c = a.dataset.px, on = (PRI_EX[D] || {})[c]; const w = ($("px-why") || {}).value || "";
+    if (!(await priExSet(D, c, on ? null : w.trim()))) return; const y = window.scrollY; draw(); window.scrollTo(0, y); if ($("px-why")) $("px-why").value = w; toast(c + "호 " + md(D) + " 선배차 " + (on ? "제외 풀림" : "제외")); return; }
+  const x = t.closest("[data-pxdel]"); if (x) { if (!(await priExSet(D, x.dataset.pxdel, null))) return; const y = window.scrollY; draw(); window.scrollTo(0, y); toast(x.dataset.pxdel + "호 선배차 제외 풀림"); } });
+function noteN() { $("avg-from").textContent = (+REC_START.slice(5, 7)) + "월 " + (+REC_START.slice(8)) + "일"; $("avg-n").textContent = CARS.length; $("stk-n").textContent = CARS.length; } noteN();
+// 오늘 처음 열면 변동 알림 (기기마다 하루 한 번)
+// 서버 자료가 바뀌었을 때 (3분마다 확인 · 새로고침 · 7시·16시): 화면을 다시 그리고, 오늘 새로 들어온 결근·조퇴·지각은 바로 팝업
+function resync(S) { const before = planOf(TODAY); applySync(S); NAV = DAYS.slice(); if (!NAV.includes(D)) D = TODAY; snapshots(); noteN(); draw();
+  const L = diffPlan(before, planOf(TODAY), TODAY, CHG_AT[TODAY]);
+  if (L.length && D === TODAY) showChg("지금 들어온 오늘 신청 " + L.length + "건", "오늘 " + mdL(TODAY) + " 근무 중에 새로 들어온 결근·조퇴·지각입니다. 화면에 바로 반영했습니다.", L); }
+return { resync, today: () => TODAY };
+}
+</script>
+<div class="sheet" id="stk" style="z-index:60"><div class="box stk-box">
+  <div class="kp-h"><div><h3 id="stk-t"></h3><div class="sub">평균 차이 차트 · 재미로 보는 화면</div></div><button type="button" class="kp-x" data-close="stk" aria-label="닫기">×</button></div>
+  <div class="stk-now"><b id="stk-v"></b><span id="stk-d"></span></div>
+  <div class="stk-rng" id="stk-rng"><button type="button" data-rng="10" class="on">최근 10일</button><button type="button" data-rng="30">최근 30일</button></div>
+  <div class="stk-ch" id="stk-ch"></div>
+  <div class="stk-st" id="stk-st"></div>
+  <p class="note">평균 차이 = 이 차량 누적 회전 − <span id="stk-n">60</span>대 평균 누적. 0선 위(초록)는 평균보다 많이, 아래(빨강)는 적게 탄 것입니다.</p>
+</div></div>
+<style>
+.cg li[data-stk] { cursor: pointer; } .cg li[data-stk]:active { transform: scale(.97); }
+.stk-box { max-width: 620px !important; }
+.stk-now { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin: 2px 0 10px; } .stk-now b { font-size: 34px; font-weight: 900; letter-spacing: -.5px; white-space: nowrap; } @media (max-width: 700px) { .stk-now b { font-size: 30px; } .stk-now > span { flex-basis: 100%; font-size: 14px; } } .stk-now span { font-size: 15px; font-weight: 800; }
+.stk-now .up, .stk-st .up { color: var(--green); } .stk-now .dn, .stk-st .dn { color: #d93025; } .stk-now .eq { color: var(--muted); }
+.stk-rng { display: inline-flex; gap: 4px; background: var(--bg); padding: 3px; border-radius: 10px; margin-bottom: 8px; }
+.stk-rng button { border: 0; background: none; height: 32px; padding: 0 14px; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 800; color: var(--muted); cursor: pointer; } .stk-rng button.on { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.stk-ch { background: #0f172a; border-radius: 14px; padding: 10px 6px 4px; } .stk-ch svg { display: block; width: 100%; height: auto; }
+.stk-st { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px; } .stk-st div { background: var(--bg); border-radius: 10px; padding: 8px 10px; } .stk-st small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; } .stk-st b { font-size: 17px; font-weight: 900; } .stk-st em { font-style: normal; display: block; font-size: 11.5px; color: var(--muted); }
+</style>
+<script>// ===== 관리자 페이지(admin.html) 안의 프레임: ready → boot(D) → data(D) · api(action, p) → apiResult =====
+const FRAME_P = {}; let FRAME_N = 0, APP = null;
+function api(action, p) {
+  return new Promise(res => { const id = "f" + (++FRAME_N) + "_" + Date.now(); FRAME_P[id] = res;
+    try { parent.postMessage({ api: { id, action, p: p || {} } }, "*"); } catch (e) { delete FRAME_P[id]; return res({ ok: false, msg: "서버에 보낼 수 없습니다." }); }
+    setTimeout(() => { if (FRAME_P[id]) { delete FRAME_P[id]; res({ ok: false, msg: "서버 응답이 없습니다. 다시 시도해 주세요." }); } }, 40000); });
+}
+const authP = p => p || {};
+async function syncNow() { try { parent.postMessage({ reload: 1 }, "*"); } catch (e) {} return { ok: true }; }
+function officeOut() {}
+addEventListener("message", e => { const m = e.data || {};
+  if (m.apiResult && FRAME_P[m.apiResult.id]) { const f = FRAME_P[m.apiResult.id]; delete FRAME_P[m.apiResult.id]; return f(m.apiResult.res || { ok: false, msg: "서버 응답이 없습니다." }); }
+  const S = m.boot || m.data; if (!S || !S.ok) return;
+  if (!APP) { APP = appMain(S); document.getElementById("boot").hidden = true; }
+  else if (S.today !== APP.today()) location.reload();
+  else APP.resync(S);
+});
+try { if (parent !== window) parent.postMessage({ ready: 1 }, "*"); } catch (e) {}</script>
+</body></html>

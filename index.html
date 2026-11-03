@@ -60,6 +60,10 @@
   }
   .view { display: none; max-width: 640px; margin: 0 auto; padding: 24px 16px 32px; }
   .view.on { display: block; }
+  .view.view-run { max-width: none; padding: 0; height: 100vh; height: 100dvh; } #run-frame { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: var(--bg); z-index: 15; }
+  .view.view-run.in-r, .view.view-run.in-l { animation: none; } /* 운행기록 탭은 안쪽 내용만 움직임 (위 줄·아래 메뉴 고정) */
+  body.run-on { overflow: hidden; } body.run-on #who { display: none !important; }
+  html:has(body.run-on) { scrollbar-gutter: auto; } /* 운행기록 탭은 안쪽 화면이 스크롤 막대를 가짐 → 바깥 자리는 비우지 않음 */
   /* 탭 넘어갈 때 옆으로 밀려 들어오는 효과 */
   .view.in-r { animation: inR .28s cubic-bezier(.2,.7,.3,1); }
   .view.in-l { animation: inL .28s cubic-bezier(.2,.7,.3,1); }
@@ -69,6 +73,23 @@
   @media (prefers-reduced-motion: reduce) { .view.in-r, .view.in-l { animation: none; } }
   .login-screen { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow-y: auto; }
   .vac-closed.hidden, .vac-grid.hidden { display: none; }
+  .vc-note { background: var(--amber-bg, #fff4dc); border: 1px solid #f0d9a0; border-radius: 12px; padding: 12px 14px; }
+  .vc-note b { display: block; font-size: 16px; margin-bottom: 4px; } .vc-note span { font-size: 14.5px; line-height: 1.55; color: var(--text); }
+  body.vac-view .vac-right { display: none !important; }
+  body.vac-view #tabs, body.vac-view #list, body.vac-view #vac .legend { display: none !important; }   /* 신청만 막기: 다른 기사님 기록은 안 보이고 내 기록만 */
+  .vcd { margin-top: 14px; } .vcd .label { margin-bottom: 8px; }
+  .vcd-g { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } @media (min-width: 480px) { .vcd-g { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  .vcd-c { display: grid; justify-items: center; gap: 1px; height: 84px; align-content: center; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); padding: 4px 2px; }
+  .vcd-c .d1 { font-size: 15px; font-weight: 800; } .vcd-c .d2 { font-size: 12px; color: var(--muted); } .vcd-c .d2.red { color: var(--red); }
+  .vcd-c b { font-size: 15px; font-weight: 900; } .vcd-c small { font-size: 11.5px; font-weight: 800; color: var(--muted); line-height: 15px; height: 15px; white-space: nowrap; }
+  .vcd-c.sp { border-color: #f0b35a; } .vcd-c.sp small { color: #b45309; }
+  .vcd-c.full b { color: var(--red); } .vcd-c.off { opacity: .55; }
+  .vcd-c.me { border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); } .vcd-c.me small { color: var(--accent); }
+  .vcd-lg { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
+  .vcd-lg span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid; margin-right: 4px; vertical-align: -1px; }
+  .vcd-lg .sp::before { border-color: #f0b35a; } .vcd-lg .me::before { border-color: var(--accent); }
+  @media (min-width: 680px) { body.vac-view .vac-grid { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; } }
+  .site-memo { display: block; margin-top: 4px; font-size: 13.5px; line-height: 1.45; color: #7a5a00; background: #fff4dc; border-radius: 8px; padding: 5px 8px; white-space: pre-line; font-weight: 500; }
   .vc-box { max-width: 520px; margin: 24px auto 0; padding: 28px 20px; border-radius: 16px; background: var(--card); text-align: center; }
   .vc-box b { display: block; font-size: 20px; margin-bottom: 12px; }
   .vc-box p { margin: 0 0 8px; font-size: 16px; line-height: 1.6; }
@@ -222,7 +243,7 @@
   /* ───── 하단 탭 ───── */
   .nav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
-    display: grid; grid-template-columns: 1fr 1fr;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
     height: calc(var(--nav-h) + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     background: var(--bg); border-top: 1px solid var(--line);
@@ -266,7 +287,7 @@
     .vac-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
     .vac-right { display: block; position: sticky; top: 12px; max-height: calc(100vh - var(--nav-h, 64px) - 24px); overflow-y: auto; }
     #vac #open-form { display: none; }
-    .sheet.inline { position: static; opacity: 1; pointer-events: auto; background: none; display: block; z-index: auto; transition: none; }
+    .sheet.inline { position: static; opacity: 1; visibility: visible; pointer-events: auto; background: none; display: block; z-index: auto; transition: none; }
     .sheet.inline .panel { transform: none; max-width: none; max-height: none; overflow: visible; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
     .sheet.inline #close { display: none; }
     .form-empty { border: 1px dashed var(--line); border-radius: 16px; padding: 28px 18px; text-align: center; color: var(--muted); font-size: 16px; line-height: 1.6; }
@@ -389,9 +410,9 @@
   .pill.zero { background: var(--red-bg); color: var(--red); }
   .pill.off { background: var(--card); color: var(--muted); border: 1px solid var(--line); }
 
-  .sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
-  .sheet.show { opacity: 1; pointer-events: auto; }
-  .panel { width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom)); transform: translateY(30px); transition: transform .2s; }
+  .sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .25s, visibility 0s .34s; }
+  .sheet.show { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .25s; }
+  .panel { width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .34s cubic-bezier(.2,.9,.3,1); }
   .sheet.show .panel { transform: none; }
   .panel-head { display: flex; justify-content: space-between; align-items: center; font-size: 18px; margin-bottom: 14px; }
   .hours { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 6px; }
@@ -417,6 +438,8 @@
   .day.locked .d1 { color: var(--muted); }
   .day.locked .d3 { color: var(--text); font-weight: 700; }
   .day .d4 { font-size: 10px; color: var(--muted); }
+  .days .day { min-height: 92px; justify-content: center; }   /* 줄이 하나 더 있어도 칸 크기 같게 */
+  .day.warn .d4 { color: #c26a00; font-weight: 700; font-size: 11px; }
   .day.soon { border-style: dashed; background: var(--card); }
   .day.soon .d1 { color: var(--muted); }
   .day.soon .d3 { color: var(--accent); font-size: 11px; line-height: 1.3; text-align: center; }
@@ -439,8 +462,10 @@
   .year-div { grid-column: 1 / -1; background: var(--red-bg); color: var(--red); font-size: 13px; text-align: center; padding: 8px; border-radius: 8px; }
   .form-note { white-space: pre-line; }
   .form-note.other { color: var(--red); font-weight: 700; }
-  .ask { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; padding: 20px; }
-  .ask.show { display: flex; }
+  .ask { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .22s, visibility 0s .3s; }
+  .ask.show { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .22s; }
+  .ask > .ask-box { transform: scale(.88) translateY(12px); transition: transform .32s cubic-bezier(.2,1.2,.35,1); } .ask.show > .ask-box { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .sheet, .ask, .panel, .ask > .ask-box { transition: none !important; } }
   .ask-box { width: 100%; max-width: 380px; background: var(--bg); border-radius: 16px; padding: 22px 18px 16px; }
   .ask-box p { margin: 0 0 20px; font-size: 17px; line-height: 1.55; white-space: pre-line; text-align: center; font-weight: 600; }
   .req-at { font-size: 14px; color: var(--muted); margin-top: 3px; }
@@ -477,6 +502,32 @@
   .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); width: calc(100% - 32px); max-width: 480px; background: #323232; color: #fff; padding: 14px 16px; border-radius: 12px; font-size: 15px; line-height: 1.4; z-index: 30; opacity: 0; pointer-events: none; transition: all .25s; }
   .toast.good { background: #137333; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  /* 세 탭 같은 규격: 위 줄(종 · 호수 · 로그아웃) 56px 고정 + 아래 경계 그라데이션 · 제목 28px(위 줄 아래 24px) · 아래 메뉴 64px */
+  /* PC: 스크롤 막대가 생겼다 없어져도 화면 폭이 안 바뀌게 자리를 항상 비워 둠 (탭 바꿀 때 종·로그아웃·아래 메뉴가 움찔거리지 않음) */
+  html { scrollbar-gutter: stable; }
+  .who { position: fixed; top: 0; left: 0; right: 0; z-index: 12; max-width: 1100px; margin: 0 auto; height: calc(env(safe-area-inset-top) + 56px); padding: env(safe-area-inset-top) 16px 0; box-sizing: border-box; background: var(--bg); box-shadow: 0 0 0 100vmax var(--bg); clip-path: inset(0 -100vmax -24px); }
+  .who::after { content: ""; position: absolute; left: -100vmax; right: -100vmax; top: 100%; height: 24px; pointer-events: none; background: linear-gradient(to bottom, var(--bg), transparent); }
+  .who-r b { font-size: 15px; font-weight: 700; } #who-out { border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; line-height: 1.3; cursor: pointer; }
+  body:has(#who:not(.hidden)) .view:not(.view-run) { padding-top: 80px; }
+  #dist h1, #vac h1 { font-size: 28px !important; margin-top: 0 !important; } #vac h1 { margin-bottom: 6px !important; }
+  :root { --nav-h: 64px; }
+  .oth-btn { display: block; margin: -4px 0 10px; padding: 4px 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13.5px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .oth { background: var(--card); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; } .oth-l { margin: 0 0 6px; font-size: 14.5px; } .oth-l b { margin-right: 6px; } .oth-n { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+  .oth-c i { font-style: normal; font-size: 12.5px; font-weight: 800; margin-left: 2px; } .oth-c.t-결근 i { color: #d93025; } .oth-c.t-조퇴 i, .oth-c.t-지각 i { color: #b06000; } .oth-c.t-특별휴가 i { color: #6b7280; }
+  .sort-note { margin: -4px 0 10px; font-size: 13.5px; font-weight: 700; color: var(--accent); }
+  html, body { overscroll-behavior-y: contain; } /* 브라우저 자체 당김 새로고침은 끄고 이 화면 것만 씀 */
+  .hptr { position: fixed; left: 0; right: 0; top: env(safe-area-inset-top); height: 0; z-index: 13; pointer-events: none; }
+  .hptr-ball { position: absolute; left: 50%; top: 0; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; background: var(--bg); color: var(--accent);
+               box-shadow: 0 3px 12px rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; transform: translateY(-60px); opacity: 0; }
+  .hptr-ball svg { width: 24px; height: 24px; }
+  .hptr-ball.spin svg { animation: hptrSpin .8s linear infinite; }
+  @keyframes hptrSpin { to { transform: rotate(360deg); } }
+  .hptr-txt { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 15px; font-weight: 700; color: var(--muted); transform: translateY(-40px); opacity: 0; }
+  .hptr.back .hptr-ball, .hptr.back .hptr-txt, .view.back { transition: transform .3s cubic-bezier(.2,.8,.2,1), opacity .3s; }
+  .inapp { position: fixed; left: 10px; right: 10px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px); z-index: 300; background: #1f2937; color: #fff; border-radius: 16px; padding: 14px 44px 14px 16px; display: grid; gap: 6px; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+  .inapp.hidden { display: none; } .inapp b { font-size: 16px; } .inapp span { font-size: 14px; color: #d1d5db; line-height: 1.5; }
+  .inapp button#inapp-go { height: 50px; border: 0; border-radius: 12px; background: #1a56db; color: #fff; font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; margin-top: 4px; }
+  .inapp .inapp-x { position: absolute; top: 6px; right: 6px; width: 36px; height: 36px; border: 0; background: none; color: #d1d5db; font-size: 22px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -488,10 +539,10 @@
   <h2>로그인</h2>
   <p class="login-sub">차량 호수와 비밀번호를 입력하세요</p>
   <label class="login-lab" for="lg-id">아이디 (차량 호수)</label>
-  <input class="login-in" id="lg-id" name="username" type="text" inputmode="numeric" maxlength="4" placeholder="예: 214" autocomplete="username">
+  <input class="login-in" id="lg-id" name="username" type="text" inputmode="numeric" maxlength="4" placeholder="예: 214" autocomplete="username" enterkeyhint="next">
   <label class="login-lab" for="lg-pw">비밀번호</label>
   <div class="pw-wrap">
-   <input class="login-in" id="lg-pw" name="password" type="password" inputmode="numeric" maxlength="8" placeholder="비밀번호" autocomplete="current-password">
+   <input class="login-in" id="lg-pw" name="password" type="password" inputmode="numeric" maxlength="8" placeholder="비밀번호" autocomplete="current-password" enterkeyhint="done">
    <button class="pw-eye" id="lg-eye" data-eye="lg-pw" type="button" aria-label="비밀번호 보기"><svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.5 4.8-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button>
   </div>
   <p class="login-err" id="lg-err"></p>
@@ -503,12 +554,12 @@
   <p class="login-sub"><b id="ch-no"></b> 처음 받은 비밀번호는 다른 사람도 알 수 있어요.<br>나만 아는 숫자 4~8자리로 바꿔 주세요.</p>
   <label class="login-lab" for="ch-new">새 비밀번호</label>
   <div class="pw-wrap">
-   <input class="login-in" id="ch-new" type="password" inputmode="numeric" maxlength="8" placeholder="숫자 4~8자리" autocomplete="new-password">
+   <input class="login-in" id="ch-new" type="password" inputmode="numeric" maxlength="8" placeholder="숫자 4~8자리" autocomplete="new-password" enterkeyhint="next">
    <button class="pw-eye" data-eye="ch-new" type="button" aria-label="비밀번호 보기"><svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.5 4.8-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button>
   </div>
   <label class="login-lab" for="ch-new2">새 비밀번호 한 번 더</label>
   <div class="pw-wrap">
-   <input class="login-in" id="ch-new2" type="password" inputmode="numeric" maxlength="8" placeholder="같은 번호 한 번 더" autocomplete="new-password">
+   <input class="login-in" id="ch-new2" type="password" inputmode="numeric" maxlength="8" placeholder="같은 번호 한 번 더" autocomplete="new-password" enterkeyhint="done">
    <button class="pw-eye" data-eye="ch-new2" type="button" aria-label="비밀번호 보기"><svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.5 4.8-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></button>
   </div>
   <p class="login-err" id="ch-err"></p>
@@ -578,6 +629,7 @@
 </section>
 
 <!-- ───── 휴가 화면 ───── -->
+<section class="view view-run" id="run"><div class="vac-closed hidden" id="run-closed" style="padding:24px 16px"><h1>운행기록</h1><div class="vc-box"><b>운행기록은 아직 테스트 중입니다</b><p>곧 열릴 예정이니 조금만 기다려 주세요.</p></div></div><iframe id="run-frame" title="운행기록"></iframe></section>
 <section class="view" id="vac">
  <div class="vac-closed hidden" id="vac-closed">
   <h1>휴가</h1>
@@ -625,11 +677,11 @@
   <div class="panel">
     <div class="panel-head"><b>비밀번호 변경</b><button class="link" id="pw-close">닫기</button></div>
     <p class="label">지금 비밀번호</p>
-    <input class="pw" id="pw-now" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password">
+    <input class="pw" id="pw-now" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" enterkeyhint="next">
     <p class="label">새 비밀번호 <span class="sub">· 숫자 4~8자리</span></p>
-    <input class="pw" id="pw-new" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password">
+    <input class="pw" id="pw-new" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password" enterkeyhint="next">
     <p class="label">새 비밀번호 한 번 더</p>
-    <input class="pw" id="pw-new2" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password">
+    <input class="pw" id="pw-new2" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password" enterkeyhint="done">
     <p class="form-note" id="pw-note"></p>
     <button class="btn primary wide" id="pw-save">비밀번호 바꾸기</button>
     <p class="sub center">비밀번호를 잊으셨으면 관리자에게 초기화를 요청하세요</p>
@@ -677,12 +729,17 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
     운행거리
   </button>
+  <button data-view="run">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M8 14h3M8 17h6"/></svg>
+    운행기록
+  </button>
   <button data-view="vac">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
     휴가
   </button>
 </nav>
 
+<div class="inapp hidden" id="inapp"><b id="inapp-t">이 앱 안에서는 설치·알림이 안 돼요</b><span id="inapp-s">아래 버튼을 누르면 삼성 인터넷으로 열립니다.</span><button type="button" id="inapp-go">삼성 인터넷으로 열기</button><button type="button" class="inapp-x" id="inapp-x" aria-label="닫기">×</button></div>
 <script>
 /* =========================================================
    공통
@@ -693,8 +750,23 @@ const store = {
   set(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} }
 };
 
+// 네이버·카카오톡·밴드 등 앱 안에서 열면 (안드로이드) → 삼성 인터넷 → 크롬 → 기본 브라우저 순서로 바깥 브라우저 열기
+//  시안 확인용: 주소 끝에 #inapp 을 붙이면 이 안내가 보임
+(() => { const ua = navigator.userAgent, and = /Android/i.test(ua), ios = /iPhone|iPad/i.test(ua);
+  const app = (ua.match(/NAVER|KAKAOTALK|BAND|Instagram|FBAN|FBAV|Line\/|DaumApps|everytimeApp|; wv\)/i) || [""])[0].replace(/[;\/) ]/g, "");
+  const nm = { NAVER: "네이버 앱", KAKAOTALK: "카카오톡", BAND: "밴드", Instagram: "인스타그램", FBAN: "페이스북", FBAV: "페이스북", Line: "라인", DaumApps: "다음 앱" }[app] || "이 앱";
+  if (!app && !/#inapp/.test(location.hash)) return;
+  const box = document.getElementById("inapp"); box.classList.remove("hidden"); document.body.classList.add("inapp-on");
+  document.getElementById("inapp-t").textContent = nm + " 안에서는 앱 설치·알림이 안 돼요";
+  if (ios && app) { document.getElementById("inapp-s").textContent = "오른쪽 아래(또는 위) ··· 메뉴 → 'Safari로 열기'를 눌러 주세요."; document.getElementById("inapp-go").hidden = true; }
+  document.getElementById("inapp-x").onclick = () => { box.classList.add("hidden"); document.body.classList.remove("inapp-on"); };
+  document.getElementById("inapp-go").onclick = () => { const u = location.href.replace(/^https?:\/\//, "").replace(/#inapp$/, ""), t0 = Date.now();
+    location.href = "intent://" + u + "#Intent;scheme=https;package=com.sec.android.app.sbrowser;end";                    // ① 삼성 인터넷
+    setTimeout(() => { if (document.hidden) return; location.href = "intent://" + u + "#Intent;scheme=https;package=com.android.chrome;end"; }, 1500);   // ② 크롬
+    setTimeout(() => { if (document.hidden) return; location.href = "intent://" + u + "#Intent;scheme=https;action=android.intent.action.VIEW;end"; }, 3000);   // ③ 기본 브라우저
+  }; })();
 // 하단 탭 전환 (마지막에 본 화면 기억)
-const VIEW_ORDER = ["dist", "vac"];   // 아래 메뉴 순서 (왼쪽 → 오른쪽)
+const VIEW_ORDER = ["dist", "run", "vac"];   // 아래 메뉴 순서 (왼쪽 → 오른쪽)
 let curView = "";
 function showView(v) {
   const from = VIEW_ORDER.indexOf(curView), to = VIEW_ORDER.indexOf(v);
@@ -708,7 +780,40 @@ function showView(v) {
   document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
   store.set("lastView", v);
   window.scrollTo(0, 0);
+  document.body.classList.toggle("run-on", v === "run");
+  if (v === "run" && RUN_MODE === 0) { runLockDraw(); return; }
+  if (v === "run") { runLockDraw(); const first = runFrame(), f = document.getElementById("run-frame"), dir = to > from ? "r" : "l";
+    const go = () => { try { f.contentWindow.postMessage({ slide: dir }, "*"); } catch (e) {} };
+    if (from !== to && from >= 0) { if (first) f.addEventListener("load", go, { once: true }); else go(); } }   // 처음 열 때는 안쪽 화면이 다 만들어진 뒤에 밀어 넣기
 }
+// ---------- 운행기록 프레임 (run.html) · 자료는 이 페이지가 서버(runSync)에서 받아 넣어 줌 ----------
+let runCar = "", RUN_DATA = null, RUN_MODE = 2, RUN_MSG = "", runFetching = null, SITE_META = {};
+async function runFetch() {
+  if (runFetching) return runFetching;
+  runFetching = (async () => { try { const r = await api("runSync", { no: myCar, tok: myTok }); if (!r.ok) { if (r.auth) logout(r.msg); return null; } RUN_DATA = r; RUN_MODE = r.runMode; RUN_MSG = r.runMsg || ""; runLockDraw(); return r; } catch (e) { return null; } finally { runFetching = null; } })();
+  return runFetching;
+}
+function dayTableAll() { const o = {}; Object.keys(DAY_CACHE).forEach(d => { o[d] = DAY_CACHE[d]; }); if (TODAY_SITES.length) o[kstDay()] = TODAY_SITES; return o; }
+function runBootData() { return Object.assign({}, RUN_DATA, { me: String(myCar), dayTable: dayTableAll(), siteNames: SITES.map(x => x[0]), siteMeta: SITE_META, appVer: APP_VER }); }
+function runFrame() { const f = document.getElementById("run-frame"), car = String(myCar);
+  if (!f.getAttribute("src") || runCar !== car) { runCar = car; f.src = "run.html?v=" + APP_VER; return true; } return false; }
+async function runBoot() { if (!RUN_DATA && !(await runFetch())) { toast("운행기록을 불러오지 못했습니다. 아래로 당겨 다시 시도해 주세요."); return; } const f = document.getElementById("run-frame"); try { f.contentWindow.postMessage({ boot: runBootData() }, "*"); } catch (e) {} }
+async function runReload() { const f = document.getElementById("run-frame"); if (!f.getAttribute("src")) { await runFetch(); return; } await runFetch(); try { f.contentWindow.location.reload(); } catch (e) { f.src = "run.html?v=" + APP_VER + "&r=" + Date.now(); } }
+function runPing() { return new Promise(res => { const f = document.getElementById("run-frame"); if (!f.getAttribute("src") || !f.contentWindow) return res({ busy: false }); const t = setTimeout(() => res({ busy: false }), 600);
+  const h = e => { if ((e.data || {}).pong) { clearTimeout(t); removeEventListener("message", h); res({ busy: !!e.data.busy }); } }; addEventListener("message", h); try { f.contentWindow.postMessage({ ping: 1 }, "*"); } catch (e) {} }); }
+// 운행기록 탭 잠금(테스트 중)이면 프레임 대신 안내만
+function runLockDraw() { const box = document.getElementById("run-closed"), f = document.getElementById("run-frame"); if (!box) return; const lock = RUN_MODE === 0; box.classList.toggle("hidden", !lock); f.style.display = lock ? "none" : "";
+  if (lock) box.querySelector("p").textContent = RUN_MSG || "운행기록은 아직 테스트 중입니다."; }
+addEventListener("message", async e => { const m = e.data || {}; const f = document.getElementById("run-frame"); if (e.source !== (f && f.contentWindow)) { if (m.goView && VIEW_ORDER.includes(m.goView)) showView(m.goView); return; }
+  if (m.ready) return runBoot();
+  if (m.goView && VIEW_ORDER.includes(m.goView)) showView(m.goView);
+  if (m.hostClick && ["bell", "who-out"].includes(m.hostClick)) document.getElementById(m.hostClick).click();
+  if (m.refresh) { await Promise.all([loadMine(true), loadSheet(), loadVac(), loadBell(true)]).catch(() => {}); return runReload(); }
+  if (m.save) { const sv = m.save, r = await api("runSave", { no: myCar, tok: myTok, date: sv.date, rec: sv.rec, sites: sv.sites, del: sv.del ? 1 : 0 }).catch(() => ({ ok: false, msg: "저장하지 못했습니다. 연결을 확인해 주세요." }));
+    if (r.ok) { try { if (RUN_DATA) { if (sv.del) { if (RUN_DATA.real[sv.date]) delete RUN_DATA.real[sv.date][myCar]; if (RUN_DATA.sites[sv.date]) delete RUN_DATA.sites[sv.date][myCar]; } else { (RUN_DATA.real[sv.date] = RUN_DATA.real[sv.date] || {})[myCar] = r.rec; (RUN_DATA.sites[sv.date] = RUN_DATA.sites[sv.date] || {})[myCar] = r.sites; } } } catch (x) {} }
+    else if (r.auth) logout(r.msg);
+    try { f.contentWindow.postMessage({ saved: { ok: !!r.ok, msg: r.msg || "", rec: r.rec, sites: r.sites } }, "*"); } catch (x) {} }
+});
 document.querySelector(".nav").addEventListener("click", e => {
   const b = e.target.closest("button"); if (b) showView(b.dataset.view);
 });
@@ -743,12 +848,14 @@ const norm = s => String(s).toLowerCase().replace(/\s+/g, "");
 // 웹 앱 주소(API_URL)가 비어 있으면 체험 모드 — 관리자 체험 페이지에서 고친 목록을 씀
 async function loadSheet() {
   try { const c = JSON.parse(localStorage.getItem(API_URL ? "sitesCache" : "demoSites") || "null"); if (c && c.length) { SITES = c; } } catch (e) {}
+  try { SITE_META = JSON.parse(localStorage.getItem("siteMetaCache") || "{}") || {}; } catch (e) {}
+  if (!API_URL && !SITES.length) SITES = SEED_SITES;
   renderDist();
   try { REPS = JSON.parse(localStorage.getItem(API_URL ? "repsCache" : "demoReps") || "[]") || []; } catch (e) { REPS = []; }
   if (!API_URL) {                                     // 체험 모드: 관리자 체험 페이지에서 지정한 금일 현장
-    if (!SITES.length) $status.textContent = "체험 모드: 관리자 체험 페이지를 한 번 열면 현장 목록이 생깁니다.";
+
     let T = [];
-    try { T = JSON.parse(localStorage.getItem("demoToday") || "[]"); } catch (e) {}
+    try { T = JSON.parse(localStorage.getItem("demoToday") || "null") || SEED_TODAY; } catch (e) { T = SEED_TODAY; }
     return setToday(todaySites(SITES, T, kstDay()), Array.from(new Set(T.map(r => r[0]))).sort());
   }
   try { const t = JSON.parse(localStorage.getItem("todayCache") || "null"); if (t && t.date === kstDay()) setToday(t.list, t.days); } catch (e) {}
@@ -764,6 +871,7 @@ async function loadSheet() {
     if (!r.ok || !r.sites || !r.sites.length) throw new Error("empty");   // 현장 탭이 비어 있으면 저장된 목록 그대로
     SITES = r.sites;
     if (r.reps) { REPS = r.reps; try { localStorage.setItem("repsCache", JSON.stringify(REPS)); } catch (e) {} }
+    if (r.meta) { SITE_META = r.meta; try { localStorage.setItem("siteMetaCache", JSON.stringify(SITE_META)); } catch (e) {} }
     try { localStorage.setItem("sitesCache", JSON.stringify(SITES)); } catch (e) {}
     $status.textContent = "";
     renderDist();
@@ -792,7 +900,20 @@ function highlight(name, terms) {
 }
 
 // 금일 현장 (관리자가 지정) — '오늘 현장 보기' 버튼을 눌렀을 때만 목록이 보임
-let TODAY_SITES = [], todayOpen = false;
+let TODAY_SITES = [], todayOpen = false, todayAnim = null, viewDayAuto = false;
+let VAC_MODE = 1;   // 0 = 잠금 · 2 = 신청만 막기 · 1 = 열림
+function demoVacCycle() { try { const st = JSON.parse(localStorage.getItem("demoState") || "{}"); st.settings = st.settings || {}; st.settings.VAC_OPEN = VAC_MODE === 1 ? 2 : VAC_MODE === 2 ? 0 : 1; localStorage.setItem("demoState", JSON.stringify(st)); DEMO_MEM = null; } catch (e) {} loadVac(); }
+// 신청만 막기: 날짜별 신청 인원 (숫자만 · 이름 없음)
+function vacCountHtml() {
+  if (!SUM || !SUM.days) return "";
+  const mine = new Set((MY ? MY.list : []).filter(x => x.status !== "취소" && x.status !== "반려").map(x => x.date));
+  return '<div class="vcd"><p class="label">날짜별 휴가 신청 인원 <span class="sub">· 숫자만 보이고 이름은 안 보입니다</span></p><div class="vcd-g">' +
+    SUM.days.map(d => { const lim = limOf(d), full = !d.off && d.taken >= lim;
+      const l2 = d.off ? "휴무" : d.taken + "/" + lim + "명", l3 = d.off ? "" : d.waiting > 0 ? "대기 " + d.waiting + "명" : d.special ? "우선 " + (d.prio || 0) + "명" : full ? "마감" : (lim - d.taken) + "자리";
+      return '<div class="vcd-c' + (d.off ? ' off' : full ? ' full' : '') + (d.special ? ' sp' : '') + (mine.has(d.date) ? ' me' : '') + '"><span class="d1">' + d.label + '</span><span class="d2' + (d.week === "일" || d.off ? ' red' : '') + '">' + d.week + '</span><b>' + l2 + '</b><small>' + (mine.has(d.date) ? "내 신청" : l3) + '</small></div>'; }).join("") +
+    '</div><p class="vcd-lg"><span class="sp">월·금·연휴 앞뒤 날 (우선순위날)</span><span class="me">내 신청</span></p></div>';
+}
+let VAC_VIEW_ONLY = false;   // 관리자가 휴가 신청을 아직 안 열었을 때: 보기만
 let viewDay = "", DAYS = [], DAY_CACHE = {}, dayLoading = false;   // 다른 날 물량표 보기
 const kstDay = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
 const $todayBtn = document.getElementById("today-btn");
@@ -805,6 +926,8 @@ function setToday(list, days) {
   if (days) DAYS = days;
   $todayBtn.classList.remove("hidden");
   renderDist();
+  const dd = defaultDay();                                     // 오늘 물량표가 없으면 보여 줄 날 것을 미리 받아 둠 (버튼에 곳 수 표시)
+  if (dd !== kstDay() && !DAY_CACHE[dd]) loadDay(dd, false).then(() => renderDist());
 }
 const W_ = ["일", "월", "화", "수", "목", "금", "토"];
 function dayName(d) {
@@ -817,12 +940,24 @@ function dayStep(dir) {
   const all = Array.from(new Set(DAYS.concat([kstDay()]))).sort(), cur = viewDay || kstDay();
   return dir < 0 ? all.filter(d => d < cur).pop() : all.filter(d => d > cur)[0];
 }
-async function goDay(d) {
+async function goDay(d, auto) {
   if (!d) return;
+  if (!auto) viewDayAuto = false;
+  const prev = viewDay || kstDay(), dir = d > prev ? 1 : d < prev ? -1 : 0;   // 다음 날이면 오른쪽에서, 이전 날이면 왼쪽에서 들어옴 (탭 넘길 때와 같은 움직임)
   viewDay = d;
+  await loadDay(d, true);
+  if (viewDay === d) { renderDist(); if (dir) daySlide(dir); }
+}
+function daySlide(dir) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || $todayBox.classList.contains("hidden")) return;
+  const els = $todayBox.querySelectorAll(":scope > *:not(.daybar), .daybar .dl");
+  els.forEach(el => el.animate([{ transform: "translateX(" + (dir > 0 ? 40 : -40) + "%)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 280, easing: "cubic-bezier(.2,.7,.3,1)" }));
+}
+// 그날 물량표를 받아 둠 (show = 받는 동안 '불러오는 중' 표시)
+async function loadDay(d, show) {
   if (!DAY_CACHE[d]) {
     if (API_URL) {
-      dayLoading = true; renderDist();
+      if (show) { dayLoading = true; renderDist(); }
       try {
         const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "siteDay", date: d, no: myCar, tok: myTok }) });
         const r = await res.json();
@@ -830,19 +965,36 @@ async function goDay(d) {
       } catch (e) {}
       dayLoading = false;
     } else {
-      let T = []; try { T = JSON.parse(localStorage.getItem("demoToday") || "[]"); } catch (e) {}
+      let T = SEED_TODAY; try { T = JSON.parse(localStorage.getItem("demoToday") || "null") || SEED_TODAY; } catch (e) {}
       DAY_CACHE[d] = todaySites(SITES, T, d);
     }
   }
-  if (viewDay === d) renderDist();
+}
+// 버튼을 눌렀을 때 처음 보여 줄 날짜:
+//  ① 오늘 물량표가 있으면 오늘
+//  ② 없으면(휴무일 등) 앞으로 올라와 있는 가장 가까운 날 (예: 토요일에 월요일 물량표)
+//  ③ 그것도 없으면 마지막으로 올라온 물량표
+function defaultDay() {
+  const t = kstDay();
+  if (TODAY_SITES.length) return t;
+  const next = DAYS.filter(d => d > t).sort()[0];
+  if (next) return next;
+  const last = DAYS.filter(d => d < t).sort().pop();
+  return last || t;
 }
 function renderTodayBtn() {
-  const day = kstDay(), label = (+day.slice(5, 7)) + "/" + (+day.slice(8));
+  const day = defaultDay(), isT = day === kstDay(), label = (+day.slice(5, 7)) + "/" + (+day.slice(8));
+  const n = isT ? TODAY_SITES.length : (DAY_CACHE[day] || []).length;
   $todayBtn.classList.toggle("on", todayOpen);
   $todayBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>' +
-    (todayOpen ? '오늘 현장 닫기' : '오늘(' + label + ') 현장 보기' + (TODAY_SITES.length ? ' · ' + TODAY_SITES.length + '곳' : ''));
+    (todayOpen ? '물량표 닫기' : (isT ? '오늘(' + label + ')' : dayName(day)) + ' 현장 보기' + (n ? ' · ' + n + '곳' : ''));
 }
-$todayBtn.addEventListener("click", () => { todayOpen = !todayOpen; viewDay = kstDay(); renderDist(); if (todayOpen) window.scrollTo({ top: 0, behavior: "smooth" }); });
+$todayBtn.addEventListener("click", () => {
+  todayOpen = !todayOpen;
+  if (todayOpen) { const d = defaultDay(); viewDay = d; if (d !== kstDay() && !DAY_CACHE[d]) goDay(d); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  else viewDay = kstDay();
+  renderDist();
+});
 $todayBox.addEventListener("click", e => { const b = e.target.closest("[data-day]"); if (b && !b.disabled) goDay(b.dataset.day); });
 
 const wideMQ = window.matchMedia("(min-width: 680px)");
@@ -854,8 +1006,31 @@ function renderDist() {
   renderTodayBtn();
   // 넓은 화면은 오른쪽에 항상, 좁은 화면은 버튼을 눌렀고 검색어가 없을 때만
   const showToday = wide || (!raw && todayOpen);
+  if (wide && !todayOpen && (!viewDay || (viewDayAuto && viewDay === kstDay() && !TODAY_SITES.length))) {   // 넓은 화면: 오늘 물량표가 없으면 폰처럼 가장 가까운 날을 보여 줌
+    const d0 = defaultDay(); viewDay = d0; viewDayAuto = true; if (d0 !== kstDay() && !DAY_CACHE[d0]) { viewDayAuto = true; goDay(d0, true); } }
+  const wasHidden = $todayBox.classList.contains("hidden"), anim = !wide && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (todayAnim) { todayAnim.forEach(a => a.cancel()); todayAnim = null; }
+  const EASE = "cubic-bezier(.25,.1,.25,1)";
+  if (anim && !showToday && !wasHidden && $todayBox.offsetHeight) {           // 말아 올리기: 아래에서 위로 가려진 다음 숨김
+    const H = $todayBox.offsetHeight, vis = Math.min(H, innerHeight - $todayBox.getBoundingClientRect().top);
+    const a = $todayBox.animate([{ clipPath: "inset(0 0 " + Math.max(0, H - vis) + "px 0)" }, { clipPath: "inset(0 0 " + H + "px 0)" }], { duration: 300, easing: "cubic-bezier(.4,0,.7,1)", fill: "forwards" });
+    const list = todayAnim = [a];
+    a.onfinish = () => { if (todayAnim !== list) return; todayAnim = null; a.cancel(); $todayBox.classList.add("hidden"); $todayBox.innerHTML = ""; };
+    renderSearch(raw);                                                        // 검색어를 넣어 물량표가 접히는 경우: 검색 결과는 바로 보여 줌
+    return;
+  }
   $todayBox.classList.toggle("hidden", !showToday);
   if (showToday) renderToday(); else $todayBox.innerHTML = "";
+  if (anim && showToday && wasHidden) {                                        // 펼치기: 족자처럼 위에서 아래로 일정한 속도로 드러남
+    const H = $todayBox.offsetHeight, vis = Math.min(H, innerHeight - $todayBox.getBoundingClientRect().top);
+    const dur = Math.min(900, Math.max(450, vis * 1.1));
+    const a = $todayBox.animate([{ clipPath: "inset(0 0 " + H + "px 0)" }, { clipPath: "inset(0 0 " + Math.max(0, H - vis) + "px 0)" }], { duration: dur, easing: EASE });
+    const list = todayAnim = [a];
+    // 줄마다 조금씩 늦게 살짝 내려앉으며 나타남 (촤르륵)
+    const rows = [].slice.call($todayBox.querySelectorAll(":scope > *:not(ul), :scope > ul > li")).filter(el => el.getBoundingClientRect().top < innerHeight);
+    rows.forEach((el, i) => { list.push(el.animate([{ opacity: 0, transform: "translateY(-14px)" }, { opacity: 1, transform: "none" }], { duration: 360, delay: Math.min(i * 55, dur - 300), easing: EASE, fill: "backwards" })); });
+    a.onfinish = () => { if (todayAnim === list) todayAnim = null; };
+  }
   if (!wide && showToday) { $res.innerHTML = ""; return; }
   renderSearch(raw);
 }
@@ -868,12 +1043,12 @@ function renderToday() {
     const bar = '<div class="daybar"><button data-day="' + (prev || "") + '"' + (prev ? '' : ' disabled') + ' aria-label="이전 날">◀</button>' +
       '<span class="dl' + (isToday ? '' : ' other') + '">' + dayName(vd) + '</span>' +
       '<button data-day="' + (next || "") + '"' + (next ? '' : ' disabled') + ' aria-label="다음 날">▶</button></div>' +
-      (isToday ? '' : '<button class="back-today" data-day="' + kstDay() + '">오늘로 돌아가기</button>');
+      (isToday || !TODAY_SITES.length ? '' : '<button class="back-today" data-day="' + kstDay() + '">오늘로 돌아가기</button>');   // 오늘 물량표가 없으면(휴무일 등) 돌아갈 필요 없음
     if (dayLoading) { $res.innerHTML = bar + '<p class="empty">불러오는 중…</p>'; return; }
     let total = 0; LIST.forEach(x => (x[2] || []).forEach(i => { if (typeof i[1] === "number") total += i[1]; }));
     $res.innerHTML = bar + (LIST.length
       ? '<div class="total' + (isToday ? '' : ' other') + '"><span class="lab">' + lab + ' 총 물량</span><span class="big">' + qty(Math.round(total * 1000) / 1000) + '<small>㎥</small></span>' +
-          '<span class="tsub">출하 현장 ' + LIST.length + '곳</span></div><ul>' +
+          '<span class="tsub">출하 현장 ' + LIST.length + '곳</span></div><p class="sort-note">물량 많은 순으로 정리했습니다</p><ul>' +
         LIST.map(([name, d, items, rep]) => '<li class="today"><div class="top"><span class="name">' + esc(name) + (rep ? '<span class="rep">담당 ' + String(rep).split(", ").map(n => '<button type="button" class="rep-btn" data-rep="' + esc(n) + '">' + esc(n) + '</button>').join(" ") + '</span>' : '') + '</span>' + distCell(d) + '</div>' +
           (items || []).map(i => '<div class="item"><span class="prod">' + esc(i[0] || "") + '</span><span class="qty">' +
             (i[2] ? '<span class="tm">' + esc(i[2]) + '</span>' : '') + (i[1] !== "" ? '<b class="m3">' + esc(qtyM3(i[0], i[1])) + '</b>' : '') + '</span></div>').join("") + '</li>').join("") + '</ul>'
@@ -883,10 +1058,11 @@ function renderToday() {
 function renderSearch(raw) {
   if (!raw) { $res.innerHTML = ""; return; }
   const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
-  const hits = SITES.filter(([name]) => { const n = norm(name); return terms.every(t => n.includes(t)); });
+  const memoOf = name => (SITE_META[name] && SITE_META[name].m) || "";
+  const hits = SITES.filter(([name]) => { const n = norm(name + " " + memoOf(name)); return terms.every(t => n.includes(t)); });   // 메모 글자로도 찾음
   if (!hits.length) { $res.innerHTML = '<p class="empty">검색 결과가 없습니다</p>'; return; }
   $res.innerHTML = '<p class="count">' + hits.length + '건</p><ul>' +
-    hits.map(([name, d]) => '<li><span class="name">' + highlight(name, terms) + '</span>' + distCell(d) + '</li>').join("") + '</ul>';
+    hits.map(([name, d]) => '<li><span class="name">' + highlight(name, terms) + (memoOf(name) ? '<span class="site-memo">' + esc(memoOf(name)) + '</span>' : '') + '</span>' + distCell(d) + '</li>').join("") + '</ul>';
 }
 $q.addEventListener("input", renderDist);
 document.getElementById("clear").addEventListener("click", () => { $q.value = ""; renderDist(); $q.focus(); });
@@ -897,19 +1073,14 @@ document.getElementById("clear").addEventListener("click", () => { $q.value = ""
 // 구글 시트 Apps Script "웹 앱" 주소를 따옴표 안에 넣으세요.
 // 비워두면 체험 모드(이 폰에만 저장, 실제 신청 안 됨)로 동작합니다.
 const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";
+const APP_VER = "20261103a";
 
-const VAC_SEED = [];   // 체험 모드용 기존 데이터
-// 체험 모드 자료 버전: 바뀌면 이 브라우저에 쌓인 시험 기록·비밀번호·로그인을 모두 지우고 새 자료로 시작
-const DEMO_VER = "2026-10-28-latest";
-if (!API_URL) try {
-  if (localStorage.getItem("demoVer") !== DEMO_VER) {
-    Object.keys(localStorage).filter(k => /^(demo|seen_|myTok|myPin|myCar|sitesCache|todayCache)/.test(k)).forEach(k => localStorage.removeItem(k));
-    localStorage.setItem("demoVer", DEMO_VER);
-  }
-} catch (e) {}
-/* =========================================================
-   휴가 규칙 엔진 (구글 스크립트와 사이트 체험 모드에서 함께 사용)
-   ========================================================= */
+const VAC_SEED = [["201", 0, "", ["1/5", "3/27", "6/5", "6/30", "10/8", "10/21"], ["8/26", "8/27", "8/28"]], ["202", 3, "", ["4/2", "9/11", "10/30"], ["8/5", "8/6", "8/7"]], ["203", 1, "", ["1/2", "2/13", "7/31", "9/17", "10/26"], ["7/15", "7/16", "7/20"]], ["204", 0, "", ["1/23", "2/24", "3/5", "4/24", "6/26", "8/18"], ["7/24", "7/27", "7/28"]], ["205", 0, "", ["7/3", "10/16", "10/28"], ["11/5", "11/6", "11/9"]], ["206", 0, "", ["3/13", "5/11", "5/22", "6/17", "6/18", "10/6"], ["8/12", "8/13", "8/14"]], ["207", 0, "", ["1/5", "3/27", "7/3", "8/24", "9/4", "10/28"], ["12/29", "12/30", "12/31"]], ["208", 3, "", ["2/4", "6/22", "8/18"], ["8/10", "8/11", "8/12"]], ["209", 1, "", ["2/20", "3/26", "4/21", "5/19", "6/2"], ["3/4", "3/5", "3/6"]], ["210", 3, "", ["6/23", "9/1", "11/3"], ["8/10", "8/11", "8/12"]], ["211", 1, "", ["4/30", "7/10", "8/6", "9/18", "10/19"], ["11/16", "11/17", "11/18"]], ["212", 0, "", ["4/15", "5/7", "5/8", "5/26", "8/14", "10/12"], []], ["213", 2, "", ["7/8", "8/21"], []], ["214", 2, "", ["3/10", "5/19", "8/31", "10/19"], ["8/7", "8/10", "8/11"]], ["215", 2, "", ["2/6", "3/31", "4/22", "9/1"], ["8/5", "8/6", "8/7"]], ["216", 2, "", ["4/3", "5/19", "6/19", "9/11"], ["8/4", "8/5", "8/6"]], ["217", 0, "", ["2/3", "3/23", "4/1", "8/25", "10/30", "11/3"], ["8/3", "8/4", "8/5"]], ["218", 0, "", ["8/18", "10/12", "10/16"], ["10/6", "10/7", "10/8"]], ["219", 2, "", ["5/15", "5/19", "9/4", "11/6"], ["8/7", "8/10", "8/11"]], ["220", 0, "", ["1/29", "2/5", "3/4", "3/9", "3/26", "6/17"], ["10/14", "10/15", "10/16"]], ["221", 2, "", ["4/16", "6/24", "8/21", "10/23"], ["9/9", "9/10", "9/11"]], ["222", 0, "", ["5/26", "5/27", "5/28", "7/3", "7/30", "10/29"], []], ["223", 2, "", ["4/10", "4/13", "9/21", "9/22"], ["10/30", "11/2", "11/3"]], ["224", 0, "", ["1/6", "2/4", "2/5", "2/6", "3/30", "3/31"], ["7/2", "7/3", "7/6"]], ["225", 2, "", ["5/6", "5/7", "5/8", "8/18"], ["8/19", "8/20", "8/21"]], ["226", 0, "", ["1/9", "1/27", "2/12", "2/13", "2/20", "5/12"], ["6/2", "8/4", "10/28"]], ["227", 0, "", ["1/26", "4/16", "6/2", "6/4", "7/27", "8/10"], ["9/16", "9/17", "9/18"]], ["228", 1, "", ["3/16", "3/17", "3/26", "4/13", "8/21"], ["9/21", "9/22", "9/23"]], ["229", 2, "", ["4/13", "7/16", "10/22", "10/23"], ["7/13", "7/14", "7/15"]], ["230", 0, "", ["3/11", "4/22", "6/24", "7/1", "10/15", "10/21"], []], ["231", 2, "", ["1/14", "11/16", "11/17", "11/18"], ["8/3", "8/4", "8/5"]], ["232", 5, "", ["5/12"], ["10/30", "11/2", "11/3"]], ["233", 2, "", ["3/5", "5/12", "8/27", "9/7"], []], ["234", 0, "", ["1/8", "2/27", "4/16", "5/13", "5/22", "10/12"], []], ["235", 4, "", ["4/17", "9/7"], ["7/29", "7/30", "7/31"]], ["236", 1, "", ["5/12", "6/2", "7/14", "8/13", "9/9"], ["9/4", "9/7", "9/8"]], ["237", 2, "", ["6/23", "7/23", "9/16", "9/17"], ["8/5", "8/6", "8/7"]], ["238", 0, "", ["1/12", "3/3", "3/4", "5/22", "5/26", "7/22"], ["8/3", "8/4", "8/5"]], ["239", 2, "", ["5/21", "5/22", "10/1"], ["7/20", "7/21", "7/22"]], ["240", 1, "", ["2/23", "4/10", "5/8", "6/5", "7/8"], ["6/1", "6/2", "6/4"]], ["241", 0, "", ["2/12", "3/16", "5/15", "6/26", "11/17", "11/18"], ["8/5", "8/6", "8/7"]], ["242", 3, "", ["3/24", "8/24", "10/23"], ["10/6", "10/7", "10/8"]], ["243", 0, "", ["4/10", "5/4", "5/27", "6/26", "10/8", "11/6"], ["5/6", "5/7", "5/8"]], ["244", 2, "", ["1/30", "3/18", "9/10", "9/11"], ["7/29", "7/30", "7/31"]], ["245", 2, "", ["2/3", "5/14", "7/23", "8/27"], ["10/6", "10/7", "10/8"]], ["246", 0, "", ["3/25", "4/16", "5/18", "5/19", "5/21", "9/22"], ["7/23", "7/24", "7/27"]], ["247", 2, "", ["3/12", "4/21", "10/2", "10/26"], ["8/12", "8/13", "8/14"]], ["248", 0, "", ["1/5", "5/21", "7/13", "8/13", "8/14", "9/21"], ["8/10", "8/11", "8/12"]], ["249", 0, "", ["1/29", "3/24", "4/3", "4/16", "9/15", "9/16"], ["8/5", "8/6", "8/7"]], ["250", 0, "", ["4/8", "7/10", "7/13", "8/13", "9/2", "10/21"], []], ["251", 2, "", ["2/19", "2/20", "7/9", "8/21"], ["6/5", "6/8", "6/9"]], ["252", 0, "", ["5/7", "5/18", "6/17", "6/26", "7/1", "10/23"], []], ["253", 2, "", ["1/29", "3/20", "6/30", "11/2"], ["2/11", "2/12", "2/13"]], ["254", 1, "", ["2/23", "6/22", "8/13", "8/18", "9/14"], ["7/2", "7/3", "7/6"]], ["255", 2, "", ["3/6", "5/26", "7/3", "11/9"], ["8/12", "8/13", "8/14"]], ["256", 4, "", ["7/10", "9/4"], []], ["257", 3, "", ["2/20", "5/11", "9/11"], ["8/5", "8/6", "8/7"]], ["258", 4, "", ["2/23", "6/18"], ["8/3", "8/4", "8/5"]], ["259", 3, "1", ["2/24", "4/23", "10/26"], ["7/29", "7/30", "7/31"]], ["260", 0, "", ["1/9", "3/17", "3/18", "4/17", "4/27", "4/28"], ["9/30", "10/1", "10/2"]]];
+// 시안 자료: 현장 목록(운행거리 목록) · 11/2 물량표(집계표) · 10월 일보의 조퇴·지각·결근·특별휴가
+const SEED_SITES = [];
+const SEED_TODAY = [["2026-11-02","한국토지주택공사경기남부지역본부 과천주암C-2BL아파트(건축,토목)","",242,"08:00",""],["2026-11-02","(주)보경탑건설 봉천동37-90","",120,"08:00",""],["2026-11-02","진화(주) 동수원IC정체개선공사","",100,"09:00",""],["2026-11-02","한국토지주택공사경기남부지역본부 수원당수A-5BL아파트(건축)","",352,"08:00",""],["2026-11-02","한국토지주택공사경기남부지역본부 의왕고천고속화도로소음저감시설설치공사","",24,"10:00",""],["2026-11-02","국가철도공단수도권지역본부 월곶~판교복선전철제6공구건설공사","",108,"08:00",""],["2026-11-02","토지주택공사경기지역본부 의왕월암공공주택지구조성공사(토목)-재구매","",15,"",""],["2026-11-02","한국토지주택공사경기남부지역본부 의왕청계2공공주택지구조성공사(토목)-(재구매)","",5,"",""],["2026-11-02","한국토지주택공사경기남부지역본부 광명유통단지조성공사(토목)-(재구매)","",50,"",""],["2026-11-02","지에스건설(주) 평촌자이퍼스니티","",101,"08:00",""],["2026-11-02","한국농어촌공사토지개발사업단 이목지구공원및녹지조성공사1차년도(의)","",16,"13:00",""],["2026-11-02","한국토지주택공사경기남부지역본부 의왕고천공공주택지구조경공사(조경)-(재구매)","",24,"",""],["2026-11-02","한국토지주택공사경기남부지역본부 의왕고천공공주택지구조성공사(토목)-(추가1)","",6,"",""],["2026-11-02","(주)대우건설 금정역푸르지오그랑블현장","",352,"08:00",""],["2026-11-02","(주)금강주택 군포대야미B-1블럭","",312,"08:30",""],["2026-11-02","두산건설(주) 신림봉천터널공사1공구","",90,"07:20",""],["2026-11-02","한림종합건설(주) 오전동135-4","",15,"",""],["2026-11-02","계룡건설산업(주) 수원당수1공공주택지구C3블록","",250,"13:00",""],["2026-11-02","금호건설(주) 과천지식정보타운S12BL","",18,"",""],["2026-11-02","지에스건설(주) 평촌자이퍼스니티2단지(경기)","",30,"",""],["2026-11-02","한국토지주택공사경기남부지역본부 군포대야미공공주택지구조성공사(토목)","",30,"",""],["2026-11-02","안양시청 평촌동흥안대로434번길보도설치공사","",6,"",""],["2026-11-02","디앤디건설(주) 오전-청계도로공사(학의동1192)","",18,"",""]];
+const SEED_EVENTS = [["259","2026-10-01","지각","정비 후 출근"],["204","2026-10-02","조퇴",""],["204","2026-10-06","결근",""],["214","2026-10-06","조퇴",""],["254","2026-10-06","결근",""],["206","2026-10-08","결근",""],["241","2026-10-08","조퇴",""],["260","2026-10-08","조퇴",""],["227","2026-10-12","지각","정비 후 출근"],["249","2026-10-12","결근",""],["205","2026-10-13","조퇴",""],["218","2026-10-13","결근",""],["226","2026-10-13","조퇴",""],["233","2026-10-13","조퇴",""],["236","2026-10-13","결근",""],["249","2026-10-13","결근",""],["218","2026-10-14","결근",""],["218","2026-10-15","결근",""],["223","2026-10-15","지각","정비 후 출근"],["209","2026-10-19","지각","정비 후 출근"],["206","2026-10-21","결근",""],["209","2026-10-21","지각",""],["252","2026-10-21","조퇴",""],["259","2026-10-21","지각","정비 후 출근"],["204","2026-10-22","조퇴",""],["252","2026-10-22","결근",""],["209","2026-10-23","특별휴가","공무"],["254","2026-10-23","조퇴",""],["230","2026-10-26","지각",""],["239","2026-10-26","지각",""],["260","2026-10-26","특별휴가","빙부상"],["260","2026-10-27","특별휴가","빙부상"],["204","2026-10-28","조퇴",""],["209","2026-10-28","지각",""],["252","2026-10-28","지각",""],["260","2026-10-28","특별휴가","빙부상"],["260","2026-10-29","특별휴가","빙부상"],["204","2026-10-30","결근",""],["209","2026-10-30","지각",""],["251","2026-10-30","조퇴",""],["260","2026-10-30","특별휴가","빙부상"],["204","2026-11-02","결근",""],["220","2026-11-02","지각","정비 후 출근"],["227","2026-11-02","지각",""],["250","2026-11-02","조퇴",""],["204","2026-11-03","결근",""],["209","2026-11-03","지각",""],["241","2026-11-16","결근",""]];
+// 시안 체험 모드용 휴가 규칙 (관리자 시안과 같은 값)
 var RULES = {
   LIMIT: 5,              // 하루 연차 최대 인원
   SPECIAL_LIMIT: 5,      // 우선순위날(월·금·연휴 앞뒤 날) 하루 연차 최대 인원
@@ -920,12 +1091,12 @@ var RULES = {
   SPECIAL_WEEKDAYS: [1, 5], // 후순위 대상 요일 (1=월, 5=금)
   PRIORITY_AFTER: 2,     // 월·금·샌드위치데이 연차는 한 해에 이 횟수까지 일반 신청, 그 뒤로는 후순위
   SUMMER_DEFAULT: 3,     // '차량' 탭 여름휴가 칸이 비어 있으면 한 해 여름휴가 3일로 계산
-  VAC_OPEN: 0,           // 기사님 휴가 신청: 0 = 테스트 중(막음), 1 = 열림
+  VAC_OPEN: 2,           // 기사님 휴가 탭: 0 = 잠금(테스트 중 안내만), 2 = 신청만 막기(내 기록·날짜별 인원만 보임), 1 = 열림
   ORDER_SHOW_NO: 0       // 신청 순서 화면에 다른 기사님 호수: 0 = 가림, 1 = 보임
 };
 // 관리자 '설정'에서 바꿀 수 있는 숫자들 (이름 → [설명, 최소, 최대])
 var SETTING_INFO = {
-  VAC_OPEN: ["기사님 휴가 신청 열기 (0 = 테스트 중, 1 = 열림)", 0, 1],
+  VAC_OPEN: ["기사님 휴가 탭 (0 = 잠금, 2 = 신청만 막기, 1 = 열림)", 0, 2],
   ORDER_SHOW_NO: ["신청 순서 화면에 다른 기사님 호수 보이기 (0 = 가림, 1 = 보임)", 0, 1],
   LIMIT: ["하루 연차 최대 인원", 1, 30],
   SPECIAL_LIMIT: ["우선순위날 하루 연차 최대 인원 (월·금·연휴 앞뒤 날)", 0, 30],
@@ -960,7 +1131,7 @@ function limitSource(st, d) {
 function hourText(h) { return h === 0 ? "밤 12시" : h < 12 ? "오전 " + h + "시" : h === 12 ? "낮 12시" : "오후 " + (h - 12) + "시"; }
 function rulesView() {
   return { hours: workHours(), workStart: WORK_START, workEnd: WORK_END, limit: RULES.LIMIT, specialLimit: RULES.SPECIAL_LIMIT, openDays: RULES.OPEN_DAYS, openHour: RULES.OPEN_HOUR, openText: hourText(RULES.OPEN_HOUR),
-           lockDays: RULES.LOCK_DAYS, priorityAfter: RULES.PRIORITY_AFTER, summerDefault: RULES.SUMMER_DEFAULT, vacOpen: RULES.VAC_OPEN === 1 };
+           lockDays: RULES.LOCK_DAYS, priorityAfter: RULES.PRIORITY_AFTER, summerDefault: RULES.SUMMER_DEFAULT, vacOpen: RULES.VAC_OPEN === 1, vacMode: RULES.VAC_OPEN };
 }
 
 var SELF_TYPES = ["연차", "조퇴", "지각", "결근"];
@@ -1063,6 +1234,17 @@ function perkHolders(st, date) {
   return Object.keys(st.cars).filter(function (no) {
     return !st.cars[no].off && (used[no] || 0) < RULES.PRIORITY_AFTER && st.cars[no].total - (leave[no] || 0) >= 1 && !busy[no];
   }).length;
+}
+// 그날 연차 신청 인원 (기사 화면에 숫자만 보여 줌 · 이름은 안 보임)
+//  prio = 우선순위로 신청한 인원(확정 + 대기), low = 후순위로 신청한 인원(확정된 것 포함)
+function prioOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && (r.status === "확정" || r.status === "대기") && r.wait !== "후순위"; }).length;
+}
+function lowAppliedOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && ACTIVE[r.status] && (r.status === "후순위" || r.wait === "후순위"); }).length;
+}
+function waitingOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && PENDING[r.status]; }).length;
 }
 function pendingOn(st, date) {
   return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "후순위"; }).length;
@@ -1317,6 +1499,7 @@ function engineSummary(st) {
   for (var i = 1; i <= maxDay; i++) {
     var d = dAdd(st.today, i);
     days.push({ date: d, year: dYear(d), label: dShort(d), long: dLong(st, d), week: WEEK[dWeekday(d)], off: isOffDay(st, d), special: specialKind(st, d), taken: confirmedOn(st, d), limit: limitOn(st, d), locked: i <= RULES.LOCK_DAYS, block: blockOn(st, d) ? (blockOn(st, d).memo || "연차 불가") : "",
+                prio: prioOn(st, d), low: lowAppliedOn(st, d), waiting: waitingOn(st, d),
                 lowOpen: specialKind(st, d) && i > RULES.LOCK_DAYS ? Math.max(0, lowOpenOn(st, d) - pendingOn(st, d)) : null });
   }
   // 아직 신청이 열리지 않은 다음 근무일과, 그날 신청이 열리는 날짜
@@ -1344,7 +1527,9 @@ function engineMine(st, p) {
              left: left, canCancel: !!ACTIVE[r.status] && r.type !== "여름휴가" && r.type !== "특별휴가" && left > RULES.LOCK_DAYS };
   });
   var nextYear = String(+year + 1);
-  return { ok: true, no: no, total: st.cars[no].total, remain: st.cars[no].total - leaveUsed(st, no, year, true),
+  var others = st.reqs.filter(function (r) { return r.no === no && r.status === "확정" && dYear(r.date) === year && (r.type === "조퇴" || r.type === "지각" || r.type === "결근" || r.type === "특별휴가") && r.date <= st.today; })
+    .sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (r) { return { date: r.date, label: dShort(r.date), week: WEEK[dWeekday(r.date)], type: r.type, why: r.type === "특별휴가" ? String(r.note || "").split(" · ")[0] : "", time: r.time || "" }; });
+  return { ok: true, no: no, others: others, total: st.cars[no].total, remain: st.cars[no].total - leaveUsed(st, no, year, true),
            summerTotal: summerTotal(st, no), summerRemain: summerRemain(st, no, year),
            thisYear: year, nextYear: nextYear,
            remainNext: st.cars[no].total - leaveUsed(st, no, nextYear, true), usedSpecialNext: usedSpecial(st, no, nextYear),
@@ -1926,7 +2111,7 @@ function engineBell(st, p, logs, notices) {
   var from = dAdd(st.today, -BELL_DAYS), items = [], today = {};
   (logs || []).forEach(function (r) {
     var at = String(r[0] || ""); if (at.slice(0, 10) < from) return;
-    if (String(r[1]) === no && BELL_TYPES[r[2]] && r[6] !== "기사" && (r[4] === "자동처리" || /^관리자/.test(r[4]) || /시트/.test(r[4]))) {
+    if (RULES.VAC_OPEN === 1 && String(r[1]) === no && BELL_TYPES[r[2]] && r[6] !== "기사" && (r[4] === "자동처리" || /^관리자/.test(r[4]) || /시트/.test(r[4]))) {
       var t = bellVacText(r);
       items.push({ id: "v" + at + r[3] + r[4] + r[5], at: at, kind: "vac", date: r[3], title: t.title, body: t.body });
     }
@@ -2397,7 +2582,12 @@ function demoState() {
         st.reqs.push({ id: "s" + (++n), no, date: "2026-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"), type, status: "확정", time: "", createdAt: "2026-10-27 00:00", by: "관리자" });
       }));
     });
+    SEED_EVENTS.forEach(([no, date, type, note]) => st.reqs.push({ id: "e" + (++n), no, date, type, status: "확정", time: "", note: note || "", createdAt: date + " 07:00", by: "관리자" }));
+    st.evAdded3 = 1;
   }
+  if (!st.evAdded3) { const have = new Set(st.reqs.map(r => r.no + r.date + r.type)); let k = 0;   // 예전에 저장된 체험 자료에도 11월 자료를 더함
+    SEED_EVENTS.forEach(([no, date, type, note]) => { if (!have.has(no + date + type)) st.reqs.push({ id: "e3" + (++k), no, date, type, status: "확정", time: "", note: note || "", createdAt: date + " 07:00", by: "관리자" }); }); st.evAdded3 = 1; }
+  if (!st.evDrop4) { const X = ["241|2026-11-11", "241|2026-11-12", "241|2026-11-13"]; st.reqs = st.reqs.filter(r => !X.includes(r.no + "|" + r.date)); st.evDrop4 = 1; }   // 11/11~13 241호는 잘못 적힌 것
   Object.keys(st.cars).forEach(no => { if (st.cars[no].pin === "1234") st.cars[no].pin = "0" + no; });   // 예전 체험 기본 비밀번호 → 0+호수
   Object.assign(st, kstNow());
   st.settings = st.settings || {}; if (st.settings.VAC_OPEN === undefined) st.settings.VAC_OPEN = 1;   // 체험 모드는 신청 열어 둠
@@ -2534,6 +2724,16 @@ function toast(msg, good) {
   clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "toast", Math.max(4000, msg.length * 110));
 }
 
+/* ---------- 내 조퇴·지각·결근·특별휴가 (작은 글씨 버튼 → 펼치면 올해·이번 달 횟수와 날짜) ---------- */
+let OTH_OPEN = false;
+function othersBox() { if (!MY || !MY.others) return "";
+  const L = MY.others, ym = SUM.today.slice(0, 7), T = ["조퇴", "지각", "결근", "특별휴가"], cnt = (arr, t) => arr.filter(x => x.type === t).length, M = L.filter(x => x.date.slice(0, 7) === ym);
+  const sum = arr => T.map(t => cnt(arr, t) ? t + " " + cnt(arr, t) + "번" : "").filter(Boolean).join(" · ") || "없음";
+  return '<button type="button" class="oth-btn" id="oth-btn">조퇴·지각·결근(특별휴가 등) 보기 ' + (OTH_OPEN ? '▲' : '▼') + '</button>' +
+    (OTH_OPEN ? '<div class="oth"><p class="oth-l"><b>이번 달</b> ' + sum(M) + '</p><p class="oth-l"><b>' + SUM.year + '년</b> ' + sum(L) + '</p>' +
+      (L.length ? '<div class="chips">' + L.slice().reverse().map(x => '<span class="chip oth-c t-' + x.type + '">' + x.label + ' <i>' + x.type + (x.why ? '·' + esc(x.why) : '') + '</i></span>').join("") + '</div>' : '<p class="oth-l">' + SUM.year + '년 기록이 없습니다.</p>') +
+      '<p class="oth-n">사무실에서 확정한 기록만 나옵니다.</p></div>' : ''); }
+document.addEventListener("click", e => { if (!e.target.closest("#oth-btn")) return; OTH_OPEN = !OTH_OPEN; renderMine(); });
 /* ---------- 내 차 카드 ---------- */
 function renderMine() {
   const el = document.getElementById("mine");
@@ -2547,7 +2747,9 @@ function renderMine() {
     my = '<p class="none">내 신청 불러오는 중…</p>';
   } else {
     const list = MY.list.filter(x => x.status !== "취소"); // 취소한 신청은 목록에서 숨김 (기록 탭에는 남음)
-    my = '<button class="btn primary wide" id="open-form">＋ 휴가·조퇴·지각·결근 신청</button>' +
+    my = (VAC_VIEW_ONLY
+        ? '<div class="vc-note"><b>지금은 휴가 신청을 받지 않습니다</b><span>휴가·조퇴·지각·결근이 필요하면 <b>관리자에게 따로 말씀해 주세요.</b> 지금은 관리자만 휴가를 넣고 고칠 수 있습니다. 이 화면에서는 내 휴가 기록과 날짜별 신청 인원만 볼 수 있습니다.</span></div>' + vacCountHtml()
+        : '<button class="btn primary wide" id="open-form">＋ 휴가·조퇴·지각·결근 신청</button>') +
       '<p class="label" style="margin-top:16px">내 신청</p>' +
       (list.length ? '<ul class="reqs">' + list.map(x =>
         '<li><div class="req-main"><b>' + esc(x.long) + '</b> ' + esc(x.type) + (x.reason ? ' (' + esc(x.reason) + ')' : '') + (x.time ? ' ' + esc(x.time) : '') +
@@ -2559,9 +2761,9 @@ function renderMine() {
           (x.status === "반려" && x.rank && x.left >= 0 ? '<div class="hint">자리가 다 차서 확정되지 않았습니다. ' + (x.label || "대기") + ' ' + x.rank + '번째입니다. 자리가 나면 ' + (x.label === "대기" ? '신청 순서대로' : '우선순위 대기, 후순위 대기 순서대로') + ' 관리자가 확정합니다.</div>' : '') +
           (!x.canCancel && (x.status === "확정" || x.status === "후순위") && x.left > 0 ? '<div class="hint">취소는 관리자에게 문의</div>' : '') +
           (x.order ? '<button class="btn order-btn" data-order="' + esc(x.date) + '">신청 순서 보기</button>' : '') +
-        '</div>' + (x.canCancel ? '<button class="btn small" data-cancel="' + esc(x.id) + '">취소</button>' : '') + '</li>').join("") + '</ul>'
+        '</div>' + (x.canCancel && !VAC_VIEW_ONLY ? '<button class="btn small" data-cancel="' + esc(x.id) + '">취소</button>' : '') + '</li>').join("") + '</ul>'
         : '<p class="none">최근 신청 내역이 없습니다</p>') +
-      '<div class="links"><button class="link" id="open-pw">비밀번호 변경</button></div>';
+      '<div class="links"><button class="link" id="open-pw">비밀번호 변경</button>'  + '</div>';
   }
   const y = SUM.year, left = MY ? MY.remain : r[1];
   const month = Number(SUM.today.slice(5, 7));
@@ -2584,7 +2786,7 @@ function renderMine() {
     (MY ? '<p class="perk">우선순위: ' + y + '년 <b>' + perkLeft(y) + '번 남음</b>' +
           (perkLeft(y) === 0 ? ' <span class="sub">(이후 후순위로 접수)</span>' : '') +
           '<br><span class="sub">우선순위 = 월·금요일, 연휴 앞뒤 날 연차를 먼저 신청할 수 있는 횟수</span></p>' : '') +
-    details(r) + '<div class="divider"></div>' + my + '</div>';
+    details(r) + othersBox() + '<div class="divider"></div>' + my + '</div>';
 }
 
 /* ---------- 조별 목록 ---------- */
@@ -2617,7 +2819,7 @@ function renderForm() {
   const divider = y => { divided = true; return '<div class="year-div">↓ 여기부터 <b>' + y + '년</b> 날짜입니다. ' + y + '년 연차에서 빠집니다.</div>'; };
   document.getElementById("days").innerHTML = SUM.days.map(d => {
     const pre = !divided && d.year !== SUM.year ? divider(d.year) : "";
-    let sub = "", dis = false, cls = "";
+    let sub = "", dis = false, cls = "", sub2 = "";
     if (d.locked) {
       // 3일 이내: 인원만 보여주고 신청은 막음 (누르면 안내)
       const mineThere = taken.has(d.date);
@@ -2634,15 +2836,17 @@ function renderForm() {
       const left = limOf(d) - d.taken;
       if (d.special && lowFor(d.year)) {
         // 특혜를 다 쓴 사람: 특혜 보유자 몫을 빼고 남는 자리가 있으면 바로 확정
-        if (d.lowOpen > 0) sub = d.lowOpen + "자리";
-        else { sub = "후순위"; cls = " warn"; }
+        // 후순위여도 그날 우선순위로 신청한 인원과 남은 자리는 보여 줌
+        const lf = Math.max(0, limOf(d) - d.taken);
+        sub = "우선 " + (d.prio || 0) + "명"; sub2 = lf > 0 ? lf + "자리 남음" : "자리 없음";
+        if (!(d.lowOpen > 0)) cls = " warn";
       }
       else if (left <= 0) { sub = "마감 · 대기"; cls = " warn"; }   // 꽉 찬 날도 대기로 신청 가능
       else sub = left + "자리";
     } else sub = "가능";
     return pre + '<button class="day' + (form.date === d.date ? ' on' : '') + cls + '" data-date="' + d.date + '"' + (dis ? ' disabled' : '') + '>' +
       '<span class="d1">' + d.label + '</span><span class="d2' + (d.week === "일" || d.off ? ' red' : '') + '">' + d.week + '</span>' +
-      '<span class="d3">' + sub + '</span></button>';
+      '<span class="d3">' + sub + '</span>' + (sub2 ? '<span class="d4">' + sub2 + '</span>' : '') + '</button>';
   }).join("");
   // 다음에 열리는 날짜: 언제부터 신청할 수 있는지 표시
   const nx = SUM.next;
@@ -2658,11 +2862,12 @@ function renderForm() {
   if (sel && form.type === "연차") {
     const n = remainFor(sel.year);
     other = sel.year !== SUM.year;
+    const prioLine = sel.special && lowFor(sel.year) ? "이날 우선순위 신청 " + (sel.prio || 0) + "명 · 남은 자리 " + Math.max(0, limOf(sel) - sel.taken) + "개 (하루 " + limOf(sel) + "명)" + (sel.low ? " · 후순위 신청 " + sel.low + "명" : "") + "\n" : "";
     if (sel.special && lowFor(sel.year))
-      note = sel.lowOpen > 0
+      note = prioLine + (sel.lowOpen > 0
         ? sel.long + "은 " + sel.special + "이지만, 자리에 여유가 있어 바로 확정됩니다.\n"
         : sel.long + "은 후순위 대기로 접수됩니다. " + sel.year + "년 우선순위 " + MY.priorityAfter + "번을 모두 쓰셨기 때문입니다. " +
-          "우선순위 대기하는 분들이 먼저 확정되고, 그다음 후순위 대기 순서대로 확정됩니다. 휴가 " + L() + "일 전까지 자리가 나지 않으면 확정되지 않습니다.\n";
+          "우선순위 대기하는 분들이 먼저 확정되고, 그다음 후순위 대기 순서대로 확정됩니다. 휴가 " + L() + "일 전까지 자리가 나지 않으면 확정되지 않습니다.\n");
     if (isFullFor(sel))
       note = "" + sel.long + "은 자리가 다 찼습니다. 신청하시면 " + (sel.special ? "우선순위 대기" : "대기") + "로 접수되고, 확정된 분이 취소하면 " + (sel.special ? "우선순위 대기" : "대기") + " 순서대로 자동 확정됩니다. " +
              "휴가 " + L() + "일 전까지 자리가 나지 않으면 확정되지 않습니다.\n";
@@ -2727,9 +2932,12 @@ async function loadVac() {
     SUM = s;
     // 관리자가 휴가 신청을 열기 전에는 '테스트 중' 안내만 보여 줌
     const open = !(s.rules && s.rules.vacOpen === false);
-    document.getElementById("vac-closed").classList.toggle("hidden", open);
-    document.getElementById("vac-grid").classList.toggle("hidden", !open);
-    if (!open) { if (myCar && myTok) await loadMine(true); return; }   // 처음 비밀번호 바꾸기 확인은 그대로
+    // 휴가 탭 상태 (관리자 '기사 탭 잠금'): 0 = 잠금(테스트 중 안내만) · 2 = 신청만 막기(내 기록 + 날짜별 인원 숫자만) · 1 = 열림
+    VAC_MODE = s.rules && s.rules.vacMode !== undefined ? +s.rules.vacMode : (open ? 1 : 2);
+    VAC_VIEW_ONLY = VAC_MODE !== 1; document.body.classList.toggle("vac-view", VAC_VIEW_ONLY);
+    document.getElementById("vac-closed").classList.toggle("hidden", VAC_MODE !== 0);
+    document.getElementById("vac-grid").classList.toggle("hidden", VAC_MODE === 0);
+    if (VAC_MODE === 0) { if (myCar && myTok) await loadMine(true); return; }
     document.getElementById("checked").textContent = "오늘 " + SUM.today + (API_URL ? "" : " · 체험 모드");
     document.getElementById("demo").style.display = API_URL ? "none" : "block";
     if (myCar && myTok) await loadMine(true);
@@ -2985,6 +3193,7 @@ function startApp(animate) {
   group = groupOf(myCar);
   loadVac();
   loadSheet();
+  RUN_DATA = null; runCar = ""; setTimeout(runFetch, 400);                              // 운행기록 자료 미리 받아 둠 (탭을 열면 바로 뜨게)
   setTimeout(showA2hs, 6000);                                     // 화면이 다 뜨고 알림이 사라진 뒤 앱 추가 안내
   BELL = []; renderBellBadge(); loadBell(true);
   loadOneSignal(); pushSync();
@@ -3019,6 +3228,7 @@ document.getElementById("lg-change").addEventListener("click", e => {          /
   const inp = document.getElementById(b.dataset.eye), show = inp.type === "password";
   inp.type = show ? "text" : "password"; b.classList.toggle("on", show); inp.focus();
 });
+function deviceName() { const u = navigator.userAgent || ""; return /iPhone/.test(u) ? "아이폰" : /iPad/.test(u) ? "아이패드" : /Android/.test(u) ? (/SM-|Samsung/i.test(u) ? "갤럭시" : "안드로이드") : /Windows/.test(u) ? "윈도우 PC" : /Macintosh/.test(u) ? "맥" : "기기"; }
 async function doLogin() {
   const id = document.getElementById("lg-id").value.trim(), pin = document.getElementById("lg-pw").value.trim();
   const no = id.replace(/\D/g, "");   // 9999 = 관리자
@@ -3026,10 +3236,7 @@ async function doLogin() {
   if (no === "9999") {                              // 관리자: 비밀번호 확인 후 관리자 페이지로
     if (!pin) return err.textContent = "비밀번호를 입력하세요.";
     btn.disabled = true; btn.textContent = "확인 중…"; err.textContent = "";
-    let demoPw = "4512"; try { demoPw = localStorage.getItem("demoAdminPw") || "4512"; } catch (e) {}
-    let r = { ok: pin === demoPw, msg: "관리자 비밀번호가 맞지 않습니다." };   // 체험 모드
-    if (!API_URL && r.ok) try { const L = JSON.parse(localStorage.getItem("demoLogs") || "[]"); L.push([kstNow().now, "-", "-", "", "관리자 로그인", "성공", "관리자", ""]); localStorage.setItem("demoLogs", JSON.stringify(L.slice(-2000))); } catch (e) {}
-    if (API_URL) r = await api("adminLogin", { adminPw: pin });
+    let r = await api("adminLogin", { adminPw: pin });
     btn.disabled = false; btn.textContent = "로그인";
     if (!r.ok) return err.textContent = r.msg || "관리자 비밀번호가 맞지 않습니다.";
     try { sessionStorage.setItem("adminPw", pin); } catch (e) {}
@@ -3038,8 +3245,15 @@ async function doLogin() {
   if (!no) return err.textContent = "아이디(차량 호수)를 입력하세요.";
   if (!pin) return err.textContent = "비밀번호를 입력하세요.";
   btn.disabled = true; btn.textContent = "확인 중…"; err.textContent = "";
+  if (no === "3000" || no === "2001") {              // 사무실 계정 → 관리팀·출하실 화면 (아이디·비밀번호는 서버에서만 확인)
+    const ro = await api("officeLogin", { id: no, pw: pin, dev: deviceName() });
+    btn.disabled = false; btn.textContent = "로그인";
+    if (!ro.ok) return err.textContent = ro.msg || "아이디 또는 비밀번호가 맞지 않습니다.";
+    try { localStorage.setItem("officeSess", JSON.stringify({ id: no, tok: ro.tok, role: ro.role, name: ro.name, mustChange: !!ro.mustChange, devId: ro.devId })); } catch (e) {}
+    return location.href = (ro.role === "acct" ? "acct.html" : "ship.html") + "?v=" + APP_VER;
+  }
   const r = await api("login", { no, pin });
-  if (!r.ok) { btn.disabled = false; btn.textContent = "로그인"; return err.textContent = r.msg === "등록되지 않은 호수입니다." ? "등록되지 않은 아이디(차량 호수)입니다." : r.msg; }
+  if (!r.ok) { btn.disabled = false; btn.textContent = "로그인"; return err.textContent = /등록되지 않은|맞지 않습니다/.test(r.msg || "") && !/잠겼|회\)/.test(r.msg || "") ? "아이디 또는 비밀번호가 맞지 않습니다." : r.msg; }
   myCar = no; myTok = r.tok; MY = null; store.set("myCar", no); store.set("myTok", r.tok); openNo = "";
   LOGIN_NOTE = r.replaced ? "기존 기기에서 로그아웃되었습니다. 이제 이 기기에서 " + no + "호로 사용합니다." : "";
   if (r.mustChange) { btn.disabled = false; btn.textContent = "로그인"; return showChange(); }   // 처음 받은 비밀번호 → 먼저 바꾸기
@@ -3083,12 +3297,62 @@ document.getElementById("ch-btn").addEventListener("click", () => doChange());
 ["ch-new", "ch-new2"].forEach(id => document.getElementById(id).addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); id === "ch-new" ? document.getElementById("ch-new2").focus() : doChange(); }
 }));
+["pw-now", "pw-new", "pw-new2"].forEach((id, i, A) => document.getElementById(id).addEventListener("keydown", e => {
+  if (e.key !== "Enter") return; e.preventDefault(); if (i < A.length - 1) document.getElementById(A[i + 1]).focus(); else { e.target.blur(); document.getElementById("pw-save").click(); } }));
 document.getElementById("ch-out").addEventListener("click", () => { api("logout", { no: myCar, tok: myTok }); logout(""); });
 // 앱을 다시 볼 때마다 로그인 상태 확인 (다른 기기에서 로그인했으면 여기서 알려 줌)
-document.addEventListener("visibilitychange", async () => {
-  if (document.hidden || !myCar || !myTok || !document.getElementById("login-screen").classList.contains("hidden")) return;
-  await loadMine(true); if (myTok) { renderMine(); loadBell(); }
-});
+// 자동 새로고침: 앱을 다시 켰을 때(백그라운드 → 앞) · 화면을 보고 있는 동안 1분마다 · 아래로 당겼다 놓을 때
+//  관리자가 현장 거리·물량표·휴가를 바꾸면 열어 둔 화면에도 바로 반영 (운행기록 탭은 다른 기사님 입력도 반영)
+let refreshing = false, lastRefresh = Date.now();
+async function autoRefresh(why) {
+  if (refreshing || !myCar || !myTok || !document.getElementById("login-screen").classList.contains("hidden")) return;
+  refreshing = true; lastRefresh = Date.now();
+  try { await loadMine(true); if (!myTok) return; await Promise.all([loadSheet(), loadVac(), loadBell(true)]); renderMine();
+    const f = document.getElementById("run-frame"); if (f && f.getAttribute("src")) { const pg = await runPing(); if (!pg.busy) await runReload(); } else if (RUN_DATA) await runFetch();   // 운행기록도 새로 받음 (입력 중이면 건너뜀)
+  } catch (e) {} finally { refreshing = false; }
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) autoRefresh("show"); });
+addEventListener("pageshow", e => { if (e.persisted) autoRefresh("show"); });
+// 아래로 당겨서 새로고침 (운행거리 · 휴가 탭 · 맨 위에서만) — 운행기록 탭과 같은 모양·움직임
+(function () {
+  const ptr = document.createElement("div"); ptr.className = "hptr"; ptr.setAttribute("aria-hidden", "true");
+  ptr.innerHTML = '<div class="hptr-ball"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div><div class="hptr-txt">당겨서 새로고침</div>';
+  document.body.appendChild(ptr);
+  const TRIGGER = 90, MAX = 140, ball = ptr.querySelector(".hptr-ball"), txt = ptr.querySelector(".hptr-txt");
+  let y0 = null, pull = 0, busy = false, page = null;
+  const blocked = e => curView === "run" || window.scrollY > 0 || !myTok || document.querySelector(".sheet.show, .ask.show, .bell-panel.show") || (document.getElementById("login-screen") && !document.getElementById("login-screen").classList.contains("hidden")) || (e && e.target.closest("input, textarea, select, button, a, .nav, #who, .sheet"));
+  function setPull(d) {
+    pull = d; const k = Math.min(1, d / TRIGGER);
+    ball.style.transform = "translateY(" + (d - 64) + "px) rotate(" + d * 3 + "deg)"; ball.style.opacity = k;
+    txt.style.transform = "translateY(" + (d - 14) + "px)"; txt.style.opacity = k;
+    if (!busy) txt.textContent = d >= TRIGGER ? "놓으면 새로고침" : "당겨서 새로고침";
+    if (page) page.style.transform = d ? "translateY(" + d + "px)" : "";
+  }
+  function settle(d) { ptr.classList.add("back"); if (page) page.classList.add("back"); setPull(d); setTimeout(() => { ptr.classList.remove("back"); if (page) page.classList.remove("back"); }, 320); }
+  function start(y, e) { if (busy || blocked(e)) return; page = document.querySelector(".view.on"); y0 = y; }
+  function move(y, e) {
+    if (y0 === null) return; const dy = y - y0;
+    if (dy <= 0) { if (pull) setPull(0); return; }
+    if (e && e.cancelable) e.preventDefault();
+    try { window.getSelection().removeAllRanges(); } catch (x) {}   // PC에서 끌 때 글자가 선택되지 않게
+    setPull(Math.min(MAX, dy * 0.55));
+  }
+  async function end() {
+    if (y0 === null) return; y0 = null;
+    if (pull < TRIGGER) return settle(0);
+    busy = true; txt.textContent = "새로고침 중"; settle(100); ball.classList.add("spin"); ball.style.transform = "translateY(36px)";
+    const t0 = Date.now(); await autoRefresh("pull"); await new Promise(r => setTimeout(r, Math.max(0, 900 - (Date.now() - t0))));
+    ball.classList.remove("spin"); busy = false; settle(0);
+    toast("최신 기록으로 새로고침했습니다");
+  }
+  window.addEventListener("touchstart", e => start(e.touches[0].clientY, e), { passive: true });
+  window.addEventListener("touchmove", e => move(e.touches[0].clientY, e), { passive: false });
+  window.addEventListener("touchend", end); window.addEventListener("touchcancel", end);
+  // PC에서는 마우스로 끌어서
+  window.addEventListener("mousedown", e => { if (e.button === 0) start(e.clientY, e); });
+  window.addEventListener("mousemove", e => { if (e.buttons) move(e.clientY, e); });
+  window.addEventListener("mouseup", end);
+})();
 document.getElementById("who-out").addEventListener("click", async () => {
   if (!(await ask("로그아웃할까요?\n\n다시 쓰려면 아이디와 비밀번호를 넣어야 합니다.", "로그아웃", "그대로 두기"))) return;
   api("logout", { no: myCar, tok: myTok });                       // 서버의 출입증도 지움 (기다리지 않음)
@@ -3397,8 +3661,37 @@ window.addEventListener("hashchange", openFromHash);
 
 /* ───── 시작 ───── */
 // 로그인돼 있으면 바로, 아니면 로그인 화면
-showView(store.get("lastView") === "vac" ? "vac" : "dist");
+showView(["vac", "run"].includes(store.get("lastView")) ? store.get("lastView") : "dist");
 if (myCar && myTok) startApp(); else showLogin();
+</script>
+<script>
+// 안드로이드 뒤로가기: 팝업이 열려 있으면 사이트 밖으로 나가지 않고 팝업만 닫음
+// (운행기록 탭처럼 바깥 화면 안에 들어 있는 경우에는 바깥 화면이 기록을 맡고, 안쪽은 메시지로만 알림)
+(function () {
+  const SEL = ".sheet, .ask, .bell-panel", inFrame = window.parent !== window;
+  const open = () => Array.from(document.querySelectorAll(SEL)).filter(e => e.classList.contains("show") && !e.classList.contains("inline"));
+  const closeTop = () => { const cur = open(), el = cur[cur.length - 1]; if (!el) return;
+    const btn = el.querySelector("#ask-no, .bp-close, .panel-head .link, [id$=\"-close\"], [id$=\"-no\"]");
+    if (btn && !btn.disabled) { btn.click(); if (!el.classList.contains("show")) return; }
+    el.dispatchEvent(new MouseEvent("click", { bubbles: true }));        // 바탕(어두운 부분)을 누른 것과 같게
+    if (el.classList.contains("show")) el.classList.remove("show"); };
+  let depth = 0, closing = false, stack = [];
+  const frameWin = () => { const f = document.getElementById("run-frame"); return f && f.contentWindow; };
+  const pushEntry = kind => { stack.push(kind); try { history.pushState({ pop: stack.length }, ""); } catch (e) {} };
+  const back = () => { try { history.back(); } catch (e) {} };
+  new MutationObserver(() => {
+    const n = open().length;
+    if (n > depth) { depth = n; if (inFrame) parent.postMessage({ popPush: 1 }, "*"); else pushEntry("h"); }
+    else if (n < depth) { depth = n; if (closing) closing = false; else if (inFrame) parent.postMessage({ popBack: 1 }, "*"); else { stack.pop(); back(); } }
+  }).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ["class"] });
+  const closeHere = () => { closing = true; closeTop(); setTimeout(() => { closing = false; }, 80); };
+  if (inFrame) { addEventListener("message", e => { if ((e.data || {}).popClose) closeHere(); }); return; }
+  addEventListener("message", e => { const m = e.data || {}; if (m.popPush) pushEntry("f"); else if (m.popBack) { stack.pop(); back(); } });
+  addEventListener("popstate", e => {
+    const want = (e.state && e.state.pop) || 0;
+    while (stack.length > want) { const k = stack.pop(); if (k === "f") { const w = frameWin(); if (w) w.postMessage({ popClose: 1 }, "*"); } else closeHere(); }
+  });
+})();
 </script>
 </body>
 </html>

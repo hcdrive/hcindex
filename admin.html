@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>현창레미콘 관리자</title>
+<title>관리자 · 현창레미콘</title>
 <link rel="manifest" href="admin.webmanifest">
 <link rel="icon" type="image/png" href="admin-icon-192.png">
 <link rel="apple-touch-icon" href="admin-apple-touch-icon.png">
@@ -104,8 +104,8 @@
 
   /* 입력 */
   .form .label { font-size: 14px; color: var(--muted); margin: 16px 0 6px; font-weight: 600; }
-  .log-cats { grid-template-columns: .8fr .8fr 1.15fr .8fr 1.25fr !important; }
-  .log-cats .seg { font-size: 14px; padding-left: 0; padding-right: 0; }
+  .log-cats { display: flex !important; flex-wrap: wrap; gap: 4px; }
+  .log-cats .seg { flex: 1 1 auto; font-size: 14px; padding: 0 12px; white-space: nowrap; }
   .segs { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border-radius: 12px; padding: 4px; }
   .seg { height: 40px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 15px; font-weight: 700; cursor: pointer; }
   .seg.on { background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
@@ -157,12 +157,31 @@
   .sheet.show { opacity: 1; pointer-events: auto; }
   .panel { width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; background: var(--bg); border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom)); }
   @media (min-width: 600px) { .sheet { align-items: center; } .panel { border-radius: 20px; max-width: 560px; } }
+  /* 휴가 입력 · 호수 고르기 (가탕 메뉴와 같은 방식) */
+  .carbig { display: flex; align-items: center; justify-content: center; height: 56px; border: 2px solid var(--accent); background: var(--accent-bg); color: var(--accent); cursor: pointer; font: inherit; width: 100%; }
+  .carbig b { font-size: 22px; font-weight: 900; } .carbig.empty b { font-size: 17px; font-weight: 800; }
+  #cpk .cpk-panel { transform: translateY(28px); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+  #cpk.show .cpk-panel { transform: none; }
+  @media (min-width: 600px) { #cpk .cpk-panel { max-width: 920px; } }
+  .cpk-sub { margin: 0 0 8px; color: var(--muted); font-size: 13.5px; font-weight: 700; }
+  .cpk-g { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 700px) { .cpk-g { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+  .cpk-g .grp { grid-column: 1 / -1; font-size: 13px; font-weight: 900; color: var(--muted); margin-top: 6px; }
+  .cpk-g button { height: 62px; display: grid; grid-template-rows: auto 15px; place-content: center; gap: 2px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--chip); color: var(--text); cursor: pointer; font: inherit; padding: 2px; }
+  .cpk-g button b { font-size: 17px; font-weight: 900; } .cpk-g button i { font-style: normal; font-size: 11.5px; font-weight: 800; line-height: 15px; color: var(--muted); white-space: nowrap; }
+  .cpk-g button.zero i { color: #d93025; }
+  .cpk-g button.on { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); background: var(--accent-bg); } .cpk-g button.on b { color: var(--accent); }
   .panel-head { display: flex; justify-content: space-between; align-items: center; font-size: 20px; font-weight: 800; margin-bottom: 8px; }
   .inline { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 
   /* 확인창 · 알림 */
   .ask { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; padding: 20px; }
   .ask.show { display: flex; }
+  .perm-row { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+  .perm-row > span { flex: 1; min-width: 0; } .perm-row b { display: block; font-size: 15.5px; } .perm-row small { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .perm-sw { -webkit-appearance: none; appearance: none; flex: none; width: 50px; height: 30px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; margin: 0; }
+  .perm-sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: left .2s; }
+  .perm-sw:checked { background: var(--accent); } .perm-sw:checked::after { left: 23px; }
   .ask-box { width: 100%; max-width: 380px; background: var(--bg); border-radius: 16px; padding: 22px 18px 16px; }
   .ask-box p { margin: 0 0 20px; font-size: 17px; line-height: 1.55; white-space: pre-line; text-align: center; font-weight: 600; }
   .ask-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -179,6 +198,167 @@
   .nav svg { width: 23px; height: 23px; }
   .nav button.on { color: var(--accent); }
   .hidden { display: none !important; }
+  /* ===== 완성 시안: 운행기록 관리 화면 (안쪽 창) + 바꿀 수 있는 아래 메뉴 ===== */
+  #ops-frame { display: block; width: 100%; border: 0; background: var(--bg); }
+  body.ops-on { overflow: hidden; }
+  body.ops-on #ops-frame { position: fixed; left: 0; right: 0; top: var(--ops-top, 56px); bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); height: calc(100dvh - var(--ops-top, 56px) - var(--nav-h) - env(safe-area-inset-bottom)); width: 100%; z-index: 4; }
+  body.ops-on #page-title { display: none; }
+  .stv { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; display: grid; gap: 10px; }
+  .stv-h { display: grid; gap: 2px; } .stv-h b { font-size: 16px; } .stv-h small { color: var(--muted); font-size: 13px; line-height: 1.45; }
+  .stv-r { display: flex; align-items: center; gap: 10px; } .stv-r > span { flex: 1; font-weight: 800; font-size: 15px; } .stv-s { margin: 0 !important; width: 200px; display: grid !important; grid-template-columns: 1fr 1fr; gap: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 3px; } .stv-s .seg { height: 40px; border-radius: 9px; } .stv-s .seg.on { background: var(--accent); color: #fff; } .stv-s [data-on="0"].on { background: #6b7280; }
+  .pwr .pw-v { font-size: 18px; font-weight: 800; letter-spacing: 2px; min-width: 80px; text-align: right; font-variant-numeric: tabular-nums; } .pwr .acts { display: flex; gap: 6px; }
+  @media (max-width: 700px) { .pwr .pw-v { font-size: 16px; min-width: 0; letter-spacing: 1px; } .pwr .acts .btn { padding: 0 10px; } .pwr .main { min-width: 0; } }
+  .pw-ed { display: flex; gap: 6px; align-items: center; } .pw-ed .field { width: 120px; height: 42px; margin: 0; font-size: 18px; letter-spacing: 2px; text-align: center; }
+  .pw-tools { display: flex; gap: 8px; } .pw-tools .field { flex: 1; margin: 0; } .pw-tools .btn { white-space: nowrap; }
+  #pw-office, #pw-cars { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  body.ops-dim::after { content: ""; position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.4); }   /* 운행기록 프레임 안 팝업이 열리면 바깥 메뉴도 가림 */
+  body.ops-dim #ops-frame { z-index: 61; }   /* 자리는 그대로(고정) 두고 어둡게 가린 막 위로만 올림 — relative로 바꾸면 폰에서 팝업 아래가 잘림 */
+  body.ops-pop #v-ops { display: block !important; position: fixed; inset: 0; z-index: 70; padding: 0; margin: 0; background: transparent; }
+  body.ops-pop #ops-frame { position: fixed !important; inset: 0 !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; z-index: 70; background: transparent !important; }
+  /* 운행 기록표 (관리팀 화면과 같은 엑셀처럼 보기) */
+  #sheet-frame { display: block; width: 100%; border: 0; background: var(--bg); }
+  body.sheet-on { overflow: hidden; }
+  body.sheet-on #sheet-frame { position: fixed; left: 0; right: 0; top: var(--ops-top, 56px); bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); height: calc(100dvh - var(--ops-top, 56px) - var(--nav-h) - env(safe-area-inset-bottom)); width: 100%; z-index: 4; }
+  body.sheet-on #page-title { display: none; }
+  /* 선배차·평균 (출하실 화면과 같은 내용) */
+  #pri-frame { display: block; width: 100%; border: 0; background: var(--bg); }
+  body.pri-on { overflow: hidden; }
+  body.pri-on #pri-frame { position: fixed; left: 0; right: 0; top: var(--ops-top, 56px); bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); height: calc(100dvh - var(--ops-top, 56px) - var(--nav-h) - env(safe-area-inset-bottom)); width: 100%; z-index: 4; }
+  body.pri-on #page-title { display: none; }
+  .nav button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .am-sheet { position: fixed; inset: 0; z-index: 60; background: rgba(15,23,42,.45); display: flex; align-items: flex-end; justify-content: center; }
+  .am-sheet[hidden] { display: none; }
+  .am-panel { background: var(--bg); width: 100%; max-width: 560px; max-height: 88dvh; border-radius: 18px 18px 0 0; display: flex; flex-direction: column; }
+  .am-head { padding: 16px 18px 10px; display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--line); } .am-head b { font-size: 19px; }
+  .am-body { overflow: auto; padding: 12px 16px; flex: 1; }
+  .am-foot { padding: 10px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); }
+  @media (min-width: 900px) { .am-sheet { align-items: center; } .am-panel { border-radius: 18px; max-height: 80vh; } }
+  .top .sub { white-space: nowrap; } .top-acts { gap: 6px !important; }
+  .top-btn { border: 1px solid var(--line); background: var(--card); border-radius: 999px; height: 34px; padding: 0 11px; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+  .top-btn b { color: var(--accent); } .top-btn:active { background: var(--line); }
+  @media (max-width: 400px) { .top .sub { display: none; } }
+  .top .wrap > div:first-child { white-space: nowrap; }
+  @media (max-width: 340px) { .top-btn { padding: 0 8px; } .top-acts { gap: 4px !important; } }
+  .lo-sheet { position: fixed; inset: 0; z-index: 70; background: rgba(15,23,42,.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .lo-sheet[hidden] { display: none; }
+  .lo-box { background: var(--bg); border-radius: 18px; width: 100%; max-width: 360px; padding: 22px 18px 16px; text-align: center; }
+  .lo-box b { display: block; font-size: 20px; margin-bottom: 8px; } .lo-box p { margin: 0 0 18px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .lo-acts { display: flex; gap: 8px; } .lo-acts .btn { flex: 1; }
+  .dev-ed .main { width: 100%; } .dev-ed-acts { display: flex; gap: 8px; margin-top: 10px; } .dev-ed-acts .btn { flex: 1; }
+  .dev-list .acts .btn { white-space: nowrap; }
+  .ha-card { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 18px; }
+  .ha-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; } .ha-head b { font-size: 17px; } .ha-head span { font-size: 12px; }
+  .ha-years { display: flex; gap: 8px; } .ha-years button { flex: 1; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-size: 16px; font-weight: 800; color: var(--muted); cursor: pointer; font-family: inherit; }
+  .ha-years button.on { border-color: var(--accent); color: var(--accent); background: var(--card); box-shadow: inset 0 0 0 1px var(--accent); }
+  .ha-sum { margin: 14px 0 8px; font-size: 14px; font-weight: 700; } .ha-sum b { color: var(--accent); }
+  .ha-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); }
+  .ha-list li { border-top: 1px solid var(--line); } .ha-list li:first-child { border-top: 0; }
+  .ha-list label { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; min-height: 48px; }
+  .ha-list input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+  .ha-list .d { width: 82px; flex: none; font-weight: 800; font-size: 15px; } .ha-list .d.sun { color: var(--red); } .ha-list .d.sat { color: #1a56db; }
+  .ha-list .n { flex: 1; min-width: 0; font-size: 15px; }
+  .ha-list .tg { flex: none; font-size: 11px; font-weight: 800; border-radius: 6px; padding: 2px 6px; }
+  .ha-list .tg.new { color: var(--green); background: var(--green-bg); } .ha-list .tg.have { color: var(--muted); background: var(--line); } .ha-list .tg.chk { color: var(--amber); background: var(--amber-bg); }
+  .ha-list li.have { opacity: .55; }
+  .ha-auto { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); cursor: pointer; font-size: 14px; line-height: 1.45; }
+  .ha-auto input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; margin-top: 2px; }
+  .sec-tg { display: grid; gap: 8px; } .sec-tg label { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--card); border-radius: 12px; padding: 12px 14px; cursor: pointer; }
+  .sec-tg label span { display: grid; gap: 2px; } .sec-tg label b { font-size: 15px; } .sec-tg label small { color: var(--muted); font-size: 12.5px; } .sec-tg input { width: 24px; height: 24px; accent-color: var(--accent); flex: none; }
+  .sec-box { background: var(--card); border-radius: 12px; padding: 14px; font-size: 14.5px; line-height: 1.6; } .sec-box p { margin: 0 0 8px; } .sec-box ol { margin: 0 0 10px; padding-left: 22px; }
+  .sec-warn { color: var(--red); font-weight: 700; margin: 0 !important; }
+  .sec-alert { position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + 10px + env(safe-area-inset-bottom)); z-index: 55; background: #fff; border: 2px solid var(--red); border-radius: 16px; padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,.18); max-width: 560px; margin: 0 auto; }
+  .sec-alert[hidden] { display: none; } .sa-t { font-size: 13px; font-weight: 900; color: var(--red); } .sa-m { font-size: 15px; font-weight: 700; margin: 4px 0 10px; line-height: 1.45; color: #16181d; }
+  .sa-a { display: flex; gap: 8px; } .sa-a .btn { flex: 1; height: 44px; }
+  @media (min-width: 900px) { .sec-alert { left: 250px; bottom: 20px; } }
+  .sec-steps { text-align: left; display: grid; gap: 8px; } .sec-steps b { text-align: center; } .sec-steps p { text-align: center; margin: 0 0 6px !important; }
+  .au-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; } .au-chips button { height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: 13.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
+  .au-chips button.on { border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); } .au-chips button.bad { color: var(--red); }
+  .au-list { list-style: none; margin: 0; padding: 0; background: var(--card); border-radius: 14px; overflow: hidden; }
+  .au-list li { display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--line); } .au-list li:first-child { border-top: 0; }
+  .au-list li.dh { background: var(--bg); font-size: 12.5px; font-weight: 800; color: var(--muted); padding: 6px 14px; }
+  .au-list .m { flex: 1; min-width: 0; } .au-list .a { font-size: 15px; font-weight: 800; } .au-list .d { font-size: 13.5px; margin-top: 2px; } .au-list .w { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .au-list .w b { color: var(--fg, inherit); } .au-list li.bad .w b { color: var(--red); } .au-list li.undone .a, .au-list li.undone .d { text-decoration: line-through; opacity: .55; }
+  .au-list .tag { font-size: 11.5px; font-weight: 800; border-radius: 6px; padding: 2px 6px; margin-left: 4px; } .au-list .tag.u { color: var(--green); background: var(--green-bg); } .au-list .tag.f { color: var(--red); background: var(--red-bg); }
+  .au-bulk { background: var(--red-bg); border-radius: 12px; padding: 12px; margin-bottom: 10px; font-size: 14px; } .au-bulk .btn { margin-top: 8px; }
+  .login .lock-msg, .lock-msg { margin-top: 12px; background: var(--red-bg); color: var(--red); border-radius: 10px; padding: 10px 12px; font-weight: 700; font-size: 14px; line-height: 1.5; } .login .lock-msg.warn, .lock-msg.warn { background: var(--amber-bg); color: var(--amber); } .login .lock-msg { color: var(--red); }
+  .op-nl { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; } .op-nl li { display: grid; grid-template-columns: 46px 1fr; column-gap: 8px; align-items: baseline; font-size: 15px; font-weight: 700; padding: 7px 10px; border-radius: 8px; } .op-nl li::before { white-space: nowrap; grid-row: 1 / span 2; } .op-nl li small { grid-column: 2; }
+  .op-nl small { color: var(--muted); font-weight: 600; font-size: 12.5px; } .op-nl.ok li { background: var(--green-bg); } .op-nl.ok li::before { content: "보냄"; font-size: 11.5px; font-weight: 900; color: var(--green); }
+  .op-nl.no li { background: var(--bg); color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(0,0,0,.25); } .op-nl.no li::before { content: "안 보냄"; font-size: 11.5px; font-weight: 900; color: var(--red); text-decoration: none; display: inline-block; }
+  .op-nl.no li.on { text-decoration: none; color: var(--text); background: var(--green-bg); } .op-nl.no li.on::before { content: "보냄"; color: var(--green); }
+  .op-card { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+  .op-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .op-h b { font-size: 18px; }
+  .op-st { font-size: 13px; font-weight: 800; border-radius: 999px; padding: 4px 10px; } .op-st.lock { color: var(--red); background: var(--red-bg); } .op-st.open { color: var(--green); background: var(--green-bg); }
+  .op-card .segs { grid-template-columns: 1fr 1fr; margin-top: 10px; background: var(--bg); }
+  .op-card .seg.on.lk { color: var(--red); } .op-card .seg.on.op { color: var(--green); }
+  .op-card .segs.seg3w { grid-template-columns: 1fr 1fr 1fr; } .op-card .seg.on.vw { color: var(--m3); }
+  .op-st.view { color: var(--m3); background: #fff3e6; } @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .op-st.view { background: #3a2a1a; } }
+  @media (max-width: 380px) { .op-card .segs.seg3w .seg { font-size: 14px; padding-left: 4px; padding-right: 4px; } }
+  .op-lab { font-size: 13px; font-weight: 800; color: var(--muted); margin: 14px 0 6px; }
+  .op-card textarea { width: 100%; box-sizing: border-box; min-height: 64px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 15px; background: var(--bg); color: inherit; resize: vertical; }
+  .op-prev { margin-top: 12px; border: 1px dashed var(--line); border-radius: 12px; padding: 12px; background: var(--bg); }
+  .op-prev small { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+  .op-phone { background: #fff; border-radius: 12px; padding: 22px 14px; text-align: center; color: #16181d; border: 1px solid #e3e6ea; }
+  .op-phone .lk { width: 40px; height: 40px; margin: 0 auto 8px; color: #8a919c; } .op-phone b { display: block; font-size: 17px; margin-bottom: 6px; } .op-phone p { margin: 0; font-size: 14px; color: #5f6672; line-height: 1.5; white-space: pre-wrap; }
+  .op-cars { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; } .op-cars span { display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 6px 4px 12px; font-weight: 800; }
+  .op-cars button { border: 0; background: var(--red-bg); color: var(--red); width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: 900; padding: 0; }
+  .op-add { display: flex; gap: 8px; } .op-add input { flex: 1; min-width: 0; }
+  .site-memo { margin-top: 5px; font-size: 13px; color: #7a5a00; background: #fff8e1; border-radius: 8px; padding: 5px 9px; line-height: 1.5; white-space: pre-line; }
+  .site-memo b { color: #a15c00; margin-right: 4px; }
+  .al-tag { display: inline-block; font-size: 12px; font-weight: 800; color: #1a56db; background: #e8f0fe; border-radius: 6px; padding: 2px 7px; margin-left: 4px; vertical-align: 1px; }
+  .dev-sum { display: flex; align-items: center; justify-content: space-between; background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 12px; font-size: 16px; font-weight: 700; }
+  .dev-sum b { font-size: 26px; color: var(--accent); }
+  .dev-list .no { font-size: 16px; } .dev-list .me { display: inline-block; font-size: 12px; font-weight: 800; color: var(--green); background: var(--green-bg); border-radius: 6px; padding: 2px 6px; margin-left: 6px; vertical-align: 2px; }
+  .dev-list .ago.now { color: var(--green); font-weight: 700; }
+  .dev-chip { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 4px 0 10px; font-size: 16px; font-weight: 700; color: var(--text, inherit); cursor: pointer; font-family: inherit; }
+  .dev-chip b { color: var(--accent); font-size: 18px; } .dev-chip i { font-style: normal; color: var(--muted); margin-left: 6px; }
+  #side .side-dev.side-dev-top { margin: -4px 0 12px !important; padding: 0 12px !important; line-height: 24px; height: auto; flex: none; text-align: left; }
+  #side .side-dev { display: block; width: 100%; min-height: 0; margin: 4px 0 14px !important; border-radius: 8px; font-weight: 600; padding: 8px 12px !important; background: none; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 4px 4px; text-align: left; cursor: pointer; font-family: inherit; } #side .side-dev b { color: var(--accent); }
+  .fav-h { display: flex; align-items: center; justify-content: space-between; margin: 14px 2px 8px; } .fav-h b { font-size: 15px; font-weight: 800; }
+  .fav-h button { border: 0; background: none; color: var(--accent); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; padding: 6px 4px; text-decoration: underline; text-underline-offset: 4px; }
+  .fav-grid > * { position: relative; }
+  .fav-grid .fav-it { display: grid; justify-items: center; gap: 4px; border: 1.5px solid var(--accent); border-radius: 14px; background: var(--card); padding: 12px 4px; font-size: 13px; font-weight: 700; line-height: 1.25; text-align: center; min-width: 0; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+  .fav-grid .fav-it svg { width: 26px; height: 26px; color: var(--accent); pointer-events: none; } .fav-grid .fav-it span { pointer-events: none; }
+  .fav-grid .fav-it.drag { z-index: 5; box-shadow: 0 10px 24px rgba(0,0,0,.2); cursor: grabbing; transition: none; opacity: .95; }
+  .fav-grid .fav-it.tgt { outline: 2.5px dashed var(--accent); outline-offset: 2px; }
+  .fav-x { position: absolute; top: -9px; right: -7px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; background: #e5484d; color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; z-index: 2; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  #fav-grid .fav-x { background: #e5484d !important; color: #fff !important; border: 2px solid #fff !important; display: grid !important; padding: 0 !important; } #fav-grid .fav-x svg { width: 14px !important; height: 14px !important; color: #fff !important; }
+  .fav-empty { display: grid; place-items: center; border: 1.5px dashed var(--line); border-radius: 14px; color: var(--muted); font-size: 13px; font-weight: 700; min-height: 78px; background: transparent; }
+  .fav-empty.add { cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .fav-note { font-size: 13px; color: var(--muted); line-height: 1.5; background: var(--card); border-radius: 12px; padding: 10px 12px; margin: 10px 0 0; } .fav-note b { color: var(--text); }
+  .fav-note button { border: 0; background: none; color: var(--accent); font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; padding: 0; }
+  body.fav-ed #am-groups .am-grid button { border-style: dashed; } body.fav-ed #am-groups .am-grid button.in { opacity: .45; border-style: solid; }
+  body.fav-ed #am-groups .am-grid button:not(.in)::after { content: "+"; position: absolute; top: 4px; right: 8px; font-size: 18px; font-weight: 900; color: var(--accent); }
+  #am-groups .am-grid button { position: relative; }
+  .side .side-fav-t small { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0; margin-top: 2px; }
+  #side-fav .sf-empty { font-size: 13px; color: var(--muted); padding: 4px 12px 8px; }
+  .side button.has-st { position: relative; padding-right: 40px; }
+  .side .st { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; color: #b8bec8; opacity: 0; transition: opacity .15s; }
+  .side .st svg { width: 18px; height: 18px; } .side button:hover .st, .side .st.on { opacity: 1; } .side .st.on { color: #f5b301; } .side .st:hover { background: rgba(0,0,0,.06); color: #f5b301; }
+  .side button.on .st.on { color: #ffd34d; }
+  /* 카테고리(묶음) 이름과 메뉴 구분 */
+  .am-sec { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 0 10px 12px; margin-top: 14px; overflow: hidden; }
+  .am-sec .am-grp { display: flex; align-items: center; justify-content: space-between; margin: 0 -10px 12px; padding: 11px 14px; font-size: 16px; font-weight: 900; color: var(--text); background: var(--bg); border-bottom: 1px solid var(--line); letter-spacing: -.2px; }
+  .am-sec .am-grp span { display: flex; align-items: center; gap: 8px; } .am-sec .am-grp span::before { content: ""; width: 5px; height: 18px; border-radius: 3px; background: var(--accent); }
+  .am-sec .am-grp small { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .am-sec .am-grid button { background: var(--bg); }
+  .fav-h { background: var(--bg); } .fav-h b { display: flex; align-items: center; gap: 8px; font-size: 16px !important; font-weight: 900 !important; } .fav-h b::before { content: ""; width: 5px; height: 18px; border-radius: 3px; background: #f5b301; }
+  @media (min-width: 1024px) {
+    .side .grp { margin-top: 12px; padding: 12px 12px 6px !important; border-top: 1px solid var(--line); font-size: 14px !important; font-weight: 900 !important; color: var(--text) !important; letter-spacing: 0 !important; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .side .grp::before { content: ""; width: 4px; height: 15px; border-radius: 2px; background: var(--accent); }
+    .side .grp.side-fav-t::before { background: #f5b301; } .side .grp.side-fav-t small { flex-basis: 100%; padding-left: 11px; color: var(--muted); }
+    .side button[data-side], .side button[data-ops], #side-fav button { padding-left: 23px !important; font-size: 14.5px; }
+  }
+  .am-grp { font-size: 13px; font-weight: 800; color: var(--muted); margin: 16px 2px 8px; }
+  .am-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .am-grid button { display: grid; justify-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--text); padding: 12px 4px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; line-height: 1.25; text-align: center; min-width: 0; }
+  .am-grid button svg { width: 26px; height: 26px; color: var(--accent); }
+  @media (max-width: 360px) { .am-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .am-edit { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+  .am-edit li { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid var(--line); border-radius: 12px; padding: 6px 8px 6px 12px; background: var(--card); }
+  .am-edit li.on { border-color: var(--accent); }
+  .am-edit label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 15px; font-weight: 700; flex: 1; min-height: 40px; }
+  .am-edit label input { width: 22px; height: 22px; accent-color: var(--accent); } .am-edit label svg { width: 22px; height: 22px; color: var(--accent); } .am-edit label small { color: var(--muted); font-weight: 600; font-size: 12px; margin-left: 2px; }
+  .am-ud { display: flex; gap: 4px; } .am-ud button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; padding: 9px; } .am-ud button:disabled { opacity: .3; } .am-ud svg { width: 100%; height: 100%; }
   .segs.three { grid-template-columns: repeat(3, 1fr); }
 
   /* 달력 */
@@ -199,7 +379,7 @@
   .cell .sp { font-size: 9px; color: var(--amber); }
   .cell .ln { font-size: 10px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ln.l { color: var(--green); font-weight: 700; } .ln.l.full { color: var(--red); }
-  .ln.s { color: #8a5a00; } .ln.e { color: var(--muted); } .ln.w { color: var(--amber); } .ln.a { color: var(--red); }
+  .ln.s { color: #8a5a00; } .ln.e { color: #b06000; } .ln.t { color: #0b7285; } .ln.w { color: var(--amber); } .ln.a { color: var(--red); }
   @media (prefers-color-scheme: dark) { .ln.s { color: #fdd663; } }
   .month-list { margin-top: 18px; }
   .month-list .rows li { display: block; font-size: 14px; line-height: 1.6; }
@@ -218,6 +398,17 @@
   .set-row .lab { font-weight: 700; font-size: 15px; }
   .set-row .hint { font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .bk-cnt { color: var(--accent); margin-left: 6px; font-size: 15px; }
+  .bk-q { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .bk-q button, .bk-g button { height: 44px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--chip); color: var(--fg); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; padding: 0; }
+  .bk-q button.on { background: var(--accent); border-color: var(--accent); color: #fff; } .bk-q button.half { border-color: var(--accent); color: var(--accent); }
+  .bk-gl { font-size: 13px; color: var(--muted); font-weight: 800; margin: 12px 0 6px; }
+  .bk-g { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .bk-g button { display: grid; place-content: center; line-height: 1.1; }
+  .bk-g button small { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .bk-g button.on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .bk-g button:disabled { opacity: .45; cursor: default; }
+  @media (min-width: 700px) { .bk-g { grid-template-columns: repeat(10, 1fr); } }
   .chips.hidden { display: none; }
   .chips button { border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; font-size: 15px; font-weight: 700; border-radius: 999px; padding: 8px 16px; cursor: pointer; }
   .chips button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -287,7 +478,10 @@
     #app > .top, #app > .wrap { margin-left: 230px; }
     #app > .top { display: none; }
     #app > .wrap { max-width: none; padding: 8px clamp(24px, 2.5vw, 56px) 48px; margin-right: 0; }   /* 화면 폭에 맞춰 넓어짐 */
-    .nav, .back[data-sub="v-more"], #v-more { display: none !important; }
+    .nav, .back[data-sub="v-more"] { display: none !important; }
+    body.ops-on #ops-frame { left: 230px; top: 0; bottom: 0; height: 100dvh; width: calc(100% - 230px); }
+    body.sheet-on #sheet-frame { left: 230px; top: 0; bottom: 0; height: 100dvh; width: calc(100% - 230px); }
+    body.pri-on #pri-frame { left: 230px; top: 0; bottom: 0; height: 100dvh; width: calc(100% - 230px); }
     .view { padding-top: 24px; }
     .view.form { max-width: max(640px, 55%); }
     .pc2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: start; }
@@ -310,7 +504,7 @@
     #v-today > .t-right > h2:first-child { margin-top: 0; }
     .page-title { display: block !important; font-size: 24px; font-weight: 800; margin: 0 0 6px; }
     .cell { min-height: clamp(96px, 7.5vw, 170px); padding: 6px clamp(6px, 0.6vw, 10px); gap: 3px; }
-    .m-legend { font-size: 0 !important; } .m-legend::after { content: "노란 테두리로 강조된 날짜는 우선순위날입니다. 날짜를 누르면 그날 상세로 갑니다."; font-size: 13px; }
+    .m-legend { font-size: 0 !important; } .m-legend::after { content: "노란 테두리로 강조된 날짜는 우선순위날입니다. 날짜를 누르면 그날 누구인지 보이고, [날짜별 관리로 가기]로 넘어갑니다."; font-size: 13px; }
     .cell .sh { display: none !important; } .cell .lg { display: inline !important; }
     .cell .num { font-size: 16px; margin-bottom: 2px; }
     .cell .hn, .cell .sp { font-size: clamp(11px, 0.75vw, 13px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -326,21 +520,65 @@
   @media (min-width: 1024px) and (prefers-color-scheme: dark) { .side button.on { color: #16181d; } }
   .page-title { display: none; }
   .cell i { font-style: normal; } .cell .lg { display: none; }
+  /* 폰: 칸 높이를 고정하고 일일 사항을 두 줄(2열)로 → 많아도 달력 비율이 안 깨짐 */
+  @media (max-width: 1023px) {
+    #cal .cell:not(.empty) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-rows: min-content; align-content: start; column-gap: 2px; row-gap: 0; height: 88px; min-height: 88px; padding: 3px 2px; }
+    #cal .cell .num, #cal .cell .hn, #cal .cell .sp { grid-column: 1 / -1; }
+    #cal .cell .ln { font-size: 9.5px; line-height: 1.3; letter-spacing: -.3px; font-weight: 700; }
+  }
+  /* 날짜 누르면: 누구누구인지 팝업 */
+  .dp-list { list-style: none; margin: 4px 0 14px; padding: 0; display: grid; gap: 8px; }
+  .dp-list li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 8px; align-items: start; background: var(--card); border-radius: 12px; padding: 10px 12px; }
+  .dp-list li > b { font-size: 15px; } .dp-list .cars { display: flex; flex-wrap: wrap; gap: 5px; }
+  .dp-list .cars span { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 3px 8px; font-size: 15px; font-weight: 800; }
+  .dp-list .cars span small { font-size: 12px; color: var(--muted); font-weight: 700; margin-left: 3px; }
+  .dp-none { color: var(--muted); text-align: center; padding: 18px 0; }
+  .dp-list .cars span { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1.25; } .dp-list .cars span small { margin: 0; }
+  .tm-big, .why-big { font-size: 15px; font-weight: 800; color: #b06000; } .why-big { color: #6d4bd0; } .tm-big.none, .why-big.none { color: var(--muted); font-weight: 600; font-size: 13px; }
   .car-slot { display: none; }
   .kakao-pre { display: none; margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--bg); }
   .kakao-pre .kh { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
   .kakao-pre pre { margin: 0; white-space: pre-wrap; font: inherit; font-size: 15px; line-height: 1.6; color: var(--text); }
 
+  .yg-nav { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; } .yg-nav b { text-align: center; font-size: 19px; } .yg-nav button { height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 22px; cursor: pointer; color: inherit; } .yg-nav button:disabled { opacity: .35; }
+  .yg-mon { background: #eef3ff !important; } .yg-mon b { color: var(--accent); } .yg-mon i { display: block; font-style: normal; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .yg-sum { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 10px 0; } .yg-sum div { background: var(--card); border-radius: 12px; padding: 10px 12px; } .yg-sum small { display: block; color: var(--muted); font-weight: 700; font-size: 13px; } .yg-sum b { font-size: 24px; } @media (max-width: 520px) { .yg-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } .yg-mon { grid-column: 1 / -1; } }
+  .yg-l { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; } .yg-l li { background: var(--card); border-radius: 12px; padding: 10px 14px; } .yg-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; } .yg-h b { font-size: 18px; } .yg-h span { font-weight: 800; color: var(--accent); }
+  .yg-s div { font-size: 14px; padding: 3px 0; line-height: 1.4; } .yg-s em { font-style: normal; color: var(--muted); font-weight: 700; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  .yg-st { margin: 4px 0 12px; } .yg-st h3 { font-size: 15px; margin: 14px 0 6px; } .yg-st li { display: flex; justify-content: space-between; gap: 10px; background: var(--card); border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; font-size: 14px; } .yg-st li span { color: var(--muted); font-weight: 700; white-space: nowrap; } .yg-st ul { list-style: none; margin: 0; padding: 0; }
+  .yg-empty { padding: 20px 4px; color: var(--muted); line-height: 1.6; }
+  .add-ntf { display: flex; align-items: flex-start; gap: 10px; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); cursor: pointer; }
+  .add-ntf input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; } .add-ntf span { display: grid; gap: 2px; } .add-ntf b { font-size: 15px; } .add-ntf small { color: var(--muted); font-size: 13px; }
 </style>
 </head>
 <body>
+
+<div class="sec-alert" id="sec-alert" hidden>
+  <div class="sa-t">보안 알림</div>
+  <div class="sa-m" id="sa-m"></div>
+  <div class="sa-a"><button class="btn" id="sa-me" type="button">내가 바꿨음</button><button class="btn danger" id="sa-no" type="button">내가 아님</button></div>
+</div>
+<div class="lo-sheet" id="sec-sheet" hidden><div class="lo-box sec-steps" role="dialog" aria-modal="true">
+  <b>내가 바꾼 게 아니면</b>
+  <p id="ss-dev"></p>
+  <button class="btn primary wide" id="ss-1" type="button">1. 그 기기 바로 로그아웃</button>
+  <button class="btn primary wide" id="ss-2" type="button">2. 그 기기가 한 일 보고 되돌리기</button>
+  <button class="btn primary wide" id="ss-3" type="button">3. 비밀번호 되찾는 방법 보기</button>
+  <button class="btn wide" id="ss-x" type="button" style="margin-top:6px">닫기</button>
+</div></div>
+<div class="lo-sheet" id="lo-sheet" hidden><div class="lo-box" role="dialog" aria-modal="true" aria-labelledby="lo-t">
+  <b id="lo-t">로그아웃 하시겠습니까?</b>
+  <p>이 기기에서 관리자 로그아웃됩니다.<br>다시 들어오려면 관리자 비밀번호가 필요합니다.</p>
+  <div class="lo-acts"><button class="btn" id="lo-no" type="button">취소</button><button class="btn primary" id="lo-yes" type="button">로그아웃</button></div>
+</div></div>
 
 <!-- ───── 로그인 ───── -->
 <div id="login" class="login">
   <h1>관리자</h1>
   <p>관리자 비밀번호를 입력하세요</p>
-  <input class="field" id="pw" type="password" autocomplete="current-password" placeholder="관리자 비밀번호">
+  <input enterkeyhint="done" class="field" id="pw" type="password" autocomplete="current-password" placeholder="관리자 비밀번호">
   <button class="btn primary wide" id="login-btn" style="margin-top:10px">들어가기</button>
+  <p class="lock-msg" id="lock-msg" hidden></p>
   <p class="demo hidden" id="login-demo" style="margin-top:16px">체험 모드입니다. 기사님 사이트 체험 모드와 같은 데이터를 씁니다.</p>
   <button class="btn wide hidden" id="login-install" style="margin-top:12px">관리자 앱으로 설치</button>
 </div>
@@ -349,31 +587,54 @@
   <aside class="side" id="side">
     <div class="brand">관리자</div>
     <div class="when" id="side-today"></div>
+    <button class="side-dev side-dev-top" id="side-dev" data-side-go="v-dev">로그인 기기 <b id="side-dev-n">0대</b></button>
     <button class="reload-btn side-reload" type="button">새로고침</button>
-    <button data-side="v-month">달력</button>
+    <div class="grp side-fav-t">즐겨찾기 <small>메뉴 옆 별을 누르면 여기 고정</small></div>
+    <div id="side-fav"></div>
+    <div class="grp" style="padding-top:4px">운행기록</div>
+    <button data-ops="today">입력 현황</button>
+    <button data-side="v-sheet">운행 기록표</button>
+    <button data-side="v-pri">선배차 · 평균</button>
+    <button data-ops="ga">가탕 및 정비</button>
+    <button data-ops="duty">집대기 · 퇴근</button>
+    <button data-ops="jo">조출</button>
+    <button data-ops="tn">터널</button>
+    <button data-ops="wk">공휴일 출근</button>
+    <button data-ops="spc">특이사항 현장</button>
+    <button data-side="v-yong">용차 출하</button>
+    <button data-ops="ilbo">일보 · 엑셀</button>
+    <button data-ops="staff">입퇴사 관리</button>
+    <button data-ops="set">단가 설정</button>
+    <button data-ops="noti">알림 설정</button>
+    <div class="grp">휴가</div>
+    <button data-side="v-month">휴가·결근 달력</button>
     <button data-side="v-day">날짜별</button>
-    <button data-side="v-add">입력</button>
-    <button data-side="v-cars">차량관리</button>
+    <button data-side="v-add">휴가 입력</button>
+    <button data-side="v-cars">차량 휴가관리</button>
+    <button data-side="v-list">전체 신청 목록</button>
+    <button data-side="v-lim">연차 제한</button>
+    <button data-side="v-hol">공휴일 · 회사 휴무일</button>
+    <button data-side="v-bulk">새해 일괄 수정</button>
+    <button data-side="v-set">휴가 규칙</button>
     <div class="grp">현장</div>
     <button data-side="v-today">금일 물량</button>
     <button data-side="v-sites">현장 운행거리</button>
     <button data-side="v-reps">영업사원 연락처</button>
-    <div class="grp">신청 · 기록</div>
-    <button data-side="v-list">전체 신청 목록</button>
+    <div class="grp">알림 · 기록</div>
     <button data-side="v-logs">기록</button>
+    <button data-side="v-audit">관리자 작업 기록</button>
     <button data-side="v-noti">기사님 알림 보내기</button>
     <div class="grp">설정</div>
-    <button data-side="v-lim">연차 막는 기간 · 인원</button>
-    <button data-side="v-hol">공휴일 · 회사 휴무일</button>
-    <button data-side="v-set">규칙 설정</button>
-    <button data-side="v-bulk">새해 일괄 수정</button>
+    <button data-side="v-open">기사 탭 잠금</button>
     <button data-side="v-backup">백업</button>
     <button data-side="v-apw">관리자 비밀번호</button>
+    <button data-side="v-pw">계정 및 권한</button>
+    <button data-side="v-dev">로그인 기기</button>
     <button class="out hidden" id="side-install">관리자 앱으로 설치</button>
     <button class="out" id="side-out">로그아웃</button>
   </aside>
   <h1 class="page-title" id="page-title"></h1>
-  <div class="top"><div class="wrap"><div><b>관리자</b><span class="sub" id="today"></span></div><div class="top-acts"><button class="link reload-btn" type="button">새로고침</button><button class="link" id="logout">나가기</button></div></div></div>
+  <div class="top"><div class="wrap"><div><b>관리자</b><span class="sub" id="today"></span></div><div class="top-acts"><button class="top-btn top-dev" type="button" data-side-go="v-dev" aria-label="로그인 기기 보기">기기 <b id="top-dev-n">0대</b></button><button class="top-btn reload-btn" type="button">새로고침</button><button class="top-btn" id="logout" type="button">로그아웃</button></div></div></div>
   <div class="wrap">
     <p class="demo hidden" id="demo">체험 모드 · 기사님 사이트 체험 모드와 같은 데이터</p>
 
@@ -388,7 +649,7 @@
         <button class="btn" id="m-this">이번 달</button>
       </div>
       <div class="cal" id="cal"></div>
-      <p class="info m-legend"><span class="sp-key"></span>노란 테두리로 강조된 날짜는 우선순위날입니다 · 최대N = 그날만 연차 N명 · 연 = 연차 · 여 = 여름휴가 · 조 = 조퇴·지각 · 결 = 결근 · 대 = 대기. 날짜를 누르면 그날 상세로 갑니다.</p>
+      <p class="info m-legend"><span class="sp-key"></span>노란 테두리로 강조된 날짜는 우선순위날입니다 · 최대N = 그날만 연차 N명 · 연 = 연차 · 여 = 여름휴가 · 조 = 조퇴 · 지 = 지각 · 결 = 결근 · 특 = 특별휴가 · 대 = 대기. 날짜를 누르면 그날 누구인지 보이고, [날짜별 관리로 가기]로 넘어갑니다.</p>
      </div>
       <div class="month-list pc-r">
         <div class="sum-head"><h2 style="margin:0">이 달 휴가표 (목록)</h2><button class="btn small" id="m-copy">글자로 복사</button></div>
@@ -409,7 +670,7 @@
       <div id="wait-dates"></div>
       <div class="datebar" style="margin-top:10px">
         <button class="btn" id="prev" aria-label="이전 날">◀</button>
-        <input class="field" id="day-date" type="date">
+        <input enterkeyhint="done" class="field" id="day-date" type="date">
         <button class="btn" id="next" aria-label="다음 날">▶</button>
         <button class="btn" id="go-today">오늘</button>
       </div>
@@ -422,11 +683,11 @@
     <!-- ───── 휴가 입력 ───── -->
     <section class="view form" id="v-add">
       <p class="label">호수</p>
-      <select class="field" id="add-no"></select>
+      <button type="button" class="field carbig" id="add-no"><b id="add-no-v">눌러서 고르기</b></button>
       <p class="label">구분</p>
       <div class="segs" id="add-type"></div>
       <div id="add-out-row"><p class="label">기사님 정원(하루 최대 인원)에</p><div class="segs" id="add-out" style="grid-template-columns:1fr 1fr"></div></div>
-      <div id="add-reason-row" class="hidden"><p class="label">사유 <span class="muted" style="font-weight:400">· 특별휴가는 연차·여름휴가가 줄지 않습니다</span></p><input class="field" id="add-reason-in" type="text" maxlength="20" placeholder="사유를 직접 적어 주세요 (예: 빙부상, 예비군 훈련)"><p class="muted" style="font-size:13px;margin:8px 2px 0">자주 쓰는 사유 (누르면 위 칸에 들어갑니다)</p><div class="reason-chips" id="add-reason"></div></div>
+      <div id="add-reason-row" class="hidden"><p class="label">사유 <span class="muted" style="font-weight:400">· 특별휴가는 연차·여름휴가가 줄지 않습니다</span></p><input enterkeyhint="done" class="field" id="add-reason-in" type="text" maxlength="20" placeholder="사유를 직접 적어 주세요 (예: 빙부상, 예비군 훈련)"><p class="muted" style="font-size:13px;margin:8px 2px 0">자주 쓰는 사유 (누르면 위 칸에 들어갑니다)</p><div class="reason-chips" id="add-reason"></div></div>
       <p class="label">날짜 <span class="muted" style="font-weight:400">· 달력에서 날짜를 누르면 선택, 다시 누르면 빠집니다 (여러 날 가능)</span></p>
       <div class="add-cal-wrap">
         <div class="add-cal">
@@ -445,8 +706,9 @@
         <select class="field" id="add-time"><option value="">시간 고르기</option><option value="09:00">9시</option><option value="10:00">10시</option><option value="11:00">11시</option><option value="12:00">12시</option><option value="13:00">13시</option><option value="14:00">14시</option><option value="15:00">15시</option><option value="16:00">16시</option></select>
       </div>
       <p class="label">메모 <span class="muted" style="font-weight:400">· 선택 (예: 전화 요청)</span></p>
-      <input class="field" id="add-note" type="text" maxlength="40">
+      <input enterkeyhint="done" class="field" id="add-note" type="text" maxlength="40">
       <div class="preview" id="add-preview"></div>
+      <label class="add-ntf" id="add-ntf-row"><input type="checkbox" id="add-ntf" checked> <span><b>기사님께 알림 보내기</b><small id="add-ntf-s">끄면 알림 없이 입력만 합니다 (기록에는 남음)</small></span></label>
       <button class="btn primary wide" id="add-submit" style="margin-top:14px">입력하기</button>
       <p class="info" id="add-info"></p>
     </section>
@@ -466,29 +728,27 @@
 
     <!-- ───── 더보기 ───── -->
     <section class="view" id="v-more">
-      <ul class="menu">
-        <li><button data-sub="v-today">금일 현장<small>오늘 나가는 현장 지정 (기사님 화면 '오늘 현장 보기')</small></button></li>
-        <li><button data-sub="v-sites">현장 운행거리<small>현장 추가·거리 수정·삭제, 엑셀에서 붙여넣기</small></button></li>
-        <li><button data-sub="v-reps">영업사원 연락처<small>전화번호·무전기 번호 (금일 물량표에서 담당자 이름을 누르면 보임)</small></button></li>
-        <li><button data-sub="v-list">전체 신청 목록<small>모든 신청을 달·구분·상태·호수로 찾고 수정</small></button></li>
-        <li><button data-sub="v-logs">기록<small>누가 언제 무엇을 했는지</small></button></li>
-        <li><button data-sub="v-noti">기사님 알림 보내기<small>공지·안내를 기사님 화면 종 모양 알림으로 보내기 (전체 · 조별 · 호수별)</small></button></li>
-        <li><button data-sub="v-lim">연차 막는 기간 · 날짜별 인원<small>여름휴가 기간 등 연차 신청 막기, 특정 날짜만 최대 인원 따로 (예: 2명)</small></button></li>
-        <li><button data-sub="v-hol">공휴일 · 회사 휴무일<small>쉬는 날 추가·삭제 (샌드위치데이 계산에 반영)</small></button></li>
-        <li><button data-sub="v-set">규칙 설정<small>하루 인원, 오픈 시각, 관리자만 기간, 우선순위 횟수 등</small></button></li>
-        <li><button data-sub="v-backup">백업<small>매일 자동 백업 상태 확인, 지금 바로 백업하기</small></button></li>
+      <button class="dev-chip" id="dev-chip" data-k="v-dev"><span>로그인된 관리자 기기</span><span><b id="dev-chip-n">0대</b><i>›</i></span></button>
+      <div class="fav-h"><b>즐겨찾기</b><button type="button" id="fav-edit">편집</button></div>
+      <div class="am-grid fav-grid" id="fav-grid"></div>
+      <p class="fav-note" id="fav-note" hidden>위 메뉴는 <b>×</b>를 눌러 빼고, 아래 메뉴를 누르면 빈자리에 들어갑니다. 위 메뉴를 <b>꾹 눌러 끌면</b> 순서가 바뀝니다. 즐겨찾기는 화면 아래 메뉴에도 그대로 나옵니다. <button type="button" id="fav-reset">처음 설정으로</button></p>
+      <div id="am-groups"></div>
+      <ul class="menu" style="margin-top:14px">
         <li class="hidden" id="more-install"><button id="more-install-btn">관리자 앱으로 설치<small>휴대폰 홈 화면이나 PC 바탕화면에 '현창관리자' 아이콘 만들기</small></button></li>
-        <li><button data-sub="v-apw">관리자 비밀번호<small>관리자 페이지 들어오는 비밀번호 바꾸기</small></button></li>
-        <li><button data-sub="v-bulk">새해 일괄 수정<small>전체(또는 조별) 총연차·여름휴가 일수를 한꺼번에</small></button></li>
       </ul>
     </section>
 
+    <!-- ───── 운행기록 관리 (ops.html 프레임) ───── -->
+    <section class="view" id="v-ops"><iframe id="ops-frame" title="운행기록 관리"></iframe></section>
+    <section class="view" id="v-sheet"><iframe id="sheet-frame" title="운행 기록표"></iframe></section>
+    <section class="view" id="v-pri"><iframe id="pri-frame" title="선배차 · 평균"></iframe></section>
+
     <!-- ───── 금일 현장 ───── -->
     <section class="view" id="v-today">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <div class="datebar">
         <button class="btn" id="t-prev" aria-label="전날">◀</button>
-        <input class="field" id="t-date" type="date">
+        <input enterkeyhint="done" class="field" id="t-date" type="date">
         <button class="btn" id="t-next" aria-label="다음 날">▶</button>
         <button class="btn" id="t-today">오늘</button>
       </div>
@@ -511,23 +771,23 @@
       <button class="btn primary wide hidden" id="t-apply" style="margin-top:10px">이대로 반영하기</button>
 
       <h2>현장 하나씩 넣기</h2>
-      <input class="field" id="t-q" type="search" placeholder="현장 검색 (예: 개성 금정)" autocomplete="off">
+      <input enterkeyhint="done" class="field" id="t-q" type="search" placeholder="현장 검색 (예: 개성 금정)" autocomplete="off">
       <ul class="rows" id="t-hits" style="margin-top:8px"></ul>
       </div>
     </section>
 
     <!-- ───── 영업사원 연락처 ───── -->
     <section class="view form" id="v-noti">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <p class="info" style="margin-top:0">보낸 알림은 기사님 화면 왼쪽 위 <b>종 모양</b>에 빨간 숫자로 표시됩니다. 휴가 확정·취소, 물량표 올라옴은 따로 보내지 않아도 자동으로 알려 줍니다.</p>
       <div class="push-test"><b>휴대폰 푸시 시험</b><p class="muted" style="margin:4px 0 8px;font-size:13px">그 호수로 로그인해서 [알림 받기]를 켠 휴대폰으로 시험 알림을 보냅니다. 밤 10시~아침 6시에는 아침 6시에 갑니다.</p>
-        <div class="inline"><input class="field" id="pt-no" type="text" inputmode="numeric" maxlength="3" placeholder="호수 (예: 214)"><button class="btn" id="pt-send">시험 알림 보내기</button></div></div>
+        <div class="inline"><input enterkeyhint="done" class="field" id="pt-no" type="text" inputmode="numeric" maxlength="3" placeholder="호수 (예: 214)"><button class="btn" id="pt-send">시험 알림 보내기</button></div></div>
       <p class="label">받는 사람</p>
       <div class="segs" id="nt-who" style="grid-template-columns:repeat(3,1fr)"><button class="seg on" data-ntw="all">전체</button><button class="seg" data-ntw="group">조 고르기</button><button class="seg" data-ntw="nos">호수 적기</button></div>
       <div class="chips hidden" id="nt-groups"></div>
-      <input class="field hidden" id="nt-nos" type="text" inputmode="numeric" placeholder="예: 201, 214, 237" style="margin-top:8px">
+      <input enterkeyhint="done" class="field hidden" id="nt-nos" type="text" inputmode="numeric" placeholder="예: 201, 214, 237" style="margin-top:8px">
       <p class="label">제목 <span class="muted" style="font-weight:400">· 40자까지</span></p>
-      <input class="field" id="nt-title" type="text" maxlength="40" placeholder="예: 11월 안전교육 안내">
+      <input enterkeyhint="done" class="field" id="nt-title" type="text" maxlength="40" placeholder="예: 11월 안전교육 안내">
       <p class="label">내용 <span class="muted" style="font-weight:400">· 선택 · 500자까지</span></p>
       <textarea class="field" id="nt-body" rows="4" maxlength="500" style="min-height:110px" placeholder="예: 11월 5일(목) 오후 5시, 사무실 2층에서 안전교육이 있습니다."></textarea>
       <p class="label">기사님 화면에 보이는 기간</p>
@@ -537,8 +797,16 @@
       <ul class="rows" id="nt-list"></ul>
     </section>
 
+    <!-- ───── 용차 출하 (출하기록의 300번대 차량) ───── -->
+    <section class="view" id="v-yong">
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <div class="yg-nav"><button type="button" id="yg-prev" aria-label="이전 날">‹</button><b id="yg-d"></b><button type="button" id="yg-next" aria-label="다음 날">›</button></div>
+      <p class="info" style="margin-top:6px">운행 기록표 → 출하 기록에서 올린 출하기록 중 용차(운행차량 201~260호가 아닌 차량)만 모았습니다.</p>
+      <div id="yg-body"></div>
+    </section>
+
     <section class="view form" id="v-reps">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <p class="info" style="margin-top:0">기사님 화면의 오늘 물량표에서 <b>담당자 이름을 누르면</b> 여기 적힌 전화번호와 무전기 번호가 보입니다. 이름은 출하예정 집계표의 담당자 칸과 똑같이 적어 주세요.</p>
       <button class="btn primary wide" id="rep-add-open">+ 영업사원 추가</button>
       <ul class="rows" id="rep-list" style="margin-top:10px"></ul>
@@ -546,8 +814,12 @@
 
     <!-- ───── 현장 운행거리 ───── -->
     <section class="view" id="v-sites">
-      <button class="back" data-sub="v-more">← 더보기</button>
-      <input class="field" id="site-q" type="search" placeholder="현장 검색 (예: 개성 금정)" autocomplete="off">
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <div class="stv">
+        <div class="stv-h"><b>다른 화면의 '현장 거리' 탭</b><small>관리팀 · 출하실 화면에서 현장 거리 검색을 쓰게 할지 정합니다. 숨기면 탭 자체가 안 보입니다.</small></div>
+        <div class="stv-r"><span>관리팀 · 출하실 화면</span><div class="segs stv-s" data-stv="all"><button class="seg" data-on="1">보이기</button><button class="seg" data-on="0">숨기기</button></div></div>
+      </div>
+      <input enterkeyhint="done" class="field" id="site-q" type="search" placeholder="현장 검색 (예: 개성 금정)" autocomplete="off">
       <div class="inline" id="site-all-btns" style="margin-top:8px;grid-template-columns:1fr 1fr">
         <button class="btn primary" id="site-add-open">+ 현장 추가</button>
         <button class="btn" data-sub="v-paste">엑셀 붙여넣기</button>
@@ -573,9 +845,9 @@
 
     <!-- ───── 전체 신청 목록 ───── -->
     <section class="view" id="v-list">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <div class="filters">
-        <input class="field" id="f-month" type="month">
+        <input enterkeyhint="done" class="field" id="f-month" type="month">
         <select class="field" id="f-no"><option value="">전체 호수</option></select>
         <select class="field" id="f-type"><option value="">전체 구분</option><option>연차</option><option>여름휴가</option><option>조퇴</option><option>지각</option><option>결근</option></select>
         <select class="field" id="f-status"><option value="">전체 상태</option><option>확정</option><option value="대기">대기 (우선순위 대기)</option><option value="후순위">후순위 대기</option><option>반려</option><option>취소</option></select>
@@ -587,9 +859,17 @@
 
     <!-- ───── 공휴일 · 회사 휴무일 ───── -->
     <section class="view form" id="v-hol">
-      <button class="back" data-sub="v-more">← 더보기</button>
-      <p class="label">쉬는 날 추가</p>
-      <div class="filters"><input class="field" id="hol-date" type="date"><input class="field" id="hol-name" type="text" maxlength="20" placeholder="이름 (예: 창립기념일)"></div>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <div class="ha-card">
+        <div class="ha-head"><b>공휴일 자동 불러오기</b><span class="muted" id="ha-last"></span></div>
+        <p class="info" style="margin:4px 0 10px">나라에서 정한 공휴일·대체공휴일·선거일을 자동으로 찾아 넣습니다. 하나씩 입력하지 않아도 됩니다.</p>
+        <div class="ha-years" id="ha-years"></div>
+        <button class="btn primary wide" id="ha-fetch" style="margin-top:10px">공휴일 찾아오기</button>
+        <div id="ha-res"></div>
+        <label class="ha-auto" style="display:none"><input type="checkbox" id="ha-auto" checked><span><b>매년 자동으로 넣기</b><br><small class="muted">매년 12월 1일에 다음 해 공휴일을 자동으로 넣고 관리자에게 알려 드립니다. 임시공휴일이 새로 정해지면 매달 1일에 다시 확인해 추가합니다.</small></span></label>
+      </div>
+      <p class="label">쉬는 날 직접 추가 <small class="muted" style="font-weight:400">(창립기념일 등 회사만 쉬는 날)</small></p>
+      <div class="filters"><input enterkeyhint="done" class="field" id="hol-date" type="date"><input enterkeyhint="done" class="field" id="hol-name" type="text" maxlength="20" placeholder="이름 (예: 창립기념일)"></div>
       <button class="btn primary wide" id="hol-add" style="margin-top:8px">추가하기</button>
       <p class="info">토·일요일은 따로 넣지 않아도 쉬는 날로 계산됩니다. 회사가 일하는 공휴일은 목록에서 빼 주세요.</p>
       <h2>쉬는 날 목록</h2>
@@ -598,20 +878,20 @@
 
     <!-- ───── 날짜별 연차 인원 ───── -->
     <section class="view form" id="v-lim">
-      <button class="back" data-sub="v-more">← 더보기</button>
-      <h2 style="margin-top:0">연차 신청 막는 기간</h2>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <h2 style="margin-top:0">연차 제한 기간</h2>
       <p class="info" style="margin-top:0">예: 7~8월 여름휴가 기간. 이 기간에는 기사님이 <b>연차만</b> 신청할 수 없습니다. 조퇴·지각·결근과 관리자 입력은 그대로 됩니다.</p>
       <p class="label">시작일 (왼쪽) · 끝일 (오른쪽)</p>
-      <div class="filters"><input class="field" id="blk-from" type="date" aria-label="시작일"><input class="field" id="blk-to" type="date" aria-label="끝일"></div>
-      <input class="field" id="blk-memo" type="text" maxlength="20" placeholder="메모 (예: 여름휴가 기간)" style="margin-top:8px">
-      <button class="btn primary wide" id="blk-add" style="margin-top:8px">막는 기간 저장</button>
+      <div class="filters"><input enterkeyhint="done" class="field" id="blk-from" type="date" aria-label="시작일"><input enterkeyhint="done" class="field" id="blk-to" type="date" aria-label="끝일"></div>
+      <input enterkeyhint="done" class="field" id="blk-memo" type="text" maxlength="20" placeholder="메모 (예: 여름휴가 기간)" style="margin-top:8px">
+      <button class="btn primary wide" id="blk-add" style="margin-top:8px">제한 기간 저장</button>
       <ul class="rows" id="blk-list" style="margin-top:10px"></ul>
 
       <h2>날짜별 연차 최대 인원</h2>
       <p class="info" style="margin-top:0" id="lim-base"></p>
       <p class="label">날짜와 그날 연차 최대 인원</p>
-      <div class="filters"><input class="field" id="lim-date" type="date"><input class="field" id="lim-num" type="number" inputmode="numeric" min="0" max="30" placeholder="인원 (예: 2)"></div>
-      <input class="field" id="lim-note" type="text" maxlength="20" placeholder="메모 (예: 추석 연휴)" style="margin-top:8px">
+      <div class="filters"><input enterkeyhint="done" class="field" id="lim-date" type="date"><input enterkeyhint="done" class="field" id="lim-num" type="number" inputmode="numeric" min="0" max="30" placeholder="인원 (예: 2)"></div>
+      <input enterkeyhint="done" class="field" id="lim-note" type="text" maxlength="20" placeholder="메모 (예: 추석 연휴)" style="margin-top:8px">
       <button class="btn primary wide" id="lim-add" style="margin-top:8px">저장하기</button>
       <p class="info">따로 정한 날은 평소·우선순위날 인원보다 이 값이 먼저입니다. 날짜별 화면에서도 바꿀 수 있습니다.</p>
       <h2>따로 정한 날짜 (오늘 이후)</h2>
@@ -620,7 +900,7 @@
 
     <!-- ───── 백업 ───── -->
     <section class="view form" id="v-backup">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <p class="info" style="margin-top:0">매일 새벽 3시에 구글 시트 전체(신청·기록·현장·설정 등 모든 탭)를 내 구글 드라이브 <b>'휴가관리 백업'</b> 폴더에 복사본으로 저장합니다. 최근 30일은 매일 것을, 그보다 오래된 것은 한 달에 하나씩 1년 동안 남깁니다.</p>
       <div id="bk-info"></div>
       <button class="btn primary wide" id="bk-now" style="margin-top:12px">지금 백업하기</button>
@@ -631,56 +911,116 @@
     </section>
 
     <!-- ───── 관리자 비밀번호 ───── -->
+    <section class="view" id="v-pw">
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <p class="info" style="margin-top:0">관리팀 · 출하실 계정과 차량별 비밀번호를 보고 바꿀 수 있습니다. 비밀번호 숫자는 기록에 남기지 않고 "바꿈"만 남습니다.</p>
+      <p class="label">사무실 계정</p>
+      <ul class="rows pwr" id="pw-office"></ul>
+      <p class="label" style="margin-top:16px">관리팀 권한</p>
+      <label class="perm-row"><span><b>관리팀이 기사님 기록 수정</b><small id="perm-sub"></small></span><input type="checkbox" class="perm-sw" id="perm-acct-edit"></label>
+      <p class="label" style="margin-top:16px">차량 비밀번호</p>
+      <div class="pw-tools"><input class="field" id="pw-q" type="search" inputmode="numeric" placeholder="호수 찾기 (예: 214)" enterkeyhint="search"><button class="btn" id="pw-all">모두 보기</button></div>
+      <ul class="rows pwr" id="pw-cars"></ul>
+    </section>
     <section class="view form" id="v-apw">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <p class="info" style="margin-top:0">첫 화면에서 <b>아이디 9999</b>와 함께 넣는 비밀번호입니다. 숫자 키패드로 넣으므로 <b>숫자 4~12자리</b>로 정해 주세요.</p>
-      <p class="label">지금 비밀번호</p><input class="field" id="apw-cur" type="password" inputmode="numeric" maxlength="12" autocomplete="current-password">
-      <p class="label">새 비밀번호</p><input class="field" id="apw-new" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password">
-      <p class="label">새 비밀번호 한 번 더</p><input class="field" id="apw-new2" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password">
+      <p class="label">지금 비밀번호</p><input enterkeyhint="done" class="field" id="apw-cur" type="password" inputmode="numeric" maxlength="12" autocomplete="current-password">
+      <p class="label">새 비밀번호</p><input enterkeyhint="done" class="field" id="apw-new" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password">
+      <p class="label">새 비밀번호 한 번 더</p><input enterkeyhint="done" class="field" id="apw-new2" type="password" inputmode="numeric" maxlength="12" autocomplete="new-password">
       <button class="btn primary wide" id="apw-save" style="margin-top:14px">비밀번호 바꾸기</button>
-      <p class="info">바꾼 비밀번호는 구글 스크립트에 따로 저장되어, 나중에 Code.gs를 새로 붙여넣어도 그대로 유지됩니다.</p>
+      <p class="info">바꾼 비밀번호는 구글 스크립트에 따로 저장되어, 나중에 Code.gs를 새로 붙여넣어도 그대로 유지됩니다. 바꾸면 <b>모든 관리자 기기에 알림</b>이 갑니다.</p>
+
+      <h2>보안 알림</h2>
+      <div class="sec-tg">
+        <label><span><b>비밀번호가 바뀌면 알림</b><small>어느 기기에서 바꿨는지 모든 관리자 기기에 알림 · 끌 수 없음</small></span><input type="checkbox" checked disabled></label>
+        <label><span><b>처음 보는 기기에서 로그인하면 알림</b><small>기기 종류와 시각을 알려 드립니다</small></span><input type="checkbox" checked></label>
+        <label><span><b>비밀번호를 5번 틀린 기기 알림</b><small>그 기기만 10분 동안 로그인 잠금 · 다른 기기는 그대로</small></span><input type="checkbox" checked></label>
+      </div>
+
+      <h2>비밀번호를 빼앗겼을 때 (비상 복구)</h2>
+      <div class="sec-box">
+        <p>누가 비밀번호를 바꿔 들어올 수 없어도, <b>구글 시트 주인 계정</b>만 있으면 언제든 되찾을 수 있습니다.</p>
+        <ol>
+          <li>컴퓨터에서 구글 시트를 열고 <b>확장 프로그램 → Apps Script</b></li>
+          <li>위쪽 함수 목록에서 <b>비상복구</b>를 고르고 <b>실행</b></li>
+          <li>새 비밀번호가 정해지고, <b>모든 관리자 기기가 로그아웃</b>됩니다</li>
+          <li>새 비밀번호로 들어와 <b>관리자 작업 기록</b>에서 그 사이 바뀐 것을 되돌립니다</li>
+        </ol>
+        <p class="sec-warn">구글 시트 주인 계정이 마지막 열쇠입니다. 그 구글 계정에는 <b>2단계 인증</b>을 꼭 켜 두세요.</p>
+      </div>
+    </section>
+
+    <!-- ───── 기사 탭 잠금 ───── -->
+    <section class="view form" id="v-open">
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <p class="info" style="margin-top:0">기사님 화면의 탭을 <b>테스트 중</b>으로 잠가 둘 수 있습니다. 잠긴 탭에는 아래 안내 문구만 보이고, 관리자 페이지에서는 그대로 입력·확인할 수 있습니다.</p>
+      <div class="op-card op-noti">
+        <div class="op-h"><b>기사님께 가는 알림</b></div>
+        <p class="op-lab" style="margin-top:10px">지금 보내는 알림</p>
+        <ul class="op-nl ok"><li>현장 운행거리 알림 <small>새 현장 · 거리 바뀜</small></li><li>금일 물량표 알림 <small>그날 물량표 올라옴 · 바뀜</small></li></ul>
+        <p class="op-lab">보내지 않는 알림 <span style="font-weight:600">· 테스트 중인 탭은 먼저 써 볼 차량에도 안 보냄</span></p>
+        <ul class="op-nl no" id="op-nl"></ul>
+        <p class="info" style="margin-bottom:0">탭을 열면 그때부터 보냅니다. 잠겨 있던 동안의 알림은 나중에 몰아서 보내지 않습니다.</p>
+      </div>
+      <div id="op-cards"></div>
+    </section>
+
+    <!-- ───── 관리자 작업 기록 ───── -->
+    <section class="view" id="v-audit">
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <p class="info" style="margin-top:0">관리자 페이지에서 바꾼 것이 <b>어느 기기에서, 언제</b> 했는지 모두 남습니다. 잘못 바뀐 것은 [되돌리기]로 그 전 상태로 돌립니다.</p>
+      <input type="search" class="field" id="au-q" placeholder="찾기 (예: 209, 단가, 비밀번호)" enterkeyhint="search" autocomplete="off">
+      <div class="au-chips" id="au-chips"></div>
+      <div id="au-bulk"></div>
+      <ul class="au-list" id="au-list"></ul>
+      <button class="btn wide" id="au-more" hidden style="margin-top:10px"></button>
+      <p class="info">되돌린 기록도 지워지지 않고 '되돌림'으로 남습니다. 1년 지난 기록은 백업에만 남습니다.</p>
+    </section>
+
+    <!-- ───── 로그인 기기 ───── -->
+    <section class="view form" id="v-dev">
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <div class="dev-sum"><span>지금 관리자로 로그인된 기기</span><b id="dev-n">0대</b></div>
+      <ul class="rows dev-list" id="dev-list"></ul>
+      <p class="info">여기서 정한 기기 이름은 관리자 작업 기록에 "어느 기기에서 했는지"로 남습니다. 다른 기기를 따로 로그아웃하는 기능은 없고, 관리자 비밀번호를 바꾸면 다른 기기는 모두 다시 로그인해야 합니다.</p>
     </section>
 
     <!-- ───── 규칙 설정 ───── -->
     <section class="view" id="v-set">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <p class="info" style="margin-top:0">바꾸면 기사님 화면의 안내 문구와 계산에 바로 반영됩니다.</p>
       <ul class="rows" id="set-list"></ul>
     </section>
 
     <!-- ───── 새해 일괄 수정 ───── -->
     <section class="view form" id="v-bulk">
-      <button class="back" data-sub="v-more">← 더보기</button>
-      <p class="label">바꿀 차량</p>
-      <select class="field" id="bulk-group"><option value="all">운행 차량 전체</option><option value="1">1조</option><option value="2">2조</option><option value="3">3조</option><option value="4">4조</option><option value="5">5조</option><option value="6">6조</option></select>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <p class="label">바꿀 차량 <b id="bulk-cnt" class="bk-cnt"></b></p>
+      <div class="bk-q" id="bulk-q"></div>
+      <div id="bulk-cars"></div>
       <p class="label">총연차 (비워 두면 그대로)</p>
-      <input class="field" id="bulk-total" type="number" inputmode="numeric" min="0" max="60" placeholder="예: 15">
+      <input enterkeyhint="done" class="field" id="bulk-total" type="number" inputmode="numeric" min="0" max="60" placeholder="예: 15">
       <p class="label">여름휴가 일수 (비워 두면 그대로)</p>
-      <input class="field" id="bulk-summer" type="number" inputmode="numeric" min="0" max="30" placeholder="예: 3">
+      <input enterkeyhint="done" class="field" id="bulk-summer" type="number" inputmode="numeric" min="0" max="30" placeholder="예: 3">
       <button class="btn primary wide" id="bulk-apply" style="margin-top:14px">한꺼번에 바꾸기</button>
-      <p class="info">새해가 되면 여기서 모든 차량의 총연차를 한 번에 바꾸고, 다른 분만 차량 탭에서 따로 고치세요. 운행 제외 차량은 바뀌지 않습니다.</p>
+      <p class="info">바꿀 차량을 고르세요. [전체]·[1조]~[6조]를 누르면 한꺼번에 고르거나 빼고, 호수를 누르면 한 대씩 고르거나 뺍니다. 연차 일수가 다른 차량은 따로 골라 한 번 더 바꾸면 됩니다. 운행 제외 차량은 고를 수 없습니다.</p>
     </section>
 
     <!-- ───── 기록 ───── -->
     <section class="view" id="v-logs">
-      <button class="back" data-sub="v-more">← 더보기</button>
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <div class="segs log-cats" id="log-cats">
-        <button class="seg on" data-lcat="">전체</button><button class="seg" data-lcat="휴가">휴가</button><button class="seg" data-lcat="운행거리">운행거리</button><button class="seg" data-lcat="계정">계정</button><button class="seg" data-lcat="차량·설정">차량·설정</button>
+        <button class="seg on" data-lcat="">전체</button><button class="seg" data-lcat="휴가">휴가</button><button class="seg" data-lcat="운행거리">운행거리</button><button class="seg" data-lcat="관리팀 수정 기록">관리팀 수정 기록</button><button class="seg" data-lcat="관리자 수정 기록">관리자 수정 기록</button><button class="seg" data-lcat="계정">계정</button><button class="seg" data-lcat="차량·설정">차량·설정</button>
       </div>
-      <input class="field" id="log-q" type="search" placeholder="호수나 내용으로 검색 (예: 205, 취소)" style="margin-top:10px">
+      <input enterkeyhint="done" class="field" id="log-q" type="search" placeholder="호수나 내용으로 검색 (예: 205, 취소)" style="margin-top:10px">
       <p class="info" id="log-count"></p>
       <ul class="rows" id="log-list"></ul>
       <button class="btn wide hidden" id="log-more" style="margin-top:10px">더 보기</button>
     </section>
   </div>
 
-  <nav class="nav">
-    <button data-view="v-month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17.5h2"/></svg>달력</button>
-    <button data-view="v-day"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6"/></svg>날짜별</button>
-    <button data-view="v-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>입력</button>
-    <button data-view="v-cars"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16V8h11v8M14 11h4l3 3v2h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>차량</button>
-    <button data-view="v-more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/></svg>더보기</button>
-  </nav>
+  <nav class="nav" id="nav"></nav>
 </div>
 
 <!-- 차량 상세 -->
@@ -688,10 +1028,10 @@
 <!-- 차량 추가 -->
 <div class="sheet" id="caradd-sheet"><div class="panel form">
   <div class="panel-head"><span>차량 추가</span><button class="link" data-close="caradd-sheet">닫기</button></div>
-  <p class="label">호수</p><input class="field" id="ca-no" type="text" inputmode="numeric" maxlength="5" placeholder="예: 261">
-  <p class="label">총연차 (한 해)</p><input class="field" id="ca-total" type="number" inputmode="numeric" min="0" max="60">
-  <p class="label">여름휴가 일수 (한 해)</p><input class="field" id="ca-summer" type="number" inputmode="numeric" min="0" max="30">
-  <p class="label">비밀번호 (숫자 4~8자리, 비워 두면 나중에)</p><input class="field" id="ca-pin" type="text" inputmode="numeric" maxlength="8">
+  <p class="label">호수</p><input enterkeyhint="done" class="field" id="ca-no" type="text" inputmode="numeric" maxlength="5" placeholder="예: 261">
+  <p class="label">총연차 (한 해)</p><input enterkeyhint="done" class="field" id="ca-total" type="number" inputmode="numeric" min="0" max="60">
+  <p class="label">여름휴가 일수 (한 해)</p><input enterkeyhint="done" class="field" id="ca-summer" type="number" inputmode="numeric" min="0" max="30">
+  <p class="label">비밀번호 (숫자 4~8자리, 비워 두면 나중에)</p><input enterkeyhint="done" class="field" id="ca-pin" type="text" inputmode="numeric" maxlength="8">
   <button class="btn primary wide" id="ca-save" style="margin-top:14px">추가하기</button>
 </div></div>
 <!-- 물량표 반영 전 확인 -->
@@ -704,51 +1044,67 @@
 <!-- 현장 추가·수정 -->
 <div class="sheet" id="rep-sheet"><div class="panel form">
   <div class="panel-head"><span id="rp-title">영업사원 추가</span><button class="link" data-close="rep-sheet">닫기</button></div>
-  <p class="label">이름</p><input class="field" id="rp-name" type="text" maxlength="10" placeholder="출하예정 집계표의 담당자 이름과 똑같이 (예: 홍길동)">
-  <p class="label">전화번호</p><input class="field" id="rp-phone" type="tel" inputmode="tel" maxlength="14" placeholder="예: 010-1234-5678 (모르면 비워 두기)">
-  <p class="label">무전기 번호</p><input class="field" id="rp-radio" type="text" inputmode="numeric" maxlength="8" placeholder="예: 2007 (없으면 비워 두기)">
+  <p class="label">이름</p><input enterkeyhint="done" class="field" id="rp-name" type="text" maxlength="10" placeholder="출하예정 집계표의 담당자 이름과 똑같이 (예: 홍길동)">
+  <p class="label">전화번호</p><input enterkeyhint="done" class="field" id="rp-phone" type="tel" inputmode="tel" maxlength="14" placeholder="예: 010-1234-5678 (모르면 비워 두기)">
+  <p class="label">무전기 번호</p><input enterkeyhint="done" class="field" id="rp-radio" type="text" inputmode="numeric" maxlength="8" placeholder="예: 2007 (없으면 비워 두기)">
   <button class="btn primary wide" id="rp-save" style="margin-top:14px">저장하기</button>
   <button class="btn danger wide hidden" id="rp-del" style="margin-top:8px">목록에서 지우기 (퇴사 등)</button>
 </div></div>
 <div class="sheet" id="site-sheet"><div class="panel form">
   <div class="panel-head"><span id="st-title">현장 추가</span><button class="link" data-close="site-sheet">닫기</button></div>
-  <p class="label">현장명</p><input class="field" id="st-name" type="text" maxlength="100" placeholder="예: 개성 금정 현장">
+  <p class="label">현장명</p><input enterkeyhint="done" class="field" id="st-name" type="text" maxlength="100" placeholder="예: 개성 금정 현장">
   <p class="muted hidden" id="st-hint" style="font-size:13px;margin:6px 2px 0"></p>
-  <p class="label">거리 (km)</p><input class="field" id="st-dist" type="text" inputmode="decimal" maxlength="15" placeholder="예: 12.5 · 실측 · 모르면 비워 두기">
+  <p class="label">거리 (km)</p><input enterkeyhint="done" class="field" id="st-dist" type="text" inputmode="decimal" maxlength="15" placeholder="예: 12.5 · 실측 · 모르면 비워 두기">
+  <p class="label">짧은 이름 <span class="muted" style="font-weight:400;font-size:13px">· 선택 · 기사님 현장 고르기에 크게 보이는 이름</span></p><input enterkeyhint="done" class="field" id="st-alias" type="text" maxlength="20" placeholder="예: 평촌자이 2단지 · 비워 두면 원래 이름">
+  <p class="muted" style="font-size:13px;margin:6px 2px 0">이름이 길거나 끝만 다른 현장(1단지·2단지 등)에 붙이면 기사님이 고르기 쉽습니다. 일보·엑셀·특이사항에는 원래 이름이 그대로 남습니다.</p>
+  <p class="label" id="st-memo-l">현장 메모 <span class="muted" style="font-weight:400;font-size:13px">· 선택 · 관리팀 · 출하실 · 기사님이 현장 찾을 때 함께 보입니다</span></p>
+  <textarea class="field" id="st-memo" rows="4" maxlength="300" placeholder="예: 월암지구 입구 쪽 작업 18km&#10;지구 안쪽 작업 20km" style="height:auto;min-height:104px;line-height:1.5;padding-top:10px;resize:vertical"></textarea>
+  <p class="muted" style="font-size:13px;margin:6px 2px 0">같은 현장 이름인데 날마다 작업 위치가 달라 거리가 다른 경우, 위치별 거리를 적어 두세요. 한 줄에 하나씩 적으면 보기 좋습니다.</p>
   <button class="btn primary wide" id="st-save" style="margin-top:14px">저장하기</button>
   <button class="btn danger wide hidden" id="st-del" style="margin-top:8px">이 현장 지우기</button>
 </div></div>
 <!-- 신청 수정 -->
 <div class="sheet" id="edit-sheet"><div class="panel form">
   <div class="panel-head"><span id="ed-title">신청 수정</span><button class="link" data-close="edit-sheet">닫기</button></div>
-  <p class="label">날짜</p><input class="field" id="ed-date" type="date">
+  <p class="label">날짜</p><input enterkeyhint="done" class="field" id="ed-date" type="date">
   <p class="label">구분</p><div class="segs" id="ed-type"></div>
   <p class="label">상태</p>
   <select class="field" id="ed-status"><option>확정</option><option value="대기">대기 (우선순위 대기)</option><option value="후순위">후순위 대기</option><option>반려</option><option>취소</option></select>
   <p class="label">시간 (조퇴·지각 · 9시~16시)</p><select class="field" id="ed-time"><option value="">없음</option><option value="09:00">9시</option><option value="10:00">10시</option><option value="11:00">11시</option><option value="12:00">12시</option><option value="13:00">13시</option><option value="14:00">14시</option><option value="15:00">15시</option><option value="16:00">16시</option></select>
-  <p class="label">메모</p><input class="field" id="ed-note" type="text" maxlength="40">
+  <p class="label">메모</p><input enterkeyhint="done" class="field" id="ed-note" type="text" maxlength="40">
+  <p class="label">수정 사유 (필수 · 기사님 알림과 기록에 남습니다)</p><input class="field" id="ed-why" type="text" maxlength="60" enterkeyhint="done" placeholder="예: 기사님 전화 요청으로 날짜 변경">
   <button class="btn primary wide" id="ed-save" style="margin-top:14px">저장하기</button>
   <p class="info">관리자 수정은 규칙과 관계없이 그대로 반영됩니다. 날짜를 옮기거나 취소해서 자리가 나면, 대기 중인 분이 순서대로 자동 확정됩니다.</p>
 </div></div>
+<div class="sheet" id="cpk"><div class="panel cpk-panel">
+  <div class="panel-head"><span>호수 고르기</span><button class="link" data-close="cpk">닫기</button></div>
+  <p class="cpk-sub">차량을 누르면 바로 들어갑니다 · 아래 숫자는 남은 연차</p>
+  <div class="cpk-g" id="cpk-g"></div>
+</div></div>
+<div class="sheet" id="dpop"><div class="panel form">
+  <div class="panel-head"><span id="dp-title">날짜</span><button class="link" data-close="dpop">닫기</button></div>
+  <div id="dp-body"></div>
+  <button class="btn primary wide" id="dp-go">날짜별 관리로 가기</button>
+</div></div>
 <!-- 확인창 -->
-<div class="ask" id="ask"><div class="ask-box"><p id="ask-msg"></p><div class="ask-btns"><button class="btn" id="ask-no">아니요</button><button class="btn primary" id="ask-ok">예</button></div></div></div>
+<div class="ask" id="ask"><div class="ask-box"><p id="ask-msg"></p><div id="ask-why-box" class="hidden"><p class="label" style="margin:-8px 0 6px">사유 (기사님 알림과 기록에 남습니다)</p><input class="field" id="ask-why" type="text" maxlength="60" enterkeyhint="done" placeholder="예: 기사님 전화 요청"></div><div class="ask-btns"><button class="btn" id="ask-no">아니요</button><button class="btn primary" id="ask-ok">예</button></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 // 구글 시트 Apps Script "웹 앱" 주소 (기사님 사이트 index.html과 같은 주소). 비워두면 체험 모드
-const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec"; const APP_VER = "20261103a";
 
-const VAC_SEED = [];
+const VAC_SEED = [];   // 체험 모드(API_URL 비었을 때)용 자료 · 완성본은 비움
 // 체험 모드 자료 버전: 바뀌면 이 브라우저에 쌓인 시험 기록·비밀번호·로그인을 모두 지우고 새 자료로 시작
-const DEMO_VER = "2026-10-28-latest";
+const DEMO_VER = "2026-11-02-real";
 if (!API_URL) try {
   if (localStorage.getItem("demoVer") !== DEMO_VER) {
     Object.keys(localStorage).filter(k => /^(demo|seen_|myTok|myPin|myCar|sitesCache|todayCache)/.test(k)).forEach(k => localStorage.removeItem(k));
     localStorage.setItem("demoVer", DEMO_VER);
   }
 } catch (e) {}
-const SITE_SEED = [];   // 체험 모드용 현장 목록
-const REP_SEED = [];     // 체험 모드용 영업사원 연락처
+const SITE_SEED = [];
+const REP_SEED = [];
 if (!API_URL) try { if (!localStorage.getItem("demoReps")) localStorage.setItem("demoReps", JSON.stringify(REP_SEED)); } catch (e) {}
 if (!API_URL) try { if (!localStorage.getItem("demoSites")) localStorage.setItem("demoSites", JSON.stringify(SITE_SEED)); } catch (e) {}   // 기사님 체험 화면에서도 검색되게
 /* =========================================================
@@ -764,12 +1120,12 @@ var RULES = {
   SPECIAL_WEEKDAYS: [1, 5], // 후순위 대상 요일 (1=월, 5=금)
   PRIORITY_AFTER: 2,     // 월·금·샌드위치데이 연차는 한 해에 이 횟수까지 일반 신청, 그 뒤로는 후순위
   SUMMER_DEFAULT: 3,     // '차량' 탭 여름휴가 칸이 비어 있으면 한 해 여름휴가 3일로 계산
-  VAC_OPEN: 0,           // 기사님 휴가 신청: 0 = 테스트 중(막음), 1 = 열림
+  VAC_OPEN: 2,           // 기사님 휴가 탭: 0 = 잠금(테스트 중 안내만), 2 = 신청만 막기(내 기록·날짜별 인원만 보임), 1 = 열림
   ORDER_SHOW_NO: 0       // 신청 순서 화면에 다른 기사님 호수: 0 = 가림, 1 = 보임
 };
 // 관리자 '설정'에서 바꿀 수 있는 숫자들 (이름 → [설명, 최소, 최대])
 var SETTING_INFO = {
-  VAC_OPEN: ["기사님 휴가 신청 열기 (0 = 테스트 중, 1 = 열림)", 0, 1],
+  VAC_OPEN: ["기사님 휴가 탭 (0 = 잠금, 2 = 신청만 막기, 1 = 열림)", 0, 2],
   ORDER_SHOW_NO: ["신청 순서 화면에 다른 기사님 호수 보이기 (0 = 가림, 1 = 보임)", 0, 1],
   LIMIT: ["하루 연차 최대 인원", 1, 30],
   SPECIAL_LIMIT: ["우선순위날 하루 연차 최대 인원 (월·금·연휴 앞뒤 날)", 0, 30],
@@ -804,7 +1160,7 @@ function limitSource(st, d) {
 function hourText(h) { return h === 0 ? "밤 12시" : h < 12 ? "오전 " + h + "시" : h === 12 ? "낮 12시" : "오후 " + (h - 12) + "시"; }
 function rulesView() {
   return { hours: workHours(), workStart: WORK_START, workEnd: WORK_END, limit: RULES.LIMIT, specialLimit: RULES.SPECIAL_LIMIT, openDays: RULES.OPEN_DAYS, openHour: RULES.OPEN_HOUR, openText: hourText(RULES.OPEN_HOUR),
-           lockDays: RULES.LOCK_DAYS, priorityAfter: RULES.PRIORITY_AFTER, summerDefault: RULES.SUMMER_DEFAULT, vacOpen: RULES.VAC_OPEN === 1 };
+           lockDays: RULES.LOCK_DAYS, priorityAfter: RULES.PRIORITY_AFTER, summerDefault: RULES.SUMMER_DEFAULT, vacOpen: RULES.VAC_OPEN === 1, vacMode: RULES.VAC_OPEN };
 }
 
 var SELF_TYPES = ["연차", "조퇴", "지각", "결근"];
@@ -907,6 +1263,17 @@ function perkHolders(st, date) {
   return Object.keys(st.cars).filter(function (no) {
     return !st.cars[no].off && (used[no] || 0) < RULES.PRIORITY_AFTER && st.cars[no].total - (leave[no] || 0) >= 1 && !busy[no];
   }).length;
+}
+// 그날 연차 신청 인원 (기사 화면에 숫자만 보여 줌 · 이름은 안 보임)
+//  prio = 우선순위로 신청한 인원(확정 + 대기), low = 후순위로 신청한 인원(확정된 것 포함)
+function prioOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && (r.status === "확정" || r.status === "대기") && r.wait !== "후순위"; }).length;
+}
+function lowAppliedOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && ACTIVE[r.status] && (r.status === "후순위" || r.wait === "후순위"); }).length;
+}
+function waitingOn(st, date) {
+  return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && PENDING[r.status]; }).length;
 }
 function pendingOn(st, date) {
   return st.reqs.filter(function (r) { return r.date === date && r.type === "연차" && r.status === "후순위"; }).length;
@@ -1161,6 +1528,7 @@ function engineSummary(st) {
   for (var i = 1; i <= maxDay; i++) {
     var d = dAdd(st.today, i);
     days.push({ date: d, year: dYear(d), label: dShort(d), long: dLong(st, d), week: WEEK[dWeekday(d)], off: isOffDay(st, d), special: specialKind(st, d), taken: confirmedOn(st, d), limit: limitOn(st, d), locked: i <= RULES.LOCK_DAYS, block: blockOn(st, d) ? (blockOn(st, d).memo || "연차 불가") : "",
+                prio: prioOn(st, d), low: lowAppliedOn(st, d), waiting: waitingOn(st, d),
                 lowOpen: specialKind(st, d) && i > RULES.LOCK_DAYS ? Math.max(0, lowOpenOn(st, d) - pendingOn(st, d)) : null });
   }
   // 아직 신청이 열리지 않은 다음 근무일과, 그날 신청이 열리는 날짜
@@ -1294,7 +1662,7 @@ function adminDay(st, p) {
   if (!isValidDate(d)) return result(false, "날짜가 올바르지 않습니다.");
   var on = st.reqs.filter(function (r) { return r.date === d; });
   var pick = function (f) { return on.filter(f).map(function (r) {
-    return { id: r.id, no: r.no, type: r.type, status: r.status, time: r.time, by: r.by, createdAt: r.createdAt, note: r.note, outside: r.wait === OUTSIDE };
+    return { id: r.id, no: r.no, type: r.type, status: r.status, time: r.time, by: r.by, createdAt: r.createdAt, note: r.note, reason: r.reason || "", outside: r.wait === OUTSIDE };
   }).sort(function (a, b) { return a.no < b.no ? -1 : 1; }); };
   var queue = waitQueue(st, d).map(function (r) {
     return { id: r.id, no: r.no, status: r.status, kind: waitName(waitKind(r)), label: waitLabel(st, r), rank: waitRank(st, r), createdAt: r.createdAt };
@@ -1399,7 +1767,7 @@ function adminSetStatus(st, p) {
   req.status = to; req.doneAt = st.now;
   var r = result(true, req.no + "호 " + dLong(st, req.date) + " " + req.type + ": " + before + " → " + to);
   r.changes.push({ op: "update", id: req.id, status: to, doneAt: st.now });
-  r.logs.push({ no: req.no, type: req.type, date: req.date, action: "관리자 수정", result: to, detail: "상태: " + before + " → " + to, by: "관리자" });
+  r.logs.push({ no: req.no, type: req.type, date: req.date, action: "관리자 수정", result: to, detail: "상태: " + before + " → " + to + (p.why ? " · 사유: " + String(p.why).slice(0, 60) : ""), by: "관리자" });
   if (to === "확정" && req.type === "연차" && confirmedOn(st, req.date) > limitOn(st, req.date)) r.msg += " ※ 그날 최대 " + limitOn(st, req.date) + "명을 넘었습니다.";
   if (to === "확정" && req.type === "연차") { var sy = dYear(req.date), sl = st.cars[req.no].total - leaveUsed(st, req.no, sy, true); if (sl < 0) r.msg += " ※ " + req.no + "호 " + sy + "년 남은 연차가 " + sl + "일이 됩니다."; }
   if (to === "취소") settleAll(st, r); // 3일 넘게 남은 날이면 대기 순서대로 자동 확정
@@ -1491,7 +1859,7 @@ function adminEdit(st, p) {
   req.date = nd; req.type = nt; req.status = ns; req.time = ntime; req.note = nnote; req.wait = nw; req.doneAt = st.now;
   var r = result(true, req.no + "호 신청을 수정했습니다. (" + diff.join(", ") + ")");
   r.changes.push({ op: "edit", id: req.id, date: nd, type: nt, status: ns, time: ntime, note: nnote, wait: nw, doneAt: st.now });
-  r.logs.push({ no: req.no, type: nt, date: nd, action: "관리자 수정", result: ns, detail: diff.join(", "), by: "관리자" });
+  r.logs.push({ no: req.no, type: nt, date: nd, action: "관리자 수정", result: ns, detail: diff.join(", ") + (p.why ? " · 사유: " + String(p.why).slice(0, 60) : ""), by: "관리자" });
   if (nt === "연차" && ns === "확정" && confirmedOn(st, nd) > limitOn(st, nd)) r.msg += " ※ 그날 최대 " + limitOn(st, nd) + "명을 넘었습니다.";
   if (nt === "연차" && ACTIVE[ns]) { var ry = dYear(nd), rl = st.cars[req.no].total - leaveUsed(st, req.no, ry, true); if (rl < 0) r.msg += " ※ " + req.no + "호 " + ry + "년 남은 연차가 " + rl + "일이 됩니다."; }
   settleAll(st, r);
@@ -1526,9 +1894,11 @@ function adminMonth(st, p) {
                 leave: nos(function (r) { return r.type === "연차" && r.status === "확정"; }),
                 summer: nos(function (r) { return r.type === "여름휴가" && r.status === "확정"; }),
                 early: on.filter(function (r) { return (r.type === "조퇴" || r.type === "지각") && r.status === "확정"; })
-                         .map(function (r) { return { no: r.no, type: r.type, time: r.time || "" }; }),
+                         .map(function (r) { return { no: r.no, type: r.type, time: r.time || "", note: r.note || "" }; }),
                 absent: nos(function (r) { return r.type === "결근" && r.status === "확정"; }),
                 extra: nos(function (r) { return r.type === "특별휴가" && r.status === "확정"; }),
+                extraInfo: on.filter(function (r) { return r.type === "특별휴가" && r.status === "확정"; }).map(function (r) { return { no: r.no, why: r.reason || r.note || "" }; }),
+                absentInfo: on.filter(function (r) { return r.type === "결근" && r.status === "확정"; }).map(function (r) { return { no: r.no, why: r.note || "" }; }),
                 limit: limitOn(st, d), customLimit: limitSource(st, d).kind === "custom",
                 waiting: on.filter(function (r) { return r.type === "연차" && WAIT[r.status]; }).length });
     d = dAdd(d, 1);
@@ -1565,17 +1935,17 @@ function adminCarActive(st, p) {
 function adminBulk(st, p) {
   var total = p.total === "" || p.total === undefined ? null : Number(p.total);
   var summer = p.summer === "" || p.summer === undefined ? null : Number(p.summer);
-  var group = String(p.group || "all");
+  var group = String(p.group || "all"), pick = Array.isArray(p.nos) ? p.nos.map(String) : null;
   if (total === null && summer === null) return result(false, "바꿀 값을 하나 이상 넣어 주세요.");
   if (total !== null && !(total >= 0 && total <= 60 && Math.floor(total) === total)) return result(false, "총연차는 0~60 사이 숫자로 넣어 주세요.");
   if (summer !== null && !(summer >= 0 && summer <= 30 && Math.floor(summer) === summer)) return result(false, "여름휴가 일수는 0~30 사이 숫자로 넣어 주세요.");
   var nos = Object.keys(st.cars).filter(function (no) {
-    return !st.cars[no].off && (group === "all" || String(Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10)))) === group);
+    return !st.cars[no].off && (pick ? pick.indexOf(no) >= 0 : group === "all" || String(Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10)))) === group);
   });
   if (!nos.length) return result(false, "바꿀 차량이 없습니다.");
   nos.forEach(function (no) { if (total !== null) st.cars[no].total = total; if (summer !== null) st.cars[no].summer = summer; });
   var what = [total !== null ? "총연차 " + total + "일" : "", summer !== null ? "여름휴가 " + summer + "일" : ""].filter(Boolean).join(", ");
-  var r = result(true, (group === "all" ? "운행 차량 전체" : group + "조") + " " + nos.length + "대의 " + what + "(으)로 바꿨습니다.");
+  var r = result(true, (pick ? "고른 차량" : group === "all" ? "운행 차량 전체" : group + "조") + " " + nos.length + "대의 " + what + "(으)로 바꿨습니다.");
   r.changes.push({ op: "bulk", nos: nos, total: total, summer: summer });
   r.logs.push({ no: "-", type: "-", date: "", action: "관리자 일괄 수정", result: "완료", detail: what + " · " + nos.length + "대", by: "관리자" });
   return r;
@@ -1629,7 +1999,7 @@ function adminSetSetting(st, p) {
   return r;
 }
 
-/* ---------- 연차 신청 막는 기간 (예: 7~8월 여름휴가 기간) ----------
+/* ---------- 연차 제한 기간 (예: 7~8월 여름휴가 기간) ----------
    st.blocks = [{ from, to, memo }]  기사님 연차 신청만 막음 (조퇴·지각·결근, 관리자 입력은 그대로) */
 function blockOn(st, d) {
   var b = st.blocks || [];
@@ -1656,19 +2026,19 @@ function adminBlockAdd(st, p) {
   st.blocks.push(nb);
   var act = st.reqs.filter(function (r) { return r.type === "연차" && ACTIVE[r.status] && r.date >= from && r.date <= to; });
   var conf = act.filter(function (r) { return r.status === "확정"; }).length;
-  var r = result(true, blockRange(nb) + "을 연차 신청 막는 기간으로 정했습니다." +
+  var r = result(true, blockRange(nb) + "을 연차 제한 기간으로 정했습니다." +
     (act.length ? " ※ 이 기간에 이미 연차 " + act.length + "건이 있습니다 (확정 " + conf + "건, 대기 " + (act.length - conf) + "건). 필요하면 날짜별 화면에서 정리해 주세요." : ""));
   r.changes.push({ op: "blocks" });
-  r.logs.push({ no: "-", type: "-", date: from, action: "관리자 연차 막는 기간 추가", result: "완료", detail: blockRange(nb) + (memo ? " · " + memo : ""), by: "관리자" });
+  r.logs.push({ no: "-", type: "-", date: from, action: "관리자 연차 제한 기간 추가", result: "완료", detail: blockRange(nb) + (memo ? " · " + memo : ""), by: "관리자" });
   return r;
 }
 function adminBlockDel(st, p) {
   var b = (st.blocks || []).filter(function (x) { return x.from === p.from && x.to === p.to; })[0];
   if (!b) return result(false, "그 기간을 찾지 못했습니다. 화면을 새로 고쳐 주세요.");
   st.blocks = st.blocks.filter(function (x) { return x !== b; });
-  var r = result(true, blockRange(b) + " 연차 막는 기간을 지웠습니다. 이제 이 기간에도 연차를 신청할 수 있습니다.");
+  var r = result(true, blockRange(b) + " 연차 제한 기간을 지웠습니다. 이제 이 기간에도 연차를 신청할 수 있습니다.");
   r.changes.push({ op: "blocks" });
-  r.logs.push({ no: "-", type: "-", date: b.from, action: "관리자 연차 막는 기간 삭제", result: "완료", detail: blockRange(b) + (b.memo ? " · " + b.memo : ""), by: "관리자" });
+  r.logs.push({ no: "-", type: "-", date: b.from, action: "관리자 연차 제한 기간 삭제", result: "완료", detail: blockRange(b) + (b.memo ? " · " + b.memo : ""), by: "관리자" });
   return r;
 }
 
@@ -2147,12 +2517,13 @@ function todaySet(S, T, p) {
 
 /* ---------- 기록 분류 (관리자 기록 탭) ----------
    기록 줄 = [시각, 호수, 종류, 날짜, 처리, 결과, 처리자, 내용] */
-var LOG_CATS = ["휴가", "운행거리", "계정", "차량·설정"];
+var LOG_CATS = ["휴가", "운행거리", "운행기록 수정", "계정", "차량·설정"];
 function logCat(r) {
   var a = String(r[4] || "");
+  if (/^운행기록 /.test(a)) return r[6] === "관리자" ? "관리자 수정 기록" : "관리팀 수정 기록";
   if (r[2] === "현장" || a.indexOf("현장") >= 0 || a.indexOf("영업") >= 0) return "운행거리";
   if (/비밀번호|로그인|로그아웃|잠금/.test(a)) return "계정";
-  if (/차량|운행 제외|운행 복구|총연차|여름휴가 일수|일괄|설정|공휴일|날짜별 인원|막는 기간|백업/.test(a)) return "차량·설정";
+  if (/차량|운행 제외|운행 복구|총연차|여름휴가 일수|일괄|설정|공휴일|날짜별 인원|막는 기간|제한 기간|백업/.test(a)) return "차량·설정";
   return "휴가";
 }
 function logFilter(rows, p) {
@@ -2227,7 +2598,7 @@ const ITEMS = {};            // 화면에 나온 신청 (수정 창에서 씀)
 let editing = null;
 
 /* ---------- 체험 모드 데이터 ---------- */
-const HOL_SEED = [["2026-01-01","신정"],["2026-02-16","설날 연휴"],["2026-02-17","설날"],["2026-02-18","설날 연휴"],["2026-03-01","삼일절"],["2026-03-02","대체공휴일(삼일절)"],["2026-05-01","노동절"],["2026-05-05","어린이날"],["2026-05-24","부처님오신날"],["2026-05-25","대체공휴일(부처님오신날)"],["2026-06-03","지방선거"],["2026-06-06","현충일"],["2026-07-17","제헌절"],["2026-08-15","광복절"],["2026-08-17","대체공휴일(광복절)"],["2026-09-24","추석 연휴"],["2026-09-25","추석"],["2026-09-26","추석 연휴"],["2026-10-03","개천절"],["2026-10-05","대체공휴일(개천절)"],["2026-10-09","한글날"],["2026-12-25","크리스마스"],["2027-01-01","신정"],["2027-02-06","설날 연휴"],["2027-02-07","설날"],["2027-02-08","설날 연휴"],["2027-02-09","대체공휴일(설날)"],["2027-03-01","삼일절"],["2027-05-01","노동절"],["2027-05-03","대체공휴일(노동절)"],["2027-05-05","어린이날"],["2027-05-13","부처님오신날"],["2027-06-06","현충일"],["2027-07-17","제헌절"],["2027-07-19","대체공휴일(제헌절)"],["2027-08-15","광복절"],["2027-08-16","대체공휴일(광복절)"],["2027-09-14","추석 연휴"],["2027-09-15","추석"],["2027-09-16","추석 연휴"],["2027-10-03","개천절"],["2027-10-04","대체공휴일(개천절)"],["2027-10-09","한글날"],["2027-10-11","대체공휴일(한글날)"],["2027-12-25","크리스마스"],["2027-12-27","대체공휴일(크리스마스)"]];
+const HOL_SEED = [];
 function kstNow() {
   const k = new Date(Date.now() + 9 * 3600e3), p = n => String(n).padStart(2, "0");
   const d = k.getUTCFullYear() + "-" + p(k.getUTCMonth() + 1) + "-" + p(k.getUTCDate());
@@ -2235,11 +2606,16 @@ function kstNow() {
 }
 let DEMO_MEM = null, DEMO_LOGS = null, DEMO_SITES = null, DEMO_TODAY = null;
 const SITE_FN = { adminSiteSave: siteSave, adminSiteDel: siteDel, adminSitesPaste: sitesPaste, adminSitesFix: sitesFix };
+try { if (!localStorage.getItem("demoHa1")) { const o = JSON.parse(localStorage.getItem("demoState") || "null"); if (o && o.holidays) { o.holidays = o.holidays.filter(d => d < "2027"); localStorage.setItem("demoState", JSON.stringify(o)); } localStorage.setItem("demoHa1", "1"); } } catch (e) {}
+// 시안 자료: 10월 일보·11/2 일보의 조퇴·지각·결근·특별휴가 (정비 후 출근은 지각, 외출은 조퇴로 표시)
+const ADM_EVENTS = [];
+function addAdmEvents(st) { const have = new Set(st.reqs.map(r => r.no + r.date + r.type)); let n = 0;
+  ADM_EVENTS.forEach(([no, date, type, note]) => { if (have.has(no + date + type)) return; st.reqs.push({ id: "ev" + (++n) + no + date, no, date, type, status: "확정", time: "", note: note || "", reason: type === "특별휴가" ? note : "", createdAt: date + " 07:00", by: "관리자" }); }); }
 function demoState() {
   let st = DEMO_MEM ? JSON.parse(JSON.stringify(DEMO_MEM)) : null;
   if (!st) try { st = JSON.parse(localStorage.getItem("demoState") || "null"); } catch (e) {}
   if (!st) {
-    st = { cars: {}, reqs: [], holidays: HOL_SEED.map(h => h[0]) };
+    st = { cars: {}, reqs: [], holidays: HOL_SEED.map(h => h[0]).filter(d => d < "2027") };   // 2027년은 '공휴일 자동 불러오기'로 넣어 보는 시안
     let n = 0;
     VAC_SEED.forEach(([no, avail, , used, summer]) => {
       st.cars[no] = { pin: "0" + no, total: used.length + Number(avail) };
@@ -2249,6 +2625,7 @@ function demoState() {
       }));
     });
   }
+  if (!st.evAdded3) { addAdmEvents(st); st.evAdded3 = 1; } if (!st.evDrop4) { const X = ["241|2026-11-11", "241|2026-11-12", "241|2026-11-13"]; st.reqs = st.reqs.filter(r => !X.includes(r.no + "|" + r.date)); st.evDrop4 = 1; }   // 11/11~13 241호는 잘못 적힌 것 (사용자 11/3)
   if (!st.holidayNames) { st.holidayNames = {}; HOL_SEED.forEach(h => { if (st.holidays.includes(h[0])) st.holidayNames[h[0]] = h[1]; }); }
   st.settings = st.settings || {};
   Object.keys(st.cars).forEach(no => { if (st.cars[no].pin === "1234") st.cars[no].pin = "0" + no; });   // 예전 체험 기본 비밀번호 → 0+호수
@@ -2257,6 +2634,19 @@ function demoState() {
   applySettings(st);
   return st;
 }
+// 관리팀(과 관리자 운행 기록표)에서 고친 운행기록 · '이상 없음 확인'도 기록에 같이 보여 줌
+const OFFICE_LOG_SEED = [];
+function officeLogs() { const L = OFFICE_LOG_SEED.map(r => r.slice()), W = "일월화수목금토";
+  const dl = d => (+d.slice(5, 7)) + "/" + (+d.slice(8)) + "(" + W[new Date(d + "T00:00:00").getDay()] + ") 기록";
+  const tm = at => "2026-" + String(at || "").replace("/", "-");
+  const NM = { real: ["회전수", "회"], km: ["운행거리", "km"], toll: ["통행료", "원"] };
+  try { const E = JSON.parse(localStorage.getItem("officeEdits") || "{}");
+    Object.keys(E).forEach(d => Object.keys(E[d]).forEach(c => { const e = E[d][c];
+      L.push([tm(e.at), c, "-", dl(d), "운행기록 수정", Object.keys(e.v).map(k => { const u = (NM[k] || ["", ""])[1], f = x => k === "toll" ? Number(x).toLocaleString("ko-KR") : x; return (NM[k] || [k])[0] + " " + f(e.v[k]) + u + " (원래 " + f(e.orig[k]) + u + ")"; }).join(", "), e.by || "관리팀", (e.why || "") + " · 기사님께 수정 알림"]); })); } catch (e) {}
+  try { const O = JSON.parse(localStorage.getItem("officeOks") || "{}");
+    Object.keys(O).forEach(d => Object.keys(O[d]).forEach(c => L.push([tm(O[d][c].at), c, "-", dl(d), "운행기록 이상 없음 확인", "운행거리 " + O[d][c].km + "km 경고 지움", "관리팀", ""]))); } catch (e) {}
+  try { JSON.parse(localStorage.getItem("adminEdits") || "[]").forEach(x => L.push([tm(x.at), x.c, "-", dl(x.d), x.del ? "운행기록 삭제" : "운행기록 수정", x.del ? "기록 삭제 (미입력으로 돌아감)" : (x.ch || ""), "관리자", (x.why ? "사유: " + x.why + " · " : "") + "기사님께 " + (x.del ? "삭제" : "수정") + " 알림"])); } catch (e) {}   // 관리자 입력 현황 · 운행 기록표에서 고친 것
+  return L; }
 function demoLogs() {
   if (DEMO_LOGS) return DEMO_LOGS;
   try { DEMO_LOGS = JSON.parse(localStorage.getItem("demoLogs") || "[]"); } catch (e) { DEMO_LOGS = []; }
@@ -2271,8 +2661,10 @@ function demoSave(st, logs) {
 }
 
 /* ---------- 서버 통신 (체험 모드는 이 폰 안에서 처리) ---------- */
+// 이 기기 이름 (로그인 기기 메뉴에서 정함 · 없으면 기기 종류) → 모든 요청의 dev · 관리자 작업 기록에 남음
+function devId() { let n = ""; try { n = localStorage.getItem("admDevName") || ""; } catch (e) {} return (n || devName()).slice(0, 40); }
 async function api(action, p) {
-  p = Object.assign({ action, adminPw: PW }, p || {});
+  p = Object.assign({ action, adminPw: PW, dev: devId() }, p || {});
   if (API_URL) {
     try {
       const res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(p) });
@@ -2281,7 +2673,7 @@ async function api(action, p) {
       return { ok: false, net: true, msg: "연결이 불안정해 결과를 확인하지 못했습니다. 새로고침해서 확인해 주세요." };
     }
   }
-  let realPw = "4512"; try { realPw = localStorage.getItem("demoAdminPw") || "4512"; } catch (e) {}
+  let realPw = "1111"; try { realPw = localStorage.getItem("demoAdminPw") || "1111"; } catch (e) {}
   if (p.adminPw !== realPw) return { ok: false, auth: true, msg: "관리자 비밀번호가 맞지 않습니다." };
   if (action === "adminReps" || action === "adminRepSave" || action === "adminRepDel") {   // 영업사원 (체험: 이 폰에 저장)
     let R = []; try { R = JSON.parse(localStorage.getItem("demoReps") || "null") || REP_SEED.map(r => r.slice()); } catch (e) { R = REP_SEED.map(r => r.slice()); }
@@ -2311,7 +2703,7 @@ async function api(action, p) {
   const st = demoState();
   if (action === "adminLogin") { demoSave(st, [{ no: "-", type: "-", date: "", action: "관리자 로그인", result: "성공", by: "관리자" }]); return { ok: true }; }
   if (action === "adminLogs") {
-    return logFilter(demoLogs().slice().reverse(), p);
+    return logFilter(demoLogs().concat(officeLogs()).sort((a, b) => String(b[0]).localeCompare(String(a[0]))), p);
   }
   if (action === "adminSites" || action === "adminToday" || action === "adminTodaySet" || SITE_FN[action]) {   // 현장 (체험: 이 폰에 저장)
     let S = null, T = null;
@@ -2340,21 +2732,27 @@ async function api(action, p) {
   delete r.changes; delete r.logs;
   return r;
 }
+// 쓰기 요청이 성공하면 프레임(ops·sheet·pri)이 쓰는 자료 묶음(ADM_DATA)을 다시 받아 보냄
+const ADM_WRITE = { adminRunSave: 1, adminGaSave: 1, adminGaDel: 1, adminKvSet: 1, adminStaff: 1, adminCarActive: 1, adminResetPin: 1, adminCarAdd: 1, adminSiteMeta: 1, adminHolAdd: 1, adminHolDel: 1, adminSetSetting: 1,
+  adminCarPw: 1, adminOfficePw: 1, adminAuditUndo: 1, adminAdd: 1, adminSetStatus: 1, adminEdit: 1, adminBulk: 1, adminSiteSave: 1, adminSiteDel: 1, adminSitesPaste: 1, adminSitesFix: 1, adminTodaySet: 1, adminBlockAdd: 1, adminBlockDel: 1, adminSetDayLimit: 1, adminSetTotal: 1, adminSetSummer: 1, adminKick: 1 };
 async function call(action, p) {
   const r = await api(action, p);
   if (r.auth) { toast(r.msg); logout(); }
+  else if (r.ok && ADM_WRITE[action] && !(p && p.dry)) admDirty();
   return r;
 }
 
 /* ---------- 공통 도구 ---------- */
-function ask(msg, okLabel, cancelLabel, danger) {
+function ask(msg, okLabel, cancelLabel, danger, needWhy) {
   return new Promise(resolve => {
-    const box = $("ask"), ok = $("ask-ok"), no = $("ask-no");
+    const box = $("ask"), ok = $("ask-ok"), no = $("ask-no"), wb = $("ask-why-box"), wi = $("ask-why");
     $("ask-msg").textContent = msg;
     ok.textContent = okLabel || "예"; no.textContent = cancelLabel || "아니요";
     ok.className = "btn " + (danger ? "danger" : "primary");
-    const done = v => { box.classList.remove("show"); ok.onclick = no.onclick = box.onclick = null; resolve(v); };
-    ok.onclick = () => done(true); no.onclick = () => done(false);
+    wb.classList.toggle("hidden", !needWhy); wi.value = ""; ok.disabled = !!needWhy;
+    wi.oninput = () => { ok.disabled = needWhy && !wi.value.trim(); };
+    const done = v => { box.classList.remove("show"); ok.onclick = no.onclick = box.onclick = null; ok.disabled = false; resolve(v); };
+    ok.onclick = () => done(needWhy ? wi.value.trim() : true); no.onclick = () => done(false);
     box.onclick = e => { if (e.target === box) done(false); };
     box.classList.add("show");
   });
@@ -2383,26 +2781,42 @@ const groupOf = no => Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10)
 function refreshAll() { COPYDAY = {}; if (TODAY) prefetchCopyDays(); if (curMonth) loadMonth(curMonth); if (curDate) loadDay(curDate); refreshWaitDates(); loadCars(); }
 
 /* ---------- 로그인 ---------- */
+/* 비밀번호 5번 틀리면 '이 기기만' 10분 잠금 (다른 기기·이미 로그인한 기기는 그대로) */
+const LOCK_N = 5, LOCK_MS = 10 * 60e3;
+function lockGet() { try { return JSON.parse(localStorage.getItem("demoLock") || "null") || { n: 0, until: 0 }; } catch (e) { return { n: 0, until: 0 }; } }
+function lockSet(o) { try { localStorage.setItem("demoLock", JSON.stringify(o)); } catch (e) {} }
+function lockReset() { lockSet({ n: 0, until: 0 }); lockShow(); }
+function lockShow() { const L = lockGet(), m = $("lock-msg"), left = L.until - Date.now();
+  if (left > 0) { m.className = "lock-msg"; m.hidden = false; m.innerHTML = "비밀번호를 5번 틀려서 <b>이 기기만</b> " + Math.ceil(left / 60e3) + "분 동안 로그인할 수 없습니다.<br>다른 기기와 이미 로그인한 기기는 그대로 쓸 수 있습니다."; $("login-btn").disabled = true; return true; }
+  $("login-btn").disabled = false;
+  if (L.n >= 3) { m.className = "lock-msg warn"; m.hidden = false; m.textContent = "비밀번호가 맞지 않습니다. " + (LOCK_N - L.n) + "번 더 틀리면 이 기기는 10분 동안 잠깁니다."; } else m.hidden = !L.n;
+  if (L.n && L.n < 3) { m.className = "lock-msg warn"; m.textContent = "비밀번호가 맞지 않습니다."; }
+  return false; }
+function lockFail() { const L = lockGet(); L.n++; if (L.n >= LOCK_N) { L.until = Date.now() + LOCK_MS; L.n = 0; } lockSet(L); lockShow(); $("pw").value = ""; $("pw").focus(); }
+setInterval(() => { if (!$("login").classList.contains("hidden")) lockShow(); }, 15000);
 async function login() {
+  if (lockShow()) return;
   PW = $("pw").value.trim();
   if (!PW) return;
   $("login-btn").disabled = true;
   const r = await api("adminLogin");
   $("login-btn").disabled = false;
-  if (!r.ok) { toast(r.msg); PW = ""; return; }
-  store.set("adminPw", PW); start();
+  if (!r.ok) { PW = ""; return lockFail(); }
+  lockReset(); store.set("adminPw", PW); start(); if (CUR === "v-sheet" || CUR === "v-pri") showView(CUR);
+  if (typeof navGo === "function") navGo(TABS[0] || "o:today");
 }
 function logout() {
   PW = ""; store.set("adminPw", "");
-  return location.href = "index.html";                             // 나가면 첫 로그인 화면으로
-  $("app").classList.add("hidden"); $("login").classList.remove("hidden"); $("pw").value = "";
+  if (API_URL) return location.href = "index.html";                // 나가면 첫 로그인 화면으로 (시안에서는 이 페이지의 로그인 화면)
+  document.body.classList.remove("ops-on"); document.body.style.overflow = "";
+  $("app").classList.add("hidden"); $("login").classList.remove("hidden"); $("pw").value = ""; $("sec-alert").hidden = true; lockShow();
 }
 async function start() {
   $("login").classList.add("hidden"); $("app").classList.remove("hidden");
   const w = await call("adminWaitDates");
   if (!w.ok) return;
   TODAY = w.today; RV = w.rules; curDate = curDate || TODAY; curMonth = curMonth || TODAY.slice(0, 7);
-  $("today").textContent = "오늘 " + md(TODAY); $("side-today").textContent = "오늘 " + md(TODAY);
+  $("today").textContent = md(TODAY); $("side-today").textContent = "오늘 " + md(TODAY);
   if (!API_URL) $("demo").classList.remove("hidden");
   $("add-info").textContent = "관리자 입력은 그날 최대 인원, " + RV.lockDays + "일 규칙, 남은 일수 확인 없이 바로 확정됩니다.";
   renderWaitDates(w.dates);
@@ -2431,7 +2845,8 @@ async function loadMonth(m) {
       (d.customLimit && !d.off ? '<span class="ln lim">' + LB("최대" + d.limit, "최대 " + d.limit + "명") + '</span>' : '') +
       (d.leave.length ? '<span class="ln l' + (full ? ' full' : '') + '">' + LB("연", "연차") + ' ' + d.leave.length + '</span>' : '') +
       (d.summer.length ? '<span class="ln s">' + LB("여", "여름휴가") + ' ' + d.summer.length + '</span>' : '') +
-      (d.early.length ? '<span class="ln e">' + LB("조", "조퇴·지각") + ' ' + d.early.length + '</span>' : '') +
+      (d.early.filter(x => x.type === "조퇴").length ? '<span class="ln e">' + LB("조", "조퇴") + ' ' + d.early.filter(x => x.type === "조퇴").length + '</span>' : '') +
+      (d.early.filter(x => x.type === "지각").length ? '<span class="ln t">' + LB("지", "지각") + ' ' + d.early.filter(x => x.type === "지각").length + '</span>' : '') +
       (d.absent && d.absent.length ? '<span class="ln a">' + LB("결", "결근") + ' ' + d.absent.length + '</span>' : '') +
       (d.extra && d.extra.length ? '<span class="ln x">' + LB("특", "특별휴가") + ' ' + d.extra.length + '</span>' : '') +
       (d.waiting ? '<span class="ln w">' + LB("대", "대기") + ' ' + d.waiting + '</span>' : '') + '</button>';
@@ -2440,7 +2855,8 @@ async function loadMonth(m) {
   const busy = r.days.filter(d => d.leave.length || d.summer.length || d.early.length || d.absent.length || (d.extra || []).length || d.waiting);
   $("m-list").innerHTML = busy.length ? busy.map(d => '<li><span class="d' + (d.off ? ' red' : '') + '">' + md(d.date) + '</span>' +
     [d.leave.length ? '<b>연차</b> ' + d.leave.join(" ") : "", d.summer.length ? '<b>여름</b> ' + d.summer.join(" ") : "",
-     d.early.length ? '<b>조퇴·지각</b> ' + d.early.map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(" ") : "",
+     d.early.filter(x => x.type === "조퇴").length ? '<b>조퇴</b> ' + d.early.filter(x => x.type === "조퇴").map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(" ") : "",
+     d.early.filter(x => x.type === "지각").length ? '<b>지각</b> ' + d.early.filter(x => x.type === "지각").map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(" ") : "",
      d.absent.length ? '<b>결근</b> ' + d.absent.join(" ") : "",
      (d.extra || []).length ? '<b>특별</b> ' + d.extra.join(" ") : "",
      d.waiting ? '<span class="muted">대기 ' + d.waiting + '명</span>' : ""].filter(Boolean).join(" · ") + '</li>').join("")
@@ -2511,14 +2927,14 @@ async function loadDay(date) {
   let html = '<div class="card" style="margin-top:12px"><div class="sum-head"><div><div class="d">' + esc(d.long) + '</div>' +
     '<div class="tags">' + (d.off ? '<span class="tag red">쉬는 날' + (d.holiday ? ' · ' + esc(d.holiday) : '') + '</span>' : '') +
     (d.special ? '<span class="tag amber">' + esc(d.special) + '</span>' : '') +
-    (d.block && !d.off ? '<span class="tag">연차 막는 기간 · ' + esc(d.block.range) + (d.block.memo ? ' · ' + esc(d.block.memo) : '') + '</span>' : '') +
+    (d.block && !d.off ? '<span class="tag">연차 제한 기간 · ' + esc(d.block.range) + (d.block.memo ? ' · ' + esc(d.block.memo) : '') + '</span>' : '') +
     (d.left >= 0 && d.left <= L ? '<span class="tag red">' + L + '일 이내 · 기사님 직접 신청·취소 불가</span>' : '') +
     (d.left < 0 ? '<span class="tag">지난 날짜</span>' : '') + '</div></div>' +
     '<span class="count' + (full ? ' full' : '') + '">연차 ' + d.taken + '/' + d.limit + '명</span></div>' +
     (!d.off ? '<div class="limrow"><span>최대 인원: <b' + (d.limitSrc.kind === "custom" ? ' class="cust"' : '') + '>' + esc(d.limitSrc.text) + '</b></span>' +
       '<button class="btn small" id="lim-open">바꾸기</button></div>' +
-      '<div class="limedit hidden" id="lim-edit"><div class="inline" style="grid-template-columns:90px 1fr auto"><input class="field" id="lim-n" type="number" inputmode="numeric" min="0" max="30" value="' + d.limit + '">' +
-      '<input class="field" id="lim-memo" type="text" maxlength="20" placeholder="메모 (예: 추석 연휴)" value="' + esc(d.limitSrc.memo || "") + '">' +
+      '<div class="limedit hidden" id="lim-edit"><div class="inline" style="grid-template-columns:90px 1fr auto"><input enterkeyhint="done" class="field" id="lim-n" type="number" inputmode="numeric" min="0" max="30" value="' + d.limit + '">' +
+      '<input enterkeyhint="done" class="field" id="lim-memo" type="text" maxlength="20" placeholder="메모 (예: 추석 연휴)" value="' + esc(d.limitSrc.memo || "") + '">' +
       '<button class="btn primary" id="lim-save">저장</button></div>' +
       (d.limitSrc.kind === "custom" ? '<button class="link" id="lim-clear">기본값으로 되돌리기</button>' : '') + '</div>' : '') +
     (d.special && !d.off ? '<p class="info">우선순위 남은 사람 ' + d.perkHolders + '명 · 우선순위 다 쓴 사람에게 바로 줄 수 있는 자리 ' + d.lowOpen + '개</p>' : '') +
@@ -2542,16 +2958,17 @@ async function loadDay(date) {
     '<div class="main"><span class="no">' + esc(x.no) + '호</span> ' + pillHtml(x) + (x.note ? '<div class="meta">' + esc(x.note) + '</div>' : '') + '</div>' +
     '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>');
 
-  html += '<h2>조퇴·지각 (' + d.early.length + '명)</h2>' + rows(d.early.map(withDate), x =>
-    '<div class="main"><span class="no">' + esc(x.no) + '호</span> ' + esc(x.type) + (x.time ? ' ' + esc(x.time) : '') + ' ' + pillHtml(x) + '<div class="meta">' + esc(x.by) + ' 입력</div></div>' +
-    '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>');
+  ["조퇴", "지각"].forEach(k => { const L = d.early.filter(x => x.type === k);
+    html += '<h2>' + k + ' (' + L.length + '명) <span class="muted" style="font-weight:400">· ' + (k === "조퇴" ? '몇 시에 퇴근하는지' : '몇 시에 출근하는지') + '</span></h2>' + rows(L.map(withDate), x =>
+      '<div class="main"><span class="no">' + esc(x.no) + '호</span> <b class="tm-big' + (x.time ? '' : ' none') + '">' + esc(earlyTxt(x)) + '</b> ' + pillHtml(x) + '<div class="meta">' + esc(x.by) + ' 입력' + (x.note ? ' · ' + esc(x.note) : '') + '</div></div>' +
+      '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>'); });
 
   html += '<h2>결근 (' + d.absent.length + '명) <span class="muted" style="font-weight:400">· 인원 제한 없음</span></h2>' + rows(d.absent.map(withDate), x =>
     '<div class="main"><span class="no">' + esc(x.no) + '호</span> 결근 ' + pillHtml(x) + '<div class="meta">' + esc(x.by) + ' 입력' + (x.note ? ' · ' + esc(x.note) : '') + '</div></div>' +
     '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>');
 
   html += '<h2>특별휴가 (' + (d.extra || []).length + '명) <span class="muted" style="font-weight:400">· 경조사·공무 · 연차·여름휴가 차감 없음</span></h2>' + rows((d.extra || []).map(withDate), x =>
-    '<div class="main"><span class="no">' + esc(x.no) + '호</span> 특별휴가 ' + pillHtml(x) + '<div class="meta">' + esc(x.note || "") + '</div></div>' +
+    '<div class="main"><span class="no">' + esc(x.no) + '호</span> 특별휴가 <b class="why-big' + (x.reason || x.note ? '' : ' none') + '">' + esc(x.reason || x.note || "사유 없음") + '</b> ' + pillHtml(x) + '<div class="meta">' + esc(x.by) + ' 입력</div></div>' +
     '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>');
   html += '<button class="btn primary wide" style="margin-top:18px" id="add-here">+ ' + esc(md(d.date)) + '에 휴가 입력</button>';
   $("day-lists").innerHTML = html;
@@ -2559,8 +2976,9 @@ async function loadDay(date) {
 }
 async function setStatus(id, status, label) {
   const verb = { "확정": "확정할까요?", "취소": "취소할까요?", "반려": "반려할까요?" }[status];
-  if (!(await ask(label + "\n\n" + verb + (status === "확정" ? "\n(인원 제한·순서와 관계없이 바로 확정됩니다)" : ""), status + "하기", "그대로 두기", status !== "확정"))) return;
-  const r = await call("adminSetStatus", { id, status });
+  const why = await ask(label + "\n\n" + verb + (status === "확정" ? "\n(인원 제한·순서와 관계없이 바로 확정됩니다)" : ""), status + "하기", "그대로 두기", status !== "확정", status !== "확정");
+  if (!why) return;
+  const r = await call("adminSetStatus", { id, status, why: why === true ? "" : why });
   toast(r.msg, r.ok);
   refreshAll();
 }
@@ -2569,14 +2987,15 @@ async function setStatus(id, status, label) {
 function openEdit(x) {
   editing = x;
   $("ed-title").textContent = x.no + "호 신청 수정";
-  $("ed-date").value = x.date; $("ed-time").value = x.time || ""; $("ed-note").value = x.note || "";
+  $("ed-date").value = x.date; $("ed-time").value = x.time || ""; $("ed-note").value = x.note || ""; $("ed-why").value = "";
   $("ed-status").value = x.status;
   $("ed-type").innerHTML = ADMIN_TYPES.map(t => '<button class="seg' + (x.type === t ? ' on' : '') + '" data-et="' + t + '">' + t + '</button>').join("");
   $("ed-type").dataset.v = x.type;
   $("edit-sheet").classList.add("show");
 }
 async function saveEdit() {
-  const p = { id: editing.id, date: $("ed-date").value, type: $("ed-type").dataset.v, status: $("ed-status").value, time: $("ed-time").value, note: $("ed-note").value.trim() };
+  const p = { id: editing.id, date: $("ed-date").value, type: $("ed-type").dataset.v, status: $("ed-status").value, time: $("ed-time").value, note: $("ed-note").value.trim(), why: $("ed-why").value.trim() };
+  if (!p.why) { $("ed-why").focus(); return toast("수정 사유를 적어 주세요. 기사님 알림과 기록에 남습니다."); }
   if (!(await ask(editing.no + "호 신청을 이렇게 바꿀까요?\n\n" + md(p.date) + " · " + p.type + " · " + statusText(p.status) + (p.time ? " · " + p.time : ""), "저장하기", "다시 고치기"))) return;
   const r = await call("adminEdit", p);
   toast(r.msg, r.ok);
@@ -2584,9 +3003,11 @@ async function saveEdit() {
 }
 
 /* ---------- 휴가 입력 ---------- */
+const vacMode = () => RV && RV.vacMode !== undefined && RV.vacMode !== "" ? +RV.vacMode : RULES.VAC_OPEN;   // 기사님 휴가 탭: 0 잠금 · 2 신청만 막기 · 1 열림
 function renderAdd() {
   const active = CARS.filter(c => !c.off);
-  $("add-no").innerHTML = '<option value="">호수 선택</option>' + active.map(c => '<option value="' + c.no + '"' + (c.no === addForm.no ? ' selected' : '') + '>' + c.no + '호</option>').join("");
+  if (addForm.no && !active.some(c => c.no === addForm.no)) addForm.no = "";
+  $("add-no-v").textContent = addForm.no ? addForm.no + "호" : "눌러서 고르기"; $("add-no").classList.toggle("empty", !addForm.no);
   $("f-no").innerHTML = '<option value="">전체 호수</option>' + CARS.map(c => '<option value="' + c.no + '">' + c.no + '호' + (c.off ? ' (제외)' : '') + '</option>').join("");
   $("add-type").innerHTML = ADMIN_TYPES.map(t => '<button class="seg' + (addForm.type === t ? ' on' : '') + '" data-type="' + t + '">' + t + '</button>').join("");
   $("picked").innerHTML = addForm.dates.map(d => '<span>' + md(d) + '<button data-del="' + d + '" aria-label="빼기">×</button></span>').join("");
@@ -2611,15 +3032,18 @@ function renderAdd() {
       (addForm.type === "여름휴가" ? '<br><span class="muted">여름휴가 ' + addForm.dates.length + '일이 빠집니다. (연차는 줄지 않음 · 지금 남은 여름휴가 ' + car.summerRemain + '일)</span>' : '')
     : '<span class="muted">' + (extra && addForm.no && addForm.dates.length && !addForm.reason ? '특별휴가 사유를 적어 주세요.' : '호수, 구분, 날짜를 고르면 여기에 입력할 내용이 보입니다.') + '</span>';
   $("add-submit").disabled = !ready;
+  const lockN = vacMode() !== 1; $("add-ntf").disabled = lockN; if (lockN) $("add-ntf").checked = false;
+  $("add-ntf-s").textContent = lockN ? "휴가 탭이 테스트 중이라 알림을 보내지 않습니다" : "끄면 알림 없이 입력만 합니다 (기록에는 남음)";
 }
 async function submitAdd() {
   const timed = addForm.type === "조퇴" || addForm.type === "지각";
-  const msg = addForm.no + "호 " + addForm.type + (addForm.type === "특별휴가" ? " (" + addForm.reason + ")" : "") + "\n" + addForm.dates.map(md).join(", ") + (timed ? "\n" + $("add-time").value : "") + "\n\n바로 확정으로 입력할까요?";
+  const lockN = vacMode() !== 1, ntf = !lockN && $("add-ntf").checked;
+  const msg = addForm.no + "호 " + addForm.type + (addForm.type === "특별휴가" ? " (" + addForm.reason + ")" : "") + "\n" + addForm.dates.map(md).join(", ") + (timed ? "\n" + $("add-time").value : "") + "\n\n기사님 알림: " + (lockN ? "안 보냄 (휴가 탭 테스트 중)" : ntf ? "보냄" : "안 보냄") + "\n\n바로 확정으로 입력할까요?";
   if (!(await ask(msg, "입력하기", "다시 고르기"))) return;
   $("add-submit").disabled = true;
   const r = await call("adminAdd", { no: addForm.no, type: addForm.type, dates: addForm.dates, time: timed ? $("add-time").value : "", outside: addForm.type === "연차" ? addForm.outside : false,
-    note: addForm.type === "특별휴가" ? [addForm.reason, $("add-note").value.trim()].filter(Boolean).join(" · ") : $("add-note").value.trim() });
-  toast(r.msg, r.ok);
+    note: addForm.type === "특별휴가" ? [addForm.reason, $("add-note").value.trim()].filter(Boolean).join(" · ") : $("add-note").value.trim(), notify: ntf });
+  toast(r.ok ? r.msg + (ntf ? " · 기사님께 알림을 보냈습니다." : " · 알림은 보내지 않았습니다.") : r.msg, r.ok);
   if (r.ok) {
     const first = addForm.dates.slice().sort()[0];
     addForm.dates = []; $("add-reason-in").value = ""; $("add-note").value = ""; renderAdd();
@@ -2662,11 +3086,11 @@ async function openCar(no) {
     '<span class="muted">로그인: ' + (c.loggedIn ? '<b style="color:var(--green)">기기 1대 로그인 중</b>' : '로그인된 기기 없음') + '</span>' +
     (c.loggedIn ? ' <button class="btn small" id="car-kick" style="margin-left:6px">강제 로그아웃</button>' : '') + '</div>' +
     lab('총연차 (한 해 쓸 수 있는 연차 일수)') +
-    '<div class="inline"><input class="field" id="car-total" type="number" inputmode="numeric" min="0" max="60" value="' + c.total + '"><button class="btn" id="car-total-save">저장</button></div>' +
+    '<div class="inline"><input enterkeyhint="done" class="field" id="car-total" type="number" inputmode="numeric" min="0" max="60" value="' + c.total + '"><button class="btn" id="car-total-save">저장</button></div>' +
     lab('여름휴가 일수 (한 해, 연차와 별개)') +
-    '<div class="inline"><input class="field" id="car-summer" type="number" inputmode="numeric" min="0" max="30" value="' + c.summerTotal + '"><button class="btn" id="car-summer-save">저장</button></div>' +
+    '<div class="inline"><input enterkeyhint="done" class="field" id="car-summer" type="number" inputmode="numeric" min="0" max="30" value="' + c.summerTotal + '"><button class="btn" id="car-summer-save">저장</button></div>' +
     lab('비밀번호 초기화 (숫자 4~8자리)') +
-    '<div class="inline"><input class="field" id="car-pin" type="text" inputmode="numeric" maxlength="8" placeholder="새 비밀번호"><button class="btn" id="car-pin-save">바꾸기</button></div>' +
+    '<div class="inline"><input enterkeyhint="done" class="field" id="car-pin" type="text" inputmode="numeric" maxlength="8" placeholder="새 비밀번호"><button class="btn" id="car-pin-save">바꾸기</button></div>' +
     '<button class="btn wide ' + (c.off ? 'ok' : 'danger') + '" id="car-active" data-on="' + (c.off ? '1' : '') + '" style="margin-top:14px">' + (c.off ? '운행 차량으로 복구' : '운행 제외 (차가 빠졌을 때)') + '</button>' +
     '<h2>' + c.year + '년 이후 신청 내역</h2>' + (c.list.length ? '<ul class="rows">' + c.list.map(x => { const it = Object.assign({ no: c.no }, x); return '<li><div class="main">' +
       '<b>' + esc(x.long) + '</b> ' + esc(x.type) + (x.time ? ' ' + esc(x.time) : '') + ' ' + pillHtml(it) +
@@ -2696,6 +3120,9 @@ carMQ.addEventListener ? carMQ.addEventListener("change", syncCar) : carMQ.addLi
 syncCar();
 async function addCar() {
   const p = { no: $("ca-no").value.trim(), total: $("ca-total").value === "" ? NaN : Number($("ca-total").value), summer: $("ca-summer").value, pin: $("ca-pin").value.trim() };
+  if (!/^\d{3}$/.test(p.no)) return toast("호수는 숫자 3자리(예: 261)로 넣어 주세요.");
+  if (!(p.total >= 0 && p.total <= 30)) return toast("총연차는 0~30 사이로 넣어 주세요.");
+  if (p.summer !== "" && !(+p.summer >= 0 && +p.summer <= 10)) return toast("여름휴가는 0~10 사이로 넣어 주세요.");
   if (!(await ask(p.no + "호를 추가할까요?\n총연차 " + ($("ca-total").value || "?") + "일 · 여름휴가 " + (p.summer === "" ? RV.summerDefault + "일(기본)" : p.summer + "일"), "추가하기", "다시 고치기"))) return;
   const r = await call("adminCarAdd", p); toast(r.msg, r.ok);
   if (r.ok) { $("caradd-sheet").classList.remove("show"); ["ca-no", "ca-total", "ca-summer", "ca-pin"].forEach(id => $(id).value = ""); carGroup = groupOf(p.no); loadCars(); }
@@ -2709,22 +3136,28 @@ async function loadSites(more) {
   const q = $("site-q").value.trim();
   const r = await call("adminSites", { q, offset: siteOffset });
   if (!r.ok) return;
+  if (r.meta) SITE_META = r.meta;
   if (q !== $("site-q").value.trim()) return;               // 그 사이 검색어가 바뀜
   $("site-count").textContent = q ? "검색 결과 " + r.total + "개 (전체 " + r.count + "개)" : "전체 " + r.count + "개 · 최근 추가한 현장부터";
   if (!r.count) { $("site-count").innerHTML = '<span style="color:var(--red);font-weight:700">현장 목록이 비어 있습니다.</span><br>먼저 \'엑셀 붙여넣기\'로 거리측정 시트의 현장 전체를 넣어 주세요. 비어 있는 동안 기사님 화면은 예전 목록으로 검색됩니다.'; }
-  const html = r.rows.map(x => '<li><div class="main"><b>' + esc(x[0]) + '</b><div class="meta">' + distHtml(x[1]) + '</div></div>' +
+  const AL = siteAliases(), MM = siteMemos();
+  const html = r.rows.map(x => '<li><div class="main"><b>' + esc(x[0]) + '</b>' + (AL[x[0]] ? ' <span class="al-tag">짧은 이름 · ' + esc(AL[x[0]]) + '</span>' : '') + '<div class="meta">' + distHtml(x[1]) + '</div>' + (MM[x[0]] ? '<div class="site-memo"><b>메모</b>' + esc(MM[x[0]]) + '</div>' : '') + '</div>' +
     '<div class="acts"><button class="btn small" data-site="' + esc(x[0]) + '" data-dist="' + esc(x[1]) + '">수정</button></div></li>').join("");
   $("site-rows").innerHTML = (more ? $("site-rows").innerHTML : "") + (html || (more ? "" : '<li><span class="empty">' + (q ? "검색 결과가 없습니다 · '+ 현장 추가'로 넣을 수 있어요" : "현장이 없습니다") + '</span></li>'));
   siteOffset += r.rows.length;
   $("site-more").classList.toggle("hidden", siteOffset >= r.total);
 }
 let siteFromToday = null;                                        // 금일 현장 탭에서 거리만 고칠 때 { name, dist }
+let siteEditDist = "";
 function openSite(name, dist) {
   siteFromToday = null; $("st-name").readOnly = false; $("st-hint").classList.add("hidden");
   siteEditing = name == null ? null : name;
   $("st-title").textContent = siteEditing ? "현장 수정" : "현장 추가";
   $("st-name").value = siteEditing ? name : $("site-q").value.trim();
   $("st-dist").value = siteEditing && dist !== "-" ? dist : "";
+  $("st-alias").value = siteEditing ? (siteAliases()[name] || "") : "";
+  $("st-memo").value = siteEditing ? (siteMemos()[name] || "") : ""; siteEditDist = dist == null ? "" : dist;
+  ["st-memo", "st-memo-l"].forEach(k => $(k).classList.remove("hidden"));
   $("st-del").classList.toggle("hidden", !siteEditing);
   $("site-sheet").classList.add("show");
   setTimeout(() => $(siteEditing ? "st-dist" : "st-name").focus(), 250);
@@ -2738,6 +3171,7 @@ function openTodayDist(name, dist, known) {
   $("st-hint").textContent = known ? "현장 목록의 거리도 같이 바뀌어 기사님 검색에 바로 반영됩니다." : "현장 목록에 없는 현장입니다. 거리를 넣으면 현장 목록에 추가됩니다.";
   $("st-hint").classList.remove("hidden");
   $("st-del").classList.add("hidden");
+  ["st-memo", "st-memo-l"].forEach(k => $(k).classList.add("hidden"));
   $("site-sheet").classList.add("show");
   setTimeout(() => $("st-dist").focus(), 250);
 }
@@ -2749,20 +3183,35 @@ async function saveTodayDist() {
   if (!(await ask(msg, "저장하기", "다시 고치기"))) return;
   const r = await call("adminSitesFix", { fixes: [{ name: t.name, dist: d }] });
   toast(r.ok ? "'" + t.name + "' 거리 " + distText(nd) + "(으)로 저장했습니다." : r.msg, r.ok);
-  if (r.ok) { $("site-sheet").classList.remove("show"); loadToday(tDate); }
+  if (r.ok) { $("site-sheet").classList.remove("show"); if (t.fromSheet) { try { $("sheet-frame").contentWindow.postMessage({ siteDist: { name: t.name, dist: d } }, "*"); } catch (e) {} } else loadToday(tDate); }
 }
 async function saveSite() {
   if (siteFromToday) return saveTodayDist();
   const name = $("st-name").value.trim(), d = $("st-dist").value.trim();
   if (!name) return toast("현장명을 넣어 주세요.");
   const dt = distText(siteDist(d) === null ? d : siteDist(d));
+  if (siteEditing && siteEditing === name && String(siteDist(d)) === String(siteDist(siteEditDist))) {   // 거리·이름은 그대로, 짧은 이름·메모만 바뀜
+    const same = (siteAliases()[name] || "") === $("st-alias").value.trim() && (siteMemos()[name] || "") === $("st-memo").value.trim();
+    if (same) return toast("바뀐 내용이 없습니다.");
+    const r0 = await saveSiteExtras(name, name); toast(r0.ok ? "'" + name + "' 짧은 이름 · 메모를 저장했습니다." : r0.msg, r0.ok); if (r0.ok) { $("site-sheet").classList.remove("show"); loadSites(); } return; }
   const msg = siteEditing ? (siteEditing !== name ? "'" + siteEditing + "'\n→ '" + name + "'\n" : "'" + name + "'\n") + "거리 " + dt + "(으)로 저장할까요?"
                           : "'" + name + "'\n거리 " + dt + "(으)로 추가할까요?";
   if (!(await ask(msg, "저장하기", "다시 고치기"))) return;
   const r = await call("adminSiteSave", { old: siteEditing || "", name, dist: d });
   toast(r.msg, r.ok);
-  if (r.ok) { $("site-sheet").classList.remove("show"); if (!siteEditing) $("site-q").value = name; loadSites(); }
+  if (r.ok) { const r2 = await saveSiteExtras(siteEditing, name); if (!r2.ok) toast(r2.msg);
+    $("site-sheet").classList.remove("show"); if (!siteEditing) $("site-q").value = name; loadSites(); }
 }
+// 짧은 이름 · 현장 메모: 현장 시트의 칸 (adminSites 응답 meta · adminSiteMeta로 저장)
+let SITE_META = {};
+function siteMemos() { const o = {}; Object.keys(SITE_META).forEach(n => { if (SITE_META[n] && SITE_META[n].m) o[n] = SITE_META[n].m; }); return o; }
+function siteAliases() { const o = {}; Object.keys(SITE_META).forEach(n => { if (SITE_META[n] && SITE_META[n].s) o[n] = SITE_META[n].s; }); return o; }
+async function saveSiteExtras(oldName, name) {
+  const a = $("st-alias").value.trim(), m = $("st-memo").value.trim(), cur = SITE_META[name] || (oldName && SITE_META[oldName]) || {};
+  if ((cur.s || "") === a && (cur.m || "") === m) return { ok: true };
+  const r = await call("adminSiteMeta", { name, short: a, memo: m });
+  if (r.ok) { if (oldName && oldName !== name) delete SITE_META[oldName]; SITE_META[name] = { s: a, m: m }; }
+  return r; }
 async function delSite() {
   if (!(await ask("'" + siteEditing + "' 현장을 지울까요?\n\n기사님 검색에서도 바로 빠집니다.", "지우기", "그대로 두기", true))) return;
   const r = await call("adminSiteDel", { name: siteEditing });
@@ -2808,7 +3257,7 @@ async function saveDayLimit(d, n, memo) {
   toast(r.msg, r.ok);
   if (r.ok) { refreshAll(); if ($("v-lim").classList.contains("on")) loadLimits(); }
 }
-// 연차 신청 막는 기간
+// 연차 제한 기간
 async function loadBlocks() {
   const r = await call("adminBlocks");
   if (!r.ok) return;
@@ -2821,7 +3270,7 @@ async function loadLimits() {
   loadBlocks();
   const r = await call("adminDayLimits");
   if (!r.ok) return;
-  $("lim-base").textContent = "평소 하루 " + r.base + "명 · 우선순위날(월·금·연휴 앞뒤 날) " + r.special + "명 — 두 값은 '규칙 설정'에서 바꿉니다.";
+  $("lim-base").textContent = "평소 하루 " + r.base + "명 · 우선순위날(월·금·연휴 앞뒤 날) " + r.special + "명 — 두 값은 '휴가 규칙'에서 바꿉니다.";
   $("lim-list").innerHTML = r.list.length ? r.list.map(x => '<li><div class="main"><b>' + esc(x.long) + '</b> 최대 <b>' + x.n + '명</b>' +
       (x.memo ? ' · ' + esc(x.memo) : '') + '<div class="meta">지금 확정 ' + x.taken + '명' + (x.taken > x.n ? ' <span style="color:var(--red)">(초과)</span>' : '') + '</div></div>' +
       '<div class="acts"><button class="btn small" data-lgo="' + x.date + '">날짜</button><button class="btn small danger" data-ldel="' + x.date + '">빼기</button></div></li>').join("")
@@ -2897,7 +3346,7 @@ function openReview() {
     (M.length ? '<div class="rv-sec miss"><h3>거리가 없는 현장 ' + M.length + '곳</h3>' +
       '<p>거리를 넣으면 현장 목록에 저장되어 다음부터 자동으로 나옵니다.<br>모르면 비워 두세요. 그 현장은 기사님 화면에 "거리 없음"으로 나옵니다.</p>' +
       M.map((m, i) => '<div class="rv-item" data-miss="' + i + '"><div class="nm">' + esc(m.name) + '</div>' +
-        '<div class="rv-row"><input class="field" id="rv-m' + i + '" type="text" inputmode="decimal" maxlength="15" placeholder="거리 km (모르면 비움)">' +
+        '<div class="rv-row"><input enterkeyhint="done" class="field" id="rv-m' + i + '" type="text" inputmode="decimal" maxlength="15" placeholder="거리 km (모르면 비움)">' +
         '<button class="btn" data-silcheuk="' + i + '">실측</button></div>' +
         (m.refs.length ? '<div class="rv-refs">참고: 이름이나 지역이 비슷한 현장 (누르면 그 거리가 들어갑니다)' + m.refs.map(r => refBtn(i, r)).join("") + '</div>'
                        : '<div class="rv-refs">비슷한 현장이 없습니다.</div>') + '</div>').join("") + '</div>' : '') +
@@ -2906,7 +3355,7 @@ function openReview() {
       Lg.map((g, i) => '<div class="rv-item" data-long="' + i + '"><div class="nm">' + esc(g.name) + '</div>' +
         '<div class="cur">지금 기록: <b>' + esc(distText(g.dist)) + '</b></div>' +
         '<div class="rv-pick"><button class="on" data-lp="keep">맞음</button><button data-lp="edit">km 수정</button><button data-lp="sil">실측으로</button></div>' +
-        '<div class="rv-row hidden" id="rv-le' + i + '"><input class="field" id="rv-l' + i + '" type="text" inputmode="decimal" maxlength="15" value="' + esc(g.dist) + '"><span></span></div></div>').join("") + '</div>' : '');
+        '<div class="rv-row hidden" id="rv-le' + i + '"><input enterkeyhint="done" class="field" id="rv-l' + i + '" type="text" inputmode="decimal" maxlength="15" value="' + esc(g.dist) + '"><span></span></div></div>').join("") + '</div>' : '');
   $("review-sheet").classList.add("show");
 }
 const kmOk = v => /^\d+(\.\d+)?(\s*~\s*\d+(\.\d+)?)?\s*(km)?$/i.test(v) || v === "실측";
@@ -2989,7 +3438,7 @@ async function loadHol() {
 async function loadSet() {
   const r = await call("adminSettings");
   if (!r.ok) return;
-  $("set-list").innerHTML = r.items.map(s => s.key === "VAC_OPEN"
+  $("set-list").innerHTML = r.items.filter(s => s.key !== "VAC_OPEN").map(s => s.key === "VAC_OPEN"
     ? '<li class="set-row vac-open-row"><div class="lab">기사님 휴가 신청</div>' +
       '<div class="hint">' + (s.value === 1 ? '<b style="color:var(--green)">지금 열려 있습니다.</b> 기사님이 휴가·조퇴·지각·결근을 신청할 수 있습니다.' : '<b style="color:var(--red)">지금 테스트 중입니다.</b> 기사님 휴가 탭에는 "휴가 신청은 아직 테스트 중입니다"만 보입니다. 관리자 입력은 그대로 됩니다.') + '</div>' +
       '<div class="segs" style="grid-template-columns:1fr 1fr;margin-top:8px"><button class="seg' + (s.value !== 1 ? ' on' : '') + '" data-vacopen="0">테스트 중 (막기)</button><button class="seg' + (s.value === 1 ? ' on' : '') + '" data-vacopen="1">신청 열기</button></div></li>'
@@ -2999,19 +3448,37 @@ async function loadSet() {
       '<div class="segs" style="grid-template-columns:1fr 1fr;margin-top:8px"><button class="seg' + (s.value !== 1 ? ' on' : '') + '" data-showno="0">가리기</button><button class="seg' + (s.value === 1 ? ' on' : '') + '" data-showno="1">보이기</button></div></li>'
     : '<li class="set-row"><div class="lab">' + esc(s.label) + '</div>' +
     '<div class="hint">기본값 ' + s.def + (s.key === "OPEN_HOUR" ? ' · 지금 ' + esc(r.openText) : '') + ' · ' + s.min + '~' + s.max + '</div>' +
-    '<div class="inline"><input class="field" type="number" inputmode="numeric" min="' + s.min + '" max="' + s.max + '" value="' + s.value + '" id="set-' + s.key + '">' +
+    '<div class="inline"><input enterkeyhint="done" class="field" type="number" inputmode="numeric" min="' + s.min + '" max="' + s.max + '" value="' + s.value + '" id="set-' + s.key + '">' +
     '<button class="btn" data-set="' + s.key + '" data-label="' + esc(s.label) + '">저장</button></div></li>').join("");
 }
 
 /* ---------- 새해 일괄 수정 ---------- */
+// 차량 고르기: 전체 · 조별 버튼으로 한꺼번에, 또는 호수를 하나씩 눌러 고르기 (운행 제외 차량은 못 고름)
+const BULK = new Set(); let BULK_INIT = false;
+function bulkDraw() {
+  const live = CARS.filter(c => !c.off);
+  if (!BULK_INIT && live.length) { live.forEach(c => BULK.add(c.no)); BULK_INIT = true; }
+  const st = L => { const n = L.filter(c => BULK.has(c.no)).length; return n && n === L.length ? "on" : n ? "half" : ""; };
+  $("bulk-q").innerHTML = '<button type="button" data-bkg="all" class="' + st(live) + '">전체</button>' + [1, 2, 3, 4, 5, 6].map(g => '<button type="button" data-bkg="' + g + '" class="' + st(live.filter(c => groupOf(c.no) === g)) + '">' + g + '조</button>').join("");
+  $("bulk-cars").innerHTML = [1, 2, 3, 4, 5, 6].map(g => '<div class="bk-gl">' + g + '조</div><div class="bk-g">' + CARS.filter(c => groupOf(c.no) === g).map(c =>
+    '<button type="button" data-bkc="' + c.no + '"' + (c.off ? ' disabled' : BULK.has(c.no) ? ' class="on"' : '') + '><b>' + c.no + '</b><small>' + (c.off ? '운행 제외' : '총 ' + c.total + '일') + '</small></button>').join("") + '</div>').join("");
+  $("bulk-cnt").textContent = BULK.size + "대 선택"; }
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-bkg]"), c = e.target.closest("[data-bkc]"); if (!g && !c) return;
+  if (c) { BULK.has(c.dataset.bkc) ? BULK.delete(c.dataset.bkc) : BULK.add(c.dataset.bkc); }
+  else { const L = CARS.filter(x => !x.off && (g.dataset.bkg === "all" || String(groupOf(x.no)) === g.dataset.bkg)), all = L.every(x => BULK.has(x.no)); L.forEach(x => all ? BULK.delete(x.no) : BULK.add(x.no)); }
+  bulkDraw(); });
 async function applyBulk() {
-  const g = $("bulk-group").value, total = $("bulk-total").value, summer = $("bulk-summer").value;
-  const n = CARS.filter(c => !c.off && (g === "all" || String(groupOf(c.no)) === g)).length;
+  const total = $("bulk-total").value, summer = $("bulk-summer").value, nos = CARS.filter(c => !c.off && BULK.has(c.no)).map(c => c.no);
+  if (!nos.length) return toast("바꿀 차량을 골라 주세요.");
+  const live = CARS.filter(c => !c.off), gs = [1, 2, 3, 4, 5, 6].filter(x => live.some(c => groupOf(c.no) === x)), full = x => live.filter(c => groupOf(c.no) === x).every(c => BULK.has(c.no));
+  const g = nos.length === live.length ? "all" : "", n = nos.length,
+    label = g === "all" ? "운행 차량 전체" : gs.every(x => full(x) || !live.some(c => groupOf(c.no) === x && BULK.has(c.no))) ? gs.filter(full).map(x => x + "조").join("·") : (nos.length <= 6 ? nos.join("·") + "호" : "고른 차량");
   const what = [total !== "" ? "총연차 " + total + "일" : "", summer !== "" ? "여름휴가 " + summer + "일" : ""].filter(Boolean).join(", ");
   if (!what) return toast("바꿀 값을 하나 이상 넣어 주세요.");
-  if (!(await ask((g === "all" ? "운행 차량 전체" : g + "조") + " " + n + "대의\n" + what + "\n(으)로 한꺼번에 바꿀까요?", "바꾸기", "그대로 두기"))) return;
-  const r = await call("adminBulk", { group: g, total, summer }); toast(r.msg, r.ok);
-  if (r.ok) { $("bulk-total").value = ""; $("bulk-summer").value = ""; loadCars(); }
+  if (!(await ask(label + " " + n + "대의\n" + what + "\n(으)로 한꺼번에 바꿀까요?", "바꾸기", "그대로 두기"))) return;
+  const r = await call("adminBulk", { nos, total, summer }); toast(r.msg, r.ok);
+  if (r.ok) { $("bulk-total").value = ""; $("bulk-summer").value = ""; await loadCars(); bulkDraw(); }
 }
 
 /* ---------- 기록 ---------- */
@@ -3021,7 +3488,7 @@ async function loadLogs(more) {
   if (!more) { logOffset = 0; $("log-list").innerHTML = ""; }
   const r = await call("adminLogs", { q: $("log-q").value.trim(), cat: logCatSel, offset: logOffset });
   if (!r.ok || seq !== logSeq) return;                                     // 그 사이 분류·검색어가 바뀜
-  $("log-count").textContent = (logCatSel ? logCatSel + " 기록 · " : "") + "최근 것부터 · " + r.total + "건";
+  $("log-count").textContent = (logCatSel ? logCatSel + (/기록$/.test(logCatSel) ? "" : " 기록") + " · " : "") + "최근 것부터 · " + r.total + "건";
   $("log-list").innerHTML += r.rows.map(x => '<li class="log"><div class="main">' +
     '<div class="t">' + esc(x[0]) + '</div>' +
     (x[1] && x[1] !== "-" ? '<b>' + esc(x[1]) + '호</b> ' : '') + esc(x[4]) + ' → <b>' + esc(x[5]) + '</b>' +
@@ -3033,8 +3500,9 @@ async function loadLogs(more) {
 }
 
 /* ---------- 화면 전환 ---------- */
-const SUBS = { "v-noti": 1, "v-reps": 1, "v-backup": 1, "v-apw": 1, "v-list": 1, "v-logs": 1, "v-hol": 1, "v-set": 1, "v-bulk": 1, "v-sites": 1, "v-paste": 1, "v-today": 1, "v-lim": 1 };
+const SUBS = { "v-yong": 1, "v-pw": 1, "v-noti": 1, "v-reps": 1, "v-backup": 1, "v-apw": 1, "v-dev": 1, "v-audit": 1, "v-open": 1, "v-list": 1, "v-logs": 1, "v-hol": 1, "v-set": 1, "v-bulk": 1, "v-sites": 1, "v-paste": 1, "v-today": 1, "v-lim": 1 };
 function showView(v) {
+  if (v !== "v-ops" && document.body.classList.contains("ops-dim")) { document.body.classList.remove("ops-dim"); try { opsFrame().contentWindow.postMessage({ closeSht: 1 }, "*"); } catch (e) {} }   // 운행기록 화면을 떠나면 그 안 팝업도 닫음
   document.querySelectorAll(".view").forEach(el => el.classList.toggle("on", el.id === v));
   document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v || (!!SUBS[v] && b.dataset.view === "v-more")));
   const sv = v === "v-paste" ? "v-sites" : v;                         // PC 왼쪽 메뉴
@@ -3050,15 +3518,21 @@ function viewLoad(v) {
   const jobs = [];
   const j = p => jobs.push(p);
   if (v === "v-logs") j(loadLogs());
+  if (v === "v-bulk") { if (CARS.length) bulkDraw(); else j(loadCars().then(bulkDraw)); }
   if (v === "v-cars") j(loadCars());
   if (v === "v-list") { if (!$("f-month").value) $("f-month").value = (curMonth || TODAY.slice(0, 7)); j(loadList()); }
-  if (v === "v-hol") j(loadHol());
-  if (v === "v-sites") j(loadSites());
+  if (v === "v-hol") { haYears(); j(loadHol()); }
+  if (v === "v-sites") { j(loadSites()); j(admData().then(D => { SITE_TAB = D.siteTab === 0 ? 0 : 1; stvDraw(); })); }
   if (v === "v-lim") j(loadLimits());
   if (v === "v-today") j(loadToday(tDate || TODAY));
   if (v === "v-add") j(loadAddCal(addForm.dates.length ? addForm.dates[0].slice(0, 7) : (acMonth || TODAY.slice(0, 7))));
   if (v === "v-set") j(loadSet());
   if (v === "v-backup") j(loadBackup());
+  if (v === "v-dev") devDraw();
+  if (v === "v-audit") j(auLoad());
+  if (v === "v-open") j(opDraw());
+  if (v === "v-pw") j(pwLoad());
+  if (v === "v-yong") j(yongLoad());
   if (v === "v-reps") j(loadReps());
   if (v === "v-noti") j(loadNotices());
   if (v === "v-month" && curMonth) j(loadMonth(curMonth));
@@ -3081,11 +3555,11 @@ async function reloadNow(quiet) {
         if (curDate === oldToday) curDate = TODAY;
         if (curMonth === oldToday.slice(0, 7)) curMonth = TODAY.slice(0, 7);
       }
-      $("today").textContent = "오늘 " + md(TODAY); $("side-today").textContent = "오늘 " + md(TODAY);
+      $("today").textContent = md(TODAY); $("side-today").textContent = "오늘 " + md(TODAY);
     }
     COPYDAY = {}; prefetchCopyDays();
     const v = (document.querySelector(".view.on") || {}).id || "";
-    const jobs = [viewLoad(v), loadCars()];
+    const jobs = [viewLoad(v), loadCars()]; if (ADM_DATA) jobs.push(admRefresh());
     if (v !== "v-month" && curMonth) jobs.push(loadMonth(curMonth));
     if (v !== "v-day" && curDate) jobs.push(loadDay(curDate));
     await Promise.all(jobs);
@@ -3106,8 +3580,14 @@ document.addEventListener("visibilitychange", () => {
 /* ---------- 이벤트 ---------- */
 $("login-btn").onclick = login;
 $("pw").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
-$("logout").onclick = logout;
-$("side-out").onclick = logout;
+function askLogout() { $("lo-sheet").hidden = false; $("lo-no").focus(); }
+function closeLogout() { $("lo-sheet").hidden = true; }
+$("logout").onclick = askLogout;
+$("side-out").onclick = askLogout;
+$("lo-no").onclick = closeLogout;
+$("lo-sheet").onclick = e => { if (e.target.id === "lo-sheet") closeLogout(); };
+$("lo-yes").onclick = () => { closeLogout(); logout(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("lo-sheet").hidden) closeLogout(); });
 // 영업사원 연락처
 let repEditing = null;
 const telHref = p => "tel:" + String(p || "").replace(/[^\d]/g, "");
@@ -3174,7 +3654,7 @@ $("apw-save").onclick = async () => {
   if (r.ok) { PW = np; store.set("adminPw", np); ["apw-cur", "apw-new", "apw-new2"].forEach(id => $(id).value = ""); }
 };
 $("side").addEventListener("click", e => { const b = e.target.closest("[data-side]"); if (b) showView(b.dataset.side); });
-document.querySelector(".nav").addEventListener("click", e => { const b = e.target.closest("button"); if (b) showView(b.dataset.view); });
+document.querySelector(".nav").addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if (b) navGo(b.dataset.k); });
 document.addEventListener("click", e => {
   const s = e.target.closest("[data-sub]"); if (s) return showView(s.dataset.sub);
   const ed = e.target.closest("[data-edit]"); if (ed && ITEMS[ed.dataset.edit]) return openEdit(ITEMS[ed.dataset.edit]);
@@ -3186,7 +3666,25 @@ $("m-prev").onclick = () => loadMonth(addMonths(curMonth, -1));
 $("m-next").onclick = () => loadMonth(addMonths(curMonth, 1));
 $("m-this").onclick = () => loadMonth(TODAY.slice(0, 7));
 $("m-copy").onclick = copyMonth;
-$("cal").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) { showView("v-day"); loadDay(b.dataset.go); } });
+$("cal").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) openDayPop(b.dataset.go); });
+// 달력 날짜 → 그날 누구누구인지 팝업 · [날짜별 관리로 가기]를 누르면 날짜별 메뉴의 그 날짜로
+// 조퇴·지각 시간: "10:00" → "10시 조퇴" / "10시 출근" · 없으면 '시간 기록 없음'
+const hhTxt = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? (+m[1]) + "시" + (m[2] !== "00" ? " " + (+m[2]) + "분" : "") : ""; };
+const earlyTxt = x => { const h = hhTxt(x.time); return h ? (x.type === "지각" ? h + " 출근" : h + " 퇴근") : "시간 기록 없음"; };
+function openDayPop(date) {
+  const d = (MONTH && MONTH.days || []).find(x => x.date === date); if (!d) { showView("v-day"); loadDay(date); return; }
+  const tm = x => '<small>' + esc(earlyTxt(x)) + (x.note ? ' · ' + esc(x.note) : '') + '</small>';
+  const why = x => x.why ? '<small>' + esc(x.why) + '</small>' : '<small>사유 없음</small>';
+  const rows = [["연차", d.leave.map(n => esc(n))], ["여름휴가", d.summer.map(n => esc(n))],
+    ["조퇴", d.early.filter(x => x.type === "조퇴").map(x => esc(x.no) + tm(x))], ["지각", d.early.filter(x => x.type === "지각").map(x => esc(x.no) + tm(x))],
+    ["결근", (d.absentInfo || (d.absent || []).map(no => ({ no }))).map(x => esc(x.no) + (x.why ? '<small>' + esc(x.why) + '</small>' : ''))],
+    ["특별휴가", (d.extraInfo || (d.extra || []).map(no => ({ no }))).map(x => esc(x.no) + why(x))]].filter(r => r[1].length);
+  $("dp-title").textContent = md(date) + (d.holiday ? " · " + d.holiday : "") + (d.off && !d.holiday ? " · 쉬는 날" : "");
+  $("dp-body").innerHTML = (rows.length ? '<ul class="dp-list">' + rows.map(([k, L]) => '<li><b>' + k + ' ' + L.length + '</b><div class="cars">' + L.map(x => '<span>' + x + '</span>').join("") + '</div></li>').join("") + '</ul>'
+    : '<p class="dp-none">이날은 휴가·결근·조퇴·지각이 없습니다.</p>') + (d.waiting ? '<p class="info" style="margin:-4px 0 12px">연차 대기 ' + d.waiting + '명 · 날짜별 관리에서 볼 수 있습니다.</p>' : '');
+  $("dp-go").dataset.d = date; $("dpop").classList.add("show");
+}
+$("dp-go").addEventListener("click", () => { $("dpop").classList.remove("show"); showView("v-day"); loadDay($("dp-go").dataset.d); });
 // 날짜별
 $("copy-today").onclick = () => copyDay(TODAY);
 $("copy-tomorrow").onclick = () => copyDay(addDays(TODAY, 1));
@@ -3210,7 +3708,18 @@ $("ed-type").addEventListener("click", e => { const b = e.target.closest("[data-
   $("ed-type").dataset.v = b.dataset.et; $("ed-type").querySelectorAll(".seg").forEach(x => x.classList.toggle("on", x === b)); });
 $("ed-save").onclick = saveEdit;
 // 입력
-$("add-no").onchange = e => { addForm.no = e.target.value; renderAdd(); };
+// 호수 고르기: 가탕 메뉴처럼 조별 버튼 (운행 제외 차량은 빠짐)
+function cpkOpen() {
+  const active = CARS.filter(c => !c.off), grp = {};
+  active.forEach(c => { const n = +c.no, g = n >= 201 && n <= 260 ? Math.floor((n - 201) / 10) + 1 : 0; (grp[g] = grp[g] || []).push(c); });
+  let h = ""; Object.keys(grp).map(Number).sort((a, b) => (a || 99) - (b || 99)).forEach(g => {
+    h += '<div class="grp">' + (g ? g + '조' : '그 밖') + '</div>';
+    grp[g].sort((a, b) => +a.no - +b.no).forEach(c => { h += '<button type="button" data-cpk="' + esc(c.no) + '" class="' + (c.no === addForm.no ? 'on' : '') + (c.remain > 0 ? '' : ' zero') + '"><b>' + esc(c.no) + '</b><i>연차 ' + c.remain + '</i></button>'; }); });
+  $("cpk-g").innerHTML = h; $("cpk").classList.add("show");
+}
+$("add-no").onclick = cpkOpen;
+$("cpk-g").addEventListener("click", e => { const b = e.target.closest("[data-cpk]"); if (!b) return; addForm.no = b.dataset.cpk; $("cpk").classList.remove("show"); renderAdd(); });
+$("cpk").addEventListener("click", e => { if (e.target.id === "cpk") $("cpk").classList.remove("show"); });
 $("add-type").addEventListener("click", e => { const b = e.target.closest("[data-type]"); if (b) { addForm.type = b.dataset.type; renderAdd(); } });
 $("add-reason").addEventListener("click", e => { const b = e.target.closest("[data-reason]"); if (b) { $("add-reason-in").value = b.dataset.reason; renderAdd(); $("add-reason-in").focus(); } });
 $("add-reason-in").addEventListener("input", renderAdd);
@@ -3275,6 +3784,8 @@ $("car-sheet").addEventListener("click", async e => {
   }
   if (e.target.id === "car-pin-save") {
     const v = $("car-pin").value.trim();
+    if (!/^\d{4}$/.test(v)) return toast("비밀번호는 숫자 4자리로 넣어 주세요.");
+    if (/^(\d)\1+$/.test(v) || "01234567890123".indexOf(v) >= 0 || "98765432109876".indexOf(v) >= 0 || v === "0" + no.slice(-3) || v === no) return toast("1111, 1234처럼 쉬운 번호나 호수와 같은 번호는 쓸 수 없습니다.");
     if (!(await ask(no + "호 비밀번호를 " + v + "(으)로 바꿀까요?\n바꾼 뒤 기사님께 꼭 알려 주세요.", "바꾸기", "그대로 두기"))) return;
     const r = await call("adminResetPin", { no, newPin: v }); toast(r.msg, r.ok); if (r.ok) { loadCars(); openCar(no); }
   }
@@ -3287,8 +3798,8 @@ $("car-sheet").addEventListener("click", async e => {
   if (day) { closeCar(); showView("v-day"); loadDay(day.dataset.day); }
   const st = e.target.closest("[data-st]");
   if (st) {
-    if (!(await ask(st.dataset.label + "\n\n취소할까요?", "취소하기", "그대로 두기", true))) return;
-    const r = await call("adminSetStatus", { id: st.dataset.id, status: "취소" }); toast(r.msg, r.ok);
+    const why = await ask(st.dataset.label + "\n\n취소할까요?", "취소하기", "그대로 두기", true, true); if (!why) return;
+    const r = await call("adminSetStatus", { id: st.dataset.id, status: "취소", why }); toast(r.msg, r.ok);
     openCar(no); refreshAll();
   }
 });
@@ -3322,6 +3833,7 @@ $("lim-add").onclick = () => { const d = $("lim-date").value; if (!d) return toa
 $("blk-add").onclick = async () => {
   const from = $("blk-from").value, to = $("blk-to").value, memo = $("blk-memo").value.trim();
   if (!from || !to) return toast("시작일과 끝일을 모두 골라 주세요.");
+  if (to < from) return toast("끝일이 시작일보다 앞입니다.");
   if (!(await ask(md(from) + " ~ " + md(to) + (memo ? " (" + memo + ")" : "") + "\n\n이 기간에는 기사님이 연차를 신청할 수 없게 할까요?\n(조퇴·지각·결근과 관리자 입력은 그대로 됩니다)", "막기", "그대로 두기"))) return;
   const r = await call("adminBlockAdd", { from, to, memo }); toast(r.msg, r.ok);
   if (r.ok) { $("blk-from").value = $("blk-to").value = $("blk-memo").value = ""; loadBlocks(); refreshAll(); }
@@ -3329,7 +3841,7 @@ $("blk-add").onclick = async () => {
 $("blk-list").addEventListener("click", async e => {
   const b = e.target.closest("[data-bdel]"); if (!b) return;
   const [from, to] = b.dataset.bdel.split("|");
-  if (!(await ask(md(from) + " ~ " + md(to) + " 연차 막는 기간을 지울까요?\n\n지우면 이 기간에도 기사님이 연차를 신청할 수 있습니다.", "지우기", "그대로 두기", true))) return;
+  if (!(await ask(md(from) + " ~ " + md(to) + " 연차 제한 기간을 지울까요?\n\n지우면 이 기간에도 기사님이 연차를 신청할 수 있습니다.", "지우기", "그대로 두기", true))) return;
   const r = await call("adminBlockDel", { from, to }); toast(r.msg, r.ok); if (r.ok) { loadBlocks(); refreshAll(); }
 });
 $("lim-list").addEventListener("click", e => {
@@ -3387,10 +3899,440 @@ $("log-more").onclick = () => loadLogs(true);
 $("log-cats").addEventListener("click", e => { const b = e.target.closest("[data-lcat]"); if (!b) return;
   logCatSel = b.dataset.lcat; $("log-cats").querySelectorAll(".seg").forEach(x => x.classList.toggle("on", x === b)); loadLogs(); });
 
+/* ---------- 완성 시안: 전체 메뉴 · 아래 메뉴(바꿀 수 있음) · 운행기록 관리 ---------- */
+// ===== 프레임(ops.html · sheet.html · pri.html)과의 연결 =====
+//  프레임이 { ready: 1 } → host가 { boot: D } · 쓰기 뒤·새로고침·화면 복귀 때 { data: D } · 프레임의 { api: {id, action, p} } → call() → { apiResult: {id, res} }
+//  D = adminRunRead 응답 + dayTable(날짜 → 물량표) + siteNames · siteMeta(adminRunRead의 sites2·siteMeta) + now
+const FRAME_SRC = { "ops-frame": "ops.html", "sheet-frame": "sheet.html", "pri-frame": "pri.html" };
+let ADM_DATA = null, ADM_LOADING = null, ADM_T = 0; const FRAME_ON = {};
+const dayRows = L => (L || []).map(x => [x.name, x.dist, (x.items || []).map(i => [i.product, i.qty, i.time]), (x.reps || []).join(", ")]);
+async function admRead() {
+  const D = await call("adminRunRead"); if (!D.ok) return D;
+  const days = [addDays(D.today, -1), D.today, addDays(D.today, 1)], T = await Promise.all(days.map(d => call("adminToday", { date: d })));
+  D.dayTable = {}; days.forEach((d, i) => { if (T[i].ok) D.dayTable[d] = dayRows(T[i].list); });
+  D.sites2 = D.sites2 || []; D.siteNames = D.sites2.map(r => r[0]); D.siteMeta = D.siteMeta || {}; D.now = D.now || "";
+  return D;
+}
+function admData() { if (ADM_DATA) return Promise.resolve(ADM_DATA); return admRefresh(); }
+async function admRefresh() {
+  if (ADM_LOADING) return ADM_LOADING;
+  ADM_LOADING = (async () => { const D = await admRead(); if (D.ok) { ADM_DATA = D; frameAll({ data: D }); frameLock(); } return D; })();
+  try { return await ADM_LOADING; } finally { ADM_LOADING = null; }
+}
+function admDirty() { clearTimeout(ADM_T); if (!ADM_DATA) return; ADM_T = setTimeout(() => admRefresh(), 250); }
+function frameAll(m) { Object.keys(FRAME_ON).forEach(id => { try { $(id).contentWindow.postMessage(m, "*"); } catch (e) {} }); }
+function frameLock() { if (!ADM_DATA) return; frameAll({ runLock: ADM_DATA.runMode !== 1, runMode: ADM_DATA.runMode, vacLock: ADM_DATA.vacMode !== 1, vacMode: ADM_DATA.vacMode }); }
+function frameLoad(id) { const f = $(id); if (!PW) return f; if (!f.getAttribute("src")) f.src = FRAME_SRC[id] + "?v=" + APP_VER; return f; }   // 로그인 전에는 띄우지 않음 (로그인하면 navGo가 다시 부름)
+function frameIdOf(win) { for (const id in FRAME_SRC) { const f = $(id); if (f && f.contentWindow === win) return id; } return ""; }
+addEventListener("message", async e => { const m = e.data || {}, id = frameIdOf(e.source); if (!id || !PW) return;
+  if (m.ready) { const D = await admData(); if (!D.ok) return; FRAME_ON[id] = 1; try { e.source.postMessage({ boot: D }, "*"); e.source.postMessage({ runLock: D.runMode !== 1, runMode: D.runMode, vacLock: D.vacMode !== 1, vacMode: D.vacMode }, "*"); } catch (x) {}
+    if (id === "ops-frame") { opsReady = true; if (SHEET_CAR) { const q = SHEET_CAR; SHEET_CAR = null; setTimeout(q, 50); } if (opsQueue) try { e.source.postMessage({ go: opsQueue }, "*"); } catch (x) {} } return; }
+  if (m.api) { let res; try { res = await call(m.api.action, Object.assign({}, m.api.p || {}, { dev: devId() })); } catch (x) { res = { ok: false, msg: "서버 오류 " + x.message }; }
+    try { e.source.postMessage({ apiResult: { id: m.api.id, res } }, "*"); } catch (x) {} return; }
+  if (m.reload) { admRefresh(); return; }
+});
+const AM_IC = {
+  "v-pri": '<path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="18" cy="7" r="1.6"/>',
+  "v-yong": '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+  "v-pw": '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
+  "v-sheet": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
+  "o:today": '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M9 3v4M15 3v4M8 13h3v3H8z"/>',
+  "o:duty": '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 9l2 2 4-4"/>',
+  "o:wk": '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M9 3v4M15 3v4M8 16l2.5-3 2 2 3.5-4"/>',
+  "o:ga": '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h8"/>',
+  "o:jo": '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2 2M10 3h4"/>',
+  "o:tn": '<path d="M3 20V11a9 9 0 0 1 18 0v9"/><path d="M7 20v-8a5 5 0 0 1 10 0v8"/>',
+  "o:ilbo": '<path d="M4 4h16v16H4zM4 9h16M4 14h16M10 4v16"/>',
+  "o:spc": '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  "o:staff": '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M17 8v6M14 11h6"/>',
+  "o:noti": '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  "o:set": '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+  "v-month": '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  "v-day": '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  "v-add": '<circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/>',
+  "v-cars": '<path d="M3 16V8h11v8M14 11h4l3 3v2h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
+  "v-list": '<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  "v-lim": '<circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/>',
+  "v-hol": '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M9 3v4M15 3v4M9.5 13.5l5 5M14.5 13.5l-5 5"/>',
+  "v-set": '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  "v-bulk": '<path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5"/>',
+  "v-today": '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+  "v-sites": '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  "v-reps": '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+  "v-noti": '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/>',
+  "v-logs": '<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/>',
+  "v-backup": '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+  "v-open": '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><path d="M12 15v2"/>',
+  "v-audit": '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  "v-dev": '<rect x="2" y="4" width="13" height="10" rx="1.5"/><path d="M5 18h7"/><rect x="16" y="8" width="6" height="12" rx="1.5"/>',
+  "v-apw": '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/>',
+  "v-more": '<path d="M4 6h16M4 12h16M4 18h16"/>',
+};
+const AM_GROUPS = [
+  ["운행기록", [["o:today", "입력 현황"], ["v-sheet", "운행 기록표"], ["v-pri", "선배차·평균"], ["o:ga", "가탕 및 정비"], ["o:duty", "집대기·퇴근"], ["o:jo", "조출"], ["o:tn", "터널"], ["o:wk", "공휴일 출근"], ["o:spc", "특이사항 현장"], ["v-yong", "용차 출하"], ["o:ilbo", "일보·엑셀"], ["o:staff", "입퇴사 관리"], ["o:set", "단가 설정"], ["o:noti", "알림 설정"]]],
+  ["휴가", [["v-month", "휴가·결근 달력"], ["v-day", "날짜별"], ["v-add", "휴가 입력"], ["v-cars", "차량 휴가관리"], ["v-list", "전체 신청 목록"], ["v-lim", "연차 제한"], ["v-hol", "공휴일·휴무일"], ["v-bulk", "새해 일괄 수정"], ["v-set", "휴가 규칙"]]],
+  ["현장", [["v-today", "금일 물량"], ["v-sites", "현장 운행거리"], ["v-reps", "영업사원 연락처"]]],
+  ["알림 · 기록 · 관리", [["v-open", "기사 탭 잠금"], ["v-noti", "기사님 알림"], ["v-logs", "기록"], ["v-backup", "백업"], ["v-apw", "관리자 비밀번호"], ["v-pw", "계정 및 권한"], ["v-dev", "로그인 기기"], ["v-audit", "관리자 작업 기록"]]],
+];
+const AM_NAME = Object.fromEntries(AM_GROUPS.flatMap(g => g[1]).concat([["v-more", "전체 메뉴"]]));
+const AM_SHORT = { "o:ga": "가탕·정비", "v-pri": "선배차", "v-yong": "용차", "v-pw": "계정·권한", "v-sheet": "기록표", "v-open": "탭 잠금", "v-dev": "로그인 기기", "v-audit": "작업 기록", "o:today": "입력 현황", "o:duty": "집대기·퇴근", "o:wk": "공휴일", "o:ilbo": "일보", "o:set": "단가설정", "o:staff": "입퇴사", "o:spc": "특이사항", "o:noti": "알림설정", "v-month": "휴가·결근 달력", "v-day": "날짜별", "v-add": "휴가 입력", "v-cars": "차량 휴가", "v-list": "신청 목록", "v-lim": "연차 막기", "v-hol": "휴무일", "v-set": "휴가 규칙", "v-bulk": "일괄 수정", "v-today": "금일 물량", "v-sites": "운행거리", "v-reps": "연락처", "v-noti": "알림", "v-backup": "백업", "v-apw": "비밀번호" };
+const AM_DEF = ["o:today", "v-month", "v-add", "o:ga"];
+let TABS = AM_DEF.slice();
+try { const t = JSON.parse(localStorage.getItem("admTabsAll") || "null"); if (Array.isArray(t) && t.every(k => AM_NAME[k])) TABS = t.slice(0, 4); } catch (e) {}
+const amSave = () => { try { localStorage.setItem("admTabsAll", JSON.stringify(TABS)); } catch (e) {} };
+const amSvg = k => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + (AM_IC[k] || "") + '</svg>';
+let CUR = "v-month", OPS_CUR = "";
+function amDraw() {
+  const on = k => k === CUR || (k === "v-more" && !TABS.includes(CUR));
+  $("nav").style.gridTemplateColumns = "repeat(" + (TABS.length + 1) + ", 1fr)";
+  $("nav").innerHTML = TABS.concat("v-more").map(k => '<button data-k="' + k + '"' + (on(k) ? ' class="on"' : '') + '>' + amSvg(k) + '<span>' + (AM_SHORT[k] || AM_NAME[k]) + '</span></button>').join("");
+  $("am-groups").innerHTML = AM_GROUPS.map(([g, L]) => '<section class="am-sec"><div class="am-grp"><span>' + g + '</span><small>' + L.length + '개</small></div><div class="am-grid">' + L.map(([k, n]) => '<button data-k="' + k + '"' + (TABS.includes(k) ? ' class="in"' : '') + '>' + amSvg(k) + '<span>' + n + '</span></button>').join("") + '</div></section>').join("");
+  favDraw();
+  document.querySelectorAll("#side [data-ops]").forEach(b => b.classList.toggle("on", CUR === "o:" + b.dataset.ops));
+}
+let opsReady = false, opsQueue = "";
+function opsFrame() { return frameLoad("ops-frame"); }
+function opsTop() { const t = document.querySelector("#app > .top"); const h = t && getComputedStyle(t).display !== "none" ? t.getBoundingClientRect().bottom : 0; document.body.style.setProperty("--ops-top", Math.max(0, h) + "px"); }
+function navGo(k) {
+  if (k.startsWith("o:")) { const p = k.slice(2); showView("v-ops"); CUR = k; OPS_CUR = p; document.body.classList.add("ops-on"); opsTop();
+    const f = opsFrame(); opsQueue = p; if (opsReady) f.contentWindow.postMessage({ go: p }, "*"); amDraw(); return; }
+  showView(k);
+}
+const _showView = showView;
+showView = function (v) { _showView(v); if (v !== "v-ops") { document.body.classList.remove("ops-on"); CUR = v; } amDraw(); };
+// ===== 계정 비밀번호 관리: 관리팀 · 출하실 · 차량 (보기 · 바꾸기) =====
+let PWL = null;   // adminPwList 응답 { office: [{id, name, pw, devices, mustChange}], cars: [{no, pin, off, mustChange, online}], acctEdit }
+async function pwLoad() { const r = await call("adminPwList"); if (!r.ok) return toast(r.msg); PWL = r; pwDraw(); }
+let PW_SHOW = {}, PW_ALL = false, PW_ED = "";
+const pwMask = v => "•".repeat(String(v || "").length || 4);
+function pwRow(key, title, sub, val, len) { const show = PW_ALL || PW_SHOW[key];
+  if (PW_ED === key) return '<li><div class="main"><b>' + title + '</b><div class="meta">' + sub + '</div></div><div class="pw-ed"><input class="field" id="pw-in" type="text" inputmode="numeric" maxlength="' + len + '" value="' + esc(val) + '" enterkeyhint="done"><button class="btn small primary" data-pwsave="' + key + '">저장</button><button class="btn small" data-pwcancel>취소</button></div></li>';
+  return '<li><div class="main"><b>' + title + '</b><div class="meta">' + sub + '</div></div><span class="pw-v">' + (val ? (show ? esc(val) : pwMask(val)) : '<span class="muted">미등록</span>') + '</span><div class="acts"><button class="btn small" data-pwshow="' + key + '">' + (show ? '숨기기' : '보기') + '</button><button class="btn small" data-pwedit="' + key + '">바꾸기</button></div></li>'; }
+function permDraw() { const on = !PWL || PWL.acctEdit !== 0;
+  $("perm-acct-edit").checked = on; $("perm-sub").textContent = on ? "켜짐 · 관리팀이 회전수·운행거리·통행료를 고칠 수 있음 (고치면 사유와 함께 기록·기사님 알림)" : "꺼짐 · 관리팀은 보기만 · 관리팀 화면에 '보기 전용' 안내"; }
+document.addEventListener("change", async e => { if (e.target.id !== "perm-acct-edit") return; const on = e.target.checked;
+  if (!(await ask("관리팀의 기사님 기록 수정 권한을 " + (on ? "켤까요?\n\n관리팀이 회전수·운행거리·통행료를 고칠 수 있습니다." : "끌까요?\n\n관리팀은 기록을 보기만 하고 고칠 수 없습니다. 이미 고친 기록은 그대로 둡니다."), on ? "켜기" : "끄기", "그대로 두기"))) { permDraw(); return; }
+  const r = await call("adminKvSet", { kind: "set", key: "acctEdit", value: on ? 1 : 0, label: "관리팀 기록 수정 권한 " + (on ? "켬" : "끔"), detail: "" }); if (!r.ok) { permDraw(); return toast(r.msg); }
+  if (PWL) PWL.acctEdit = on ? 1 : 0; permDraw(); toast("관리팀 기록 수정 권한 " + (on ? "켬" : "끔"), true); });
+function pwDraw() { permDraw(); const q = ($("pw-q").value || "").trim();
+  if (!PWL) { $("pw-office").innerHTML = $("pw-cars").innerHTML = '<li><span class="muted">불러오는 중…</span></li>'; return; }
+  $("pw-office").innerHTML = PWL.office.map(o => pwRow("o:" + o.id, o.name, "아이디 " + o.id + " · 기기 " + (o.devices || []).length + "대" + (o.mustChange ? " · 처음 비밀번호" : ""), o.pw, 6)).join("") || '<li><span class="empty">사무실 계정이 없습니다</span></li>';
+  const cars = PWL.cars.filter(c => !q || c.no.includes(q));
+  $("pw-cars").innerHTML = cars.map(c => pwRow("c:" + c.no, c.no + "호", [c.off ? "운행 제외 차량" : "", c.mustChange ? "처음 비밀번호" : "", c.online ? "로그인 중" : ""].filter(Boolean).join(" · "), c.pin, 8)).join("") || '<li><span class="empty">해당 차량이 없습니다</span></li>';
+  $("pw-all").textContent = PW_ALL ? "모두 숨기기" : "모두 보기"; }
+document.addEventListener("click", e => { const t = e.target;
+  const sh = t.closest("[data-pwshow]"); if (sh) { PW_SHOW[sh.dataset.pwshow] = !PW_SHOW[sh.dataset.pwshow]; return pwDraw(); }
+  if (t.closest("#pw-all")) { PW_ALL = !PW_ALL; PW_SHOW = {}; return pwDraw(); }
+  const ed = t.closest("[data-pwedit]"); if (ed) { PW_ED = ed.dataset.pwedit; pwDraw(); const i = $("pw-in"); if (i) { i.focus(); i.select(); } return; }
+  if (t.closest("[data-pwcancel]")) { PW_ED = ""; return pwDraw(); }
+  const sv = t.closest("[data-pwsave]"); if (sv) { const key = sv.dataset.pwsave, v = $("pw-in").value.trim(), isO = key.startsWith("o:");
+    if (isO ? !/^\d{6}$/.test(v) : !/^\d{4,8}$/.test(v)) return toast(isO ? "사무실 계정 비밀번호는 숫자 6자리로 넣어 주세요." : "차량 비밀번호는 숫자 4~8자리로 넣어 주세요.");
+    if (sv.disabled) return; sv.disabled = true;
+    (async () => { const r = isO ? await call("adminOfficePw", { id: key.slice(2), newPw: v }) : await call("adminCarPw", { no: key.slice(2), newPw: v });
+      sv.disabled = false; toast(r.msg, r.ok); if (r.ok) { PW_ED = ""; pwLoad(); } })(); return; }
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "pw-in") { const b = document.querySelector("[data-pwsave]"); if (b) b.click(); } });
+$("pw-q").addEventListener("input", pwDraw);
+// 관리팀 · 출하실 화면의 '현장 거리' 탭 보이기/숨기기 (시안: 이 기기에 저장 · 실제로는 시트 설정)
+let SITE_TAB = 1;   // 서버 운행설정 set·siteTab (관리팀·출하실 공통 한 값)
+function stvDraw() { document.querySelectorAll("[data-stv]").forEach(g => g.querySelectorAll("[data-on]").forEach(b => b.classList.toggle("on", (b.dataset.on === "1") === (SITE_TAB !== 0)))); }
+document.addEventListener("click", async e => { const b = e.target.closest("[data-stv] [data-on]"); if (!b) return; const on = b.dataset.on === "1";
+  if ((SITE_TAB !== 0) === on) return;
+  const r = await call("adminKvSet", { kind: "set", key: "siteTab", value: on ? 1 : 0, label: "현장 거리 탭 " + (on ? "보이기" : "숨기기"), detail: "관리팀 · 출하실 화면" }); if (!r.ok) return toast(r.msg);
+  SITE_TAB = on ? 1 : 0; stvDraw();
+  toast("관리팀 · 출하실 화면에서 현장 거리 탭을 " + (on ? "보이게 했습니다." : "숨겼습니다."), true); });
+stvDraw();
+// 운행 기록표에서 호수를 누르면 → '입력 현황'과 같은 차량 팝업(보기·수정·삭제)을 그 위에 띄움
+let SHEET_CAR = null;
+function sheetCarOpen(c, d, rec) { document.body.classList.add("ops-pop"); const f = opsFrame(); const send = () => { try { f.contentWindow.postMessage({ openCar: c, date: d, rec: rec }, "*"); } catch (e) {} };
+  if (opsReady) send(); else SHEET_CAR = send; }
+addEventListener("message", e => { const m = e.data || {};
+  if (m.sheetCar) return sheetCarOpen(m.sheetCar, m.date, m.rec);
+  if (m.needSites) { admData().then(D => { try { e.source.postMessage({ siteList: D.sites2 || [] }, "*"); } catch (x) {} }); return; }
+  if (m.siteAdd) { openTodayDist(m.siteAdd, "-", false); siteFromToday.fromSheet = 1; return; }   // 운행 기록표 · 출하 기록의 거리 미등록 현장
+  if (m.shtOpen !== undefined && e.source === opsFrame().contentWindow) document.body.classList.toggle("ops-dim", !!m.shtOpen && $("v-ops").classList.contains("on"));
+  if (m.carClosed) { document.body.classList.remove("ops-pop"); if (m.toast) toast(m.toast, true); if (m.saved) { try { $("sheet-frame").contentWindow.postMessage({ applyCar: m.saved }, "*"); } catch (e) {} } } });
+// 운행 기록표: 관리팀 화면과 같은 표 (일별 · 월 합계 · 호수별 · 수정 기록)
+function sheetFrame() { return frameLoad("sheet-frame"); }
+const _showView2 = showView;
+showView = function (v) { _showView2(v); if (v === "v-pw") PW_ED = ""; const on = v === "v-sheet"; document.body.classList.toggle("sheet-on", on); if (on) { sheetFrame(); opsTop(); } };
+addEventListener("resize", () => { if (document.body.classList.contains("sheet-on")) opsTop(); });
+// 선배차·평균: 출하실 화면의 평균·선배차 · 평균 그래프 · 조별 차량
+function priFrame() { return frameLoad("pri-frame"); }
+const _showView3 = showView;
+showView = function (v) { _showView3(v); const on = v === "v-pri"; document.body.classList.toggle("pri-on", on); if (on) { priFrame(); opsTop(); } };
+addEventListener("resize", () => { if (document.body.classList.contains("pri-on")) opsTop(); });
+addEventListener("message", e => { const m = e.data || {}; if (m.opsPage && CUR.startsWith("o:")) { CUR = "o:" + m.opsPage; OPS_CUR = m.opsPage; amDraw(); } });
+addEventListener("resize", () => { if (document.body.classList.contains("ops-on")) opsTop(); });
+document.addEventListener("click", e => { const t = e.target;
+  const fx = t.closest("[data-fx]"); if (fx) { TABS = TABS.filter(x => x !== fx.dataset.fx); amSave(); amDraw(); return; }
+  if (t.closest("#fav-edit")) { FAV_ED = !FAV_ED; amDraw(); return; }
+  if (t.closest("#fav-add")) { FAV_ED = true; amDraw(); return; }
+  if (t.closest("#fav-reset")) { TABS = AM_DEF.slice(); amSave(); amDraw(); toast("즐겨찾기를 처음 설정으로 돌렸습니다.", true); return; }
+  if (FAV_ED) { const g = t.closest("#am-groups [data-k]"); if (g) { const key = g.dataset.k; if (TABS.includes(key)) return toast("이미 즐겨찾기에 있습니다."); if (TABS.length >= 4) return toast("빈자리가 없습니다. 위에서 ×를 눌러 하나 빼 주세요."); TABS.push(key); amSave(); amDraw(); return; } }
+  const sf = t.closest("#side [data-fk]"); if (sf) return navGo(sf.dataset.fk);
+  const k = t.closest("#v-more [data-k]"); if (k) return navGo(k.dataset.k);
+  const so = t.closest("#side [data-ops]"); if (so) return navGo("o:" + so.dataset.ops);
+  const u = t.closest("[data-amu]"), d = t.closest("[data-amd]");
+  if (u || d) { const key = u ? u.dataset.amu : d.dataset.amd, i = TABS.indexOf(key), j = i + (u ? -1 : 1); [TABS[i], TABS[j]] = [TABS[j], TABS[i]]; amSave(); amDraw(); return; }
+});
+document.addEventListener("change", e => { const c = e.target.closest("[data-amt]"); if (!c) return; const k = c.dataset.amt;
+  if (c.checked) { if (TABS.length >= 4) { c.checked = false; return toast("아래 메뉴는 4개까지입니다. 하나를 먼저 빼 주세요."); } TABS.push(k); } else TABS = TABS.filter(x => x !== k);
+  amSave(); amDraw(); });
+
+/* ---------- 즐겨찾기 (폰: 전체 메뉴 위 · 편집 / PC: 왼쪽 메뉴 별표) ---------- */
+let FAV_ED = false;
+const X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const STAR = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8z"/></svg>';
+const sideKey = b => b.dataset.ops ? "o:" + b.dataset.ops : b.dataset.side;
+function favDraw() {
+  document.body.classList.toggle("fav-ed", FAV_ED);
+  $("fav-edit").textContent = FAV_ED ? "완료" : "편집"; $("fav-note").hidden = !FAV_ED;
+  const it = k => FAV_ED ? '<div class="fav-it" data-fk2="' + k + '">' + amSvg(k) + '<span>' + AM_NAME[k] + '</span><button type="button" class="fav-x" data-fx="' + k + '" aria-label="' + AM_NAME[k] + ' 빼기">' + X_SVG + '</button></div>'
+    : '<button data-k="' + k + '">' + amSvg(k) + '<span>' + AM_NAME[k] + '</span></button>';
+  let h = TABS.map(it).join("");
+  for (let i = TABS.length; i < 4; i++) h += FAV_ED ? '<div class="fav-empty">빈자리</div>' : (i === TABS.length ? '<button type="button" class="fav-empty add" id="fav-add">+ 추가</button>' : '');
+  $("fav-grid").innerHTML = h;
+  // PC 왼쪽
+  $("side-fav").innerHTML = TABS.map(k => '<button type="button" class="has-st' + (k === CUR ? ' on' : '') + '" data-fk="' + k + '">' + AM_NAME[k] + '<span class="st on" data-star="' + k + '" title="즐겨찾기에서 빼기">' + STAR + '</span></button>').join("") || '<div class="sf-empty">별을 눌러 자주 쓰는 메뉴를 고정하세요</div>';
+  document.querySelectorAll("#side [data-ops], #side [data-side]").forEach(b => { const k = sideKey(b); if (!AM_NAME[k]) return;
+    if (!b.querySelector(".st")) { b.classList.add("has-st"); b.insertAdjacentHTML("beforeend", '<span class="st" data-star="' + k + '" title="즐겨찾기">' + STAR + '</span>'); }
+    const st = b.querySelector(".st"), on = TABS.includes(k); st.classList.toggle("on", on); st.title = on ? "즐겨찾기에서 빼기" : "즐겨찾기에 고정"; });
+}
+// 별 누르기 (PC): 메뉴 이동보다 먼저 처리
+$("side").addEventListener("click", e => { const s = e.target.closest("[data-star]"); if (!s) return; e.stopPropagation(); e.preventDefault();
+  const k = s.dataset.star; if (TABS.includes(k)) { TABS = TABS.filter(x => x !== k); toast(AM_NAME[k] + " 즐겨찾기에서 뺐습니다.", true); }
+  else { if (TABS.length >= 4) return toast("즐겨찾기는 4개까지입니다 (폰 아래 메뉴와 같음). 하나를 먼저 빼 주세요."); TABS.push(k); toast(AM_NAME[k] + " 즐겨찾기에 고정했습니다.", true); }
+  amSave(); amDraw(); }, true);
+// 끌어서 순서 바꾸기 (편집 중, 손가락·마우스 모두)
+(function () {
+  let D = null;
+  $("fav-grid").addEventListener("pointerdown", e => { if (!FAV_ED || e.target.closest(".fav-x")) return; const el = e.target.closest(".fav-it"); if (!el) return;
+    D = { el, k: el.dataset.fk2, x: e.clientX, y: e.clientY, on: false, to: TABS.indexOf(el.dataset.fk2), timer: setTimeout(() => { if (D) start(); }, 220) };
+    el.setPointerCapture(e.pointerId); });
+  function start() { D.on = true; D.el.classList.add("drag"); if (navigator.vibrate) try { navigator.vibrate(15); } catch (x) {} }
+  $("fav-grid").addEventListener("pointermove", e => { if (!D) return; const dx = e.clientX - D.x, dy = e.clientY - D.y;
+    if (!D.on) { if (Math.hypot(dx, dy) > 8) start(); else return; }
+    D.el.style.transform = "translate(" + dx + "px," + dy + "px)";
+    D.el.style.visibility = "hidden"; const u = document.elementFromPoint(e.clientX, e.clientY); D.el.style.visibility = "";
+    const tg = u && u.closest("#fav-grid > *"); document.querySelectorAll("#fav-grid .tgt").forEach(x => x.classList.remove("tgt"));
+    if (tg && tg !== D.el) { tg.classList.add("tgt"); const i = [...$("fav-grid").children].indexOf(tg); D.to = Math.min(i, TABS.length - 1); } else if (tg === D.el) D.to = TABS.indexOf(D.k); });
+  const end = () => { if (!D) return; clearTimeout(D.timer); const d = D; D = null;
+    if (d.on) { const i = TABS.indexOf(d.k); if (d.to !== i && d.to >= 0) { TABS.splice(i, 1); TABS.splice(d.to, 0, d.k); amSave(); } amDraw(); } };
+  $("fav-grid").addEventListener("pointerup", end); $("fav-grid").addEventListener("pointercancel", end);
+})();
+amDraw();
+
+
+/* ---------- 로그인 기기 (시안: 이 폰에만 저장되는 예시 자료) ---------- */
+function devName(ua) {
+  ua = ua || navigator.userAgent;
+  const os = /iPhone/.test(ua) ? "아이폰" : /iPad/.test(ua) ? "아이패드" : /Android/.test(ua) ? (/Mobile/.test(ua) ? "안드로이드 폰" : "안드로이드 태블릿") : /Windows/.test(ua) ? "윈도우 PC" : /Mac OS/.test(ua) ? "맥" : /Linux/.test(ua) ? "리눅스 PC" : "기타 기기";
+  const br = /SamsungBrowser/.test(ua) ? "삼성 인터넷" : /KAKAOTALK/.test(ua) ? "카카오톡" : /Edg\//.test(ua) ? "엣지" : /CriOS|Chrome/.test(ua) ? "크롬" : /Safari/.test(ua) ? "사파리" : "브라우저";
+  return os + " · " + br;
+}
+function devAgo(ms) {
+  const m = Math.round((Date.now() - ms) / 60000);
+  if (m < 5) return "지금 사용 중"; if (m < 60) return m + "분 전"; const h = Math.round(m / 60); if (h < 24) return h + "시간 전"; return Math.round(h / 24) + "일 전";
+}
+function devDate(ms) { const d = new Date(ms); return (d.getMonth() + 1) + "/" + d.getDate(); }
+let DEVS = null;
+function devLoad() {   // 이 기기 하나 (이름은 localStorage admDevName · 처음 로그인 시각은 admDevFirst)
+  if (DEVS) return DEVS;
+  let label = "", first = 0; try { label = localStorage.getItem("admDevName") || ""; first = +localStorage.getItem("admDevFirst") || 0; if (!first) { first = Date.now(); localStorage.setItem("admDevFirst", String(first)); } } catch (e) {}
+  DEVS = [{ id: "me", name: devName(), first: first || Date.now(), last: Date.now(), me: 1 }]; if (label) DEVS[0].label = label;
+  return DEVS;
+}
+function devSave() { try { const d = DEVS && DEVS[0]; if (d && d.label) localStorage.setItem("admDevName", d.label); else localStorage.removeItem("admDevName"); } catch (e) {} }
+function devCount() { const n = devLoad().length + "대"; ["dev-n", "dev-chip-n", "side-dev-n", "top-dev-n"].forEach(i => { const el = $(i); if (el) el.textContent = n; }); }
+let DEV_EDIT = null;
+const esc1 = x => String(x).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function devDraw() {
+  const L = devLoad().slice().sort((a, b) => (b.me || 0) - (a.me || 0) || b.last - a.last);
+  $("dev-list").innerHTML = L.map(d => {
+    const now = Date.now() - d.last < 3e5, me = d.me ? '<span class="me">이 기기</span>' : '';
+    const when = '<span class="ago' + (now ? ' now' : '') + '">' + (now ? '지금 사용 중' : '마지막 사용 ' + devAgo(d.last)) + '</span><br>처음 로그인 ' + devDate(d.first);
+    if (DEV_EDIT === d.id) return '<li class="dev-ed"><div class="main"><p class="label" style="margin:0 0 6px">기기 이름' + me + '</p>' +
+      '<input class="field" id="dev-in" maxlength="20" placeholder="예) 사무실 PC, 김부장 폰" value="' + esc1(d.label || "") + '" enterkeyhint="done">' +
+      '<div class="meta" style="margin-top:6px">' + d.name + ' · 비워 두고 저장하면 자동 이름으로 돌아갑니다</div>' +
+      '<div class="dev-ed-acts"><button class="btn primary" data-devsave="' + d.id + '">저장</button><button class="btn" data-devcancel>취소</button></div></div></li>';
+    return '<li><div class="main"><div class="no">' + esc1(d.label || d.name) + me + '</div><div class="meta">' + (d.label ? d.name + '<br>' : '') + when + '</div></div>' +
+      '<div class="acts"><button class="btn small" data-devname="' + d.id + '">이름</button>' + (d.me ? '' : '<button class="btn small danger" data-devout="' + d.id + '">로그아웃</button>') + '</div></li>';
+  }).join("");
+  devCount();
+  const inp = $("dev-in"); if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+}
+function devSaveName(id) { const d = DEVS.find(x => x.id === id), v = ($("dev-in").value || "").trim(); if (!d) return;
+  if (v) d.label = v; else delete d.label; DEV_EDIT = null; devSave(); devDraw(); toast(v ? "'" + v + "'(으)로 이름을 정했습니다." : "자동 이름으로 돌렸습니다.", true); }
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "dev-in") { e.preventDefault(); devSaveName(DEV_EDIT); } });
+document.addEventListener("click", e => {
+  const t = e.target;
+  const g = t.closest("[data-side-go]"); if (g) return showView(g.dataset.sideGo);
+  const nm = t.closest("[data-devname]"); if (nm) { DEV_EDIT = nm.dataset.devname; return devDraw(); }
+  const sv = t.closest("[data-devsave]"); if (sv) return devSaveName(sv.dataset.devsave);
+  if (t.closest("[data-devcancel]")) { DEV_EDIT = null; return devDraw(); }
+});
+devCount();
+
+/* ---------- 공휴일 자동 불러오기 (시안: 실제로는 구글 '대한민국 공휴일' 캘린더 / 공공데이터 특일정보에서 가져옴) ---------- */
+const HA_DATA = {
+  2026: [["2026-01-01","신정"],["2026-02-16","설날 연휴"],["2026-02-17","설날"],["2026-02-18","설날 연휴"],["2026-03-01","삼일절"],["2026-03-02","대체공휴일(삼일절)"],["2026-05-01","노동절"],["2026-05-05","어린이날"],["2026-05-24","부처님오신날"],["2026-05-25","대체공휴일(부처님오신날)"],["2026-06-03","지방선거"],["2026-06-06","현충일"],["2026-07-17","제헌절"],["2026-08-15","광복절"],["2026-08-17","대체공휴일(광복절)"],["2026-09-24","추석 연휴"],["2026-09-25","추석"],["2026-09-26","추석 연휴"],["2026-10-03","개천절"],["2026-10-05","대체공휴일(개천절)"],["2026-10-09","한글날"],["2026-12-25","크리스마스"]],
+  2027: [["2027-01-01","신정"],["2027-02-06","설날 연휴"],["2027-02-07","설날"],["2027-02-08","설날 연휴"],["2027-02-09","대체공휴일(설날)"],["2027-03-01","삼일절"],["2027-05-01","노동절"],["2027-05-03","대체공휴일(노동절)",1],["2027-05-05","어린이날"],["2027-05-13","부처님오신날"],["2027-06-06","현충일"],["2027-07-17","제헌절"],["2027-07-19","대체공휴일(제헌절)"],["2027-08-15","광복절"],["2027-08-16","대체공휴일(광복절)"],["2027-09-14","추석 연휴"],["2027-09-15","추석"],["2027-09-16","추석 연휴"],["2027-10-03","개천절"],["2027-10-04","대체공휴일(개천절)"],["2027-10-09","한글날"],["2027-10-11","대체공휴일(한글날)"],["2027-12-25","크리스마스"],["2027-12-27","대체공휴일(크리스마스)"]]
+};
+let HA_Y = null, HA_ROWS = [];
+const HA_WD = ["일","월","화","수","목","금","토"];
+function haYears() { const y = +(TODAY || kstNow().today).slice(0, 4); if (!HA_Y) HA_Y = (TODAY || "").slice(5, 7) >= "10" ? y + 1 : y;
+  $("ha-years").innerHTML = [y, y + 1].map(v => '<button type="button" data-hay="' + v + '" class="' + (v === HA_Y ? "on" : "") + '">' + v + '년</button>').join("");
+  let last = ""; try { last = localStorage.getItem("admHaLast") || ""; } catch (e) {}
+  $("ha-last").textContent = last ? "마지막으로 넣은 날 " + last : "2026년 공휴일은 이미 들어 있습니다";
+}
+async function haFetch() {
+  $("ha-fetch").disabled = true; $("ha-fetch").textContent = "찾는 중...";
+  const r = await call("adminHolidays"); await new Promise(z => setTimeout(z, 500));
+  $("ha-fetch").disabled = false; $("ha-fetch").textContent = "공휴일 찾아오기";
+  if (!r.ok) return;
+  const have = new Set(r.list.map(h => h.date)), src = HA_DATA[HA_Y];
+  if (!src) { $("ha-res").innerHTML = '<p class="info">' + HA_Y + '년 공휴일은 아직 발표되지 않았습니다. 보통 전년도 여름쯤 발표됩니다.</p>'; return; }
+  HA_ROWS = src.map(([d, n, chk]) => ({ d, n, chk: !!chk, have: have.has(d) }));
+  haDraw();
+}
+function haDraw() {
+  const nw = HA_ROWS.filter(x => !x.have);
+  const li = x => { const w = new Date(x.d + "T00:00:00").getDay(), on = !x.have && !x.chk;
+    return '<li class="' + (x.have ? "have" : "") + '"><label><input type="checkbox" data-had="' + x.d + '"' + (x.have ? " checked disabled" : on ? " checked" : "") + '>' +
+      '<span class="d ' + (w === 0 ? "sun" : w === 6 ? "sat" : "") + '">' + (+x.d.slice(5, 7)) + "/" + (+x.d.slice(8)) + "(" + HA_WD[w] + ')</span><span class="n">' + esc(x.n.replace(/^대체공휴일\((.+)\)$/, "$1 대체")) + '</span>' +
+      (x.have ? '<span class="tg have">이미 있음</span>' : x.chk ? '<span class="tg chk">확인 필요</span>' : '<span class="tg new">새로</span>') + '</label></li>'; };
+  $("ha-res").innerHTML = '<p class="ha-sum">' + HA_Y + '년 공휴일 ' + HA_ROWS.length + '일 · 새로 넣을 날 <b>' + nw.length + '일</b></p>' +
+    (nw.length ? '' : '<p class="info" style="margin:0 0 8px">이미 모두 들어 있습니다.</p>') +
+    '<ul class="ha-list">' + HA_ROWS.map(li).join("") + '</ul>' +
+    (HA_ROWS.some(x => x.chk && !x.have) ? '<p class="info">\'확인 필요\'는 발표 기준에 따라 달라질 수 있는 날이라 처음엔 체크를 빼 두었습니다. 회사 방침에 맞게 골라 주세요.</p>' : '') +
+    '<p class="info">회사가 일하는 날은 체크를 빼면 쉬는 날에 들어가지 않습니다.</p>' +
+    (nw.length ? '<button class="btn primary wide" id="ha-save" style="margin-top:6px">체크한 날 넣기</button>' : '');
+  haCount();
+}
+function haCount() { const b = $("ha-save"); if (!b) return; const n = document.querySelectorAll('#ha-res input[data-had]:checked:not(:disabled)').length; b.textContent = "체크한 " + n + "일 넣기"; b.disabled = !n; }
+async function haSave() {
+  const pick = [...document.querySelectorAll('#ha-res input[data-had]:checked:not(:disabled)')].map(i => i.dataset.had);
+  if (!pick.length) return;
+  if (!(await ask(HA_Y + "년 공휴일 " + pick.length + "일을 쉬는 날로 넣을까요?\n\n휴가·결근 달력과 기사님 화면에 바로 반영됩니다.", "넣기", "그대로 두기"))) return;
+  for (const d of pick) { const x = HA_ROWS.find(r => r.d === d); await call("adminHolAdd", { date: d, name: x.n }); }
+  try { localStorage.setItem("admHaLast", md(TODAY || kstNow().today) + " (" + HA_Y + "년 " + pick.length + "일)"); } catch (e) {}
+  toast(HA_Y + "년 공휴일 " + pick.length + "일을 넣었습니다.", true);
+  haYears(); await loadHol(); haFetch();
+}
+document.addEventListener("click", e => {
+  const y = e.target.closest("[data-hay]"); if (y) { HA_Y = +y.dataset.hay; $("ha-res").innerHTML = ""; return haYears(); }
+  if (e.target.closest("#ha-fetch")) return haFetch();
+  if (e.target.closest("#ha-save")) return haSave();
+});
+document.addEventListener("change", e => {
+  if (e.target.matches("#ha-res input[data-had]")) haCount();
+});
+
+/* ---------- 관리자 작업 기록 · 되돌리기 (서버 adminAudit · adminAuditUndo) ---------- */
+let AU = [], AU_TOTAL = 0, AU_DEV = "", AU_Q = "", AU_SEQ = 0; const AU_LIMIT = 30;
+const auDev = d => d || "기기 이름 없음";
+async function auLoad(more) {
+  const seq = ++AU_SEQ, q = ($("au-q").value || "").trim(); if (!more) { AU = []; AU_Q = q; }
+  const r = await call("adminAudit", { q, offset: more ? AU.length : 0, limit: AU_LIMIT });
+  if (seq !== AU_SEQ) return; if (!r.ok) { $("au-list").innerHTML = '<li><span class="muted">' + esc(r.msg || "불러오지 못했습니다.") + '</span></li>'; return; }
+  AU = AU.concat(r.list || []); AU_TOTAL = r.total || 0; auDraw();
+}
+const AU_WD = "일월화수목금토";
+function auDraw() {
+  const devs = [...new Set(AU.map(x => auDev(x.dev)))]; if (AU_DEV && !devs.includes(AU_DEV)) AU_DEV = "";
+  $("au-chips").innerHTML = '<button type="button" data-aud="" class="' + (AU_DEV ? "" : "on") + '">전체</button>' + devs.map(d => '<button type="button" data-aud="' + esc(d) + '" class="' + (AU_DEV === d ? "on" : "") + '">' + esc(d) + '</button>').join("");
+  const L = AU.filter(x => !AU_DEV || auDev(x.dev) === AU_DEV), can = AU_DEV ? L.filter(x => x.undo && !x.undone) : [];
+  $("au-bulk").innerHTML = can.length ? '<div class="au-bulk"><b>' + esc(AU_DEV) + '</b>에서 한 일 중 되돌릴 수 있는 것 ' + can.length + '건 (불러온 기록 기준)<button class="btn danger wide" id="au-all" type="button">이 기기가 한 일 모두 되돌리기</button></div>' : '';
+  let lastD = "";
+  $("au-list").innerHTML = L.map(x => { const dd = String(x.at || "").slice(0, 10), h = dd && dd !== lastD ? '<li class="dh">' + (+dd.slice(5, 7)) + "/" + (+dd.slice(8)) + "(" + AU_WD[new Date(dd + "T00:00:00").getDay()] + ")</li>" : ""; lastD = dd;
+    return h + '<li class="' + (x.undone ? "undone" : "") + '"><div class="m"><div class="a">' + esc(x.a) + (x.undone ? '<span class="tag u">되돌림</span>' : '') + '</div>' + (x.d ? '<div class="d">' + esc(x.d) + '</div>' : '') +
+      '<div class="w">' + esc(String(x.at || "").slice(11, 16)) + ' · <b>' + esc(auDev(x.dev)) + '</b>' + (x.undone ? ' · ' + esc(String(x.undone).slice(5, 16)) + ' 되돌림' : '') + '</div></div>' + (x.undo && !x.undone ? '<button class="btn small" data-auu="' + esc(x.id) + '" type="button">되돌리기</button>' : '') + '</li>'; }).join("") || '<li><span class="muted">기록이 없습니다.</span></li>';
+  $("au-more").hidden = AU.length >= AU_TOTAL; $("au-more").textContent = "더보기 (남은 " + Math.max(0, AU_TOTAL - AU.length) + "건)";
+}
+async function auUndo(x) { const r = await call("adminAuditUndo", { id: x.id }); if (!r.ok) { toast(r.msg); return false; } return true; }
+document.addEventListener("click", e => { const t = e.target;
+  const ad = t.closest("[data-aud]"); if (ad) { AU_DEV = ad.dataset.aud; return auDraw(); }
+  const uu = t.closest("[data-auu]"); if (uu) { (async () => { const x = AU.find(z => z.id === uu.dataset.auu); if (!x || uu.disabled) return; if (!(await ask("'" + x.a + "'" + (x.d ? "\n" + x.d : "") + "\n\n이것을 그 전 상태로 되돌릴까요?", "되돌리기", "그대로 두기"))) return;
+    uu.disabled = true; const ok = await auUndo(x); uu.disabled = false; if (ok) { toast("되돌렸습니다.", true); auLoad(); } })(); return; }
+  if (t.closest("#au-all")) { (async () => { const L = AU.filter(x => auDev(x.dev) === AU_DEV && x.undo && !x.undone); if (!(await ask(AU_DEV + "에서 한 일 " + L.length + "건을 모두 그 전 상태로 되돌릴까요?", "모두 되돌리기", "그대로 두기", true))) return;
+    let n = 0; for (const x of L) if (await auUndo(x)) n++; toast(n + "건을 되돌렸습니다.", true); auLoad(); })(); return; }
+  if (t.closest("#au-more")) { return auLoad(true); }
+  if (t.closest("#sa-me") || t.closest("#sa-no")) { $("sec-alert").hidden = true; return; }
+  if (t.closest("#ss-x") || t.id === "sec-sheet") { $("sec-sheet").hidden = true; return; }
+});
+let auT = 0;
+document.addEventListener("input", e => { if (e.target.id === "au-q") { clearTimeout(auT); auT = setTimeout(() => auLoad(), 300); } });
+
+/* ---------- 기사 탭 잠금 (테스트 중 표시) ----------
+   휴가 탭: 기존 VAC_OPEN 설정 그대로 / 운행기록 탭: RUN_OPEN (시안은 이 폰에 저장) */
+const OP_DEF = { run: { open: 2, msg: "운행기록은 아직 테스트 중입니다.\n곧 열릴 예정이니 조금만 기다려 주세요.", cars: [] },
+                 vac: { open: 2, msg: "휴가 신청은 아직 테스트 중입니다.\n신청이 필요하면 사무실에 말씀해 주세요.", cars: [] } };
+let OP = JSON.parse(JSON.stringify(OP_DEF));   // 서버 값(adminSettings RUN_OPEN·VAC_OPEN · 운행설정 runCars·vacCars·runMsg·vacMsg)으로 채움
+function opLoad() { return OP; }
+async function opFetch() {
+  const [r, D] = await Promise.all([call("adminSettings"), admData()]);
+  if (r.ok) { const g = k => { const it = r.items.find(x => x.key === k); return it && it.value !== undefined && it.value !== "" ? +it.value : undefined; }; const rv = g("RUN_OPEN"), vv = g("VAC_OPEN"); if (rv !== undefined) OP.run.open = rv; if (vv !== undefined) OP.vac.open = vv; }
+  if (D && D.ok) { OP.run.cars = (D.runCars || []).map(String); OP.vac.cars = (D.vacCars || []).map(String); if (D.runMsg) OP.run.msg = D.runMsg; if (D.vacMsg) OP.vac.msg = D.vacMsg; if (r.ok) { RV = RV || {}; RV.vacMode = OP.vac.open; } }
+  return OP; }
+const opKey = (k, w) => k + (w === "cars" ? "Cars" : "Msg");   // runCars · vacCars · runMsg · vacMsg
+async function opSet(k, w, v, label) { const r = await call("adminKvSet", { kind: "set", key: opKey(k, w), value: v, label, detail: w === "cars" ? v.join(", ") : v.slice(0, 60) }); if (!r.ok) toast(r.msg); return r.ok; }
+function opSave() {}
+const LOCK_SVG = '<svg class="lk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+async function opDraw() {
+  await opFetch();
+  const card = (k, name, what) => { const x = OP[k], lock = !x.open, view = x.open === 2, vw = k === "vac" ? "신청만 막음" : "입력만 막음", vb = k === "vac" ? "신청만 막기" : "입력만 막기";
+    return '<div class="op-card"><div class="op-h"><b>' + name + ' 탭</b><span class="op-st ' + (lock ? 'lock">테스트 중 (잠김)' : view ? 'view">' + vw : 'open">열림') + '</span></div>' +
+      '<p class="info" style="margin:8px 0 0">' + (lock ? '기사님 화면 ' + name + ' 탭에는 아래 안내만 보입니다. 관리자 페이지에서는 그대로 입력할 수 있습니다.' : view ? (k === "vac" ? '기사님은 <b>내 휴가 기록</b>과 <b>날짜별 신청 인원(숫자만)</b>만 볼 수 있고, 휴가·조퇴·지각·결근 신청과 취소는 못 합니다. 기사님 화면에 "관리자에게 따로 말씀해 주세요"가 보이고, 휴가는 <b>관리자만</b> 넣고 고칠 수 있습니다.' : '기사님은 운행기록 탭에서 <b>내 기록·평균·선배차·물량표</b>는 다 보지만, <b>일일 기록 입력·수정·삭제는 못 합니다.</b> 기사님 화면에 "지금은 관리자가 대신 입력합니다 · 관리자에게 말씀해 주세요"가 보이고, 기록은 <b>관리자가 입력 현황에서 대신 입력</b>합니다. 알림은 보내지 않습니다.') : '모든 기사님이 ' + name + ' 탭에서 ' + what + ' 할 수 있습니다.') + '</p>' +
+      '<div class="segs seg3w"><button class="seg' + (lock ? ' on lk' : '') + '" data-opk="' + k + '" data-opv="0">테스트 중 (잠그기)</button><button class="seg' + (view ? ' on vw' : '') + '" data-opk="' + k + '" data-opv="2">' + vb + '</button><button class="seg' + (!lock && !view ? ' on op' : '') + '" data-opk="' + k + '" data-opv="1">열기</button></div>' +
+      (lock ? '<p class="op-lab">기사님께 보일 안내 문구</p><textarea data-opmsg="' + k + '" maxlength="120">' + esc(x.msg) + '</textarea>' +
+        '<p class="op-lab">먼저 써 볼 차량 <span style="font-weight:600">· 잠겨 있어도 이 차량만 열림 (테스트 참여)</span></p>' +
+        '<div class="op-cars">' + (x.cars.length ? x.cars.map(c => '<span>' + c + '호<button type="button" data-opdel="' + k + '|' + c + '" aria-label="' + c + '호 빼기">×</button></span>').join("") : '<span style="padding:4px 12px;color:var(--muted);font-weight:600">없음</span>') + '</div>' +
+        '<div class="op-add"><input class="field" type="number" inputmode="numeric" placeholder="호수 (예: 233)" id="opin-' + k + '" enterkeyhint="done"><button class="btn" type="button" data-opadd="' + k + '">넣기</button></div>' +
+        '<div class="op-prev"><small>기사님 화면 미리보기</small><div class="op-phone">' + LOCK_SVG + '<b>' + name + ' · 테스트 중</b><p>' + esc(x.msg) + '</p></div></div>' : '') + '</div>'; };
+  const NL = [["run", "선배차 확정 · 예상 · 빠짐 알림"], ["run", "밤 8시 운행기록 미입력 알림"], ["run", "대신 입력 · 정정 알림"], ["run", "가탕 입력 알림"], ["run", "유류 단가 확정 알림"], ["run", "퇴근조 · 집대기 · 조출 알림"], ["vac", "휴가 입력 · 수정 · 취소 알림"], ["vac", "휴가 순번 · 대기 알림"]];
+  $("op-nl").innerHTML = NL.map(([k, n]) => '<li class="' + (OP[k].open === 1 ? "on" : "") + '">' + n + ' <small>' + (k === "run" ? "운행기록" : "휴가") + ' 탭 ' + (OP[k].open === 1 ? "열림" : OP[k].open === 2 ? (k === "run" ? "입력만 막음" : "신청만 막음") : "테스트 중") + '</small></li>').join("");
+  frameLock();
+  $("op-cards").innerHTML = card("run", "운행기록", "운행기록 입력과 평균 보기를") + card("vac", "휴가", "휴가·조퇴·지각·결근 신청을");
+}
+document.addEventListener("click", async e => { const t = e.target;
+  const b = t.closest("[data-opk]"); if (b && !b.classList.contains("on")) { const k = b.dataset.opk, open = b.dataset.opv === "1", vmode = +b.dataset.opv, name = k === "run" ? "운행기록" : "휴가";
+    if (vmode === 2 && k === "run") {
+      if (!(await ask("기사님 운행기록 탭을 '입력만 막기'로 바꿀까요?\n\n기사님은 내 기록·평균·선배차·물량표는 다 보지만, 일일 기록 입력·수정은 못 합니다.\n기록은 관리자가 입력 현황에서 대신 입력합니다. 알림은 보내지 않습니다.", "입력만 막기", "그대로 두기"))) return;
+      const r = await call("adminSetSetting", { key: "RUN_OPEN", value: 2 }); if (!r.ok) return toast(r.msg);
+      OP.run.open = 2; await opDraw();
+      return toast("기사님 운행기록 탭: 입력만 막았습니다. (보기는 됨 · 관리자가 대신 입력)", true); }
+    if (vmode === 2) {
+      if (!(await ask("기사님 휴가 탭을 '신청만 막기'로 바꿀까요?\n\n기사님은 내 휴가 기록과 날짜별 신청 인원(숫자)만 볼 수 있고, 신청·취소는 못 합니다.\n휴가·조퇴·지각·결근은 관리자에게 따로 말하고 관리자만 넣습니다.", "신청만 막기", "그대로 두기"))) return;
+      const r = await call("adminSetSetting", { key: "VAC_OPEN", value: 2 }); if (!r.ok) return toast(r.msg);
+      OP.vac.open = 2; await opDraw(); refreshWaitDates();
+      return toast("기사님 휴가 탭: 신청만 막았습니다. (기록·인원 보기는 됨)", true); }
+    if (!(await ask(open ? "기사님 화면 " + name + " 탭을 열까요?\n\n모든 기사님이 바로 쓸 수 있습니다." : "기사님 화면 " + name + " 탭을 '테스트 중'으로 잠글까요?\n\n탭에는 안내 문구만 보이고, 먼저 써 볼 차량만 열립니다.", open ? "열기" : "잠그기", "그대로 두기", !open))) return;
+    { const r = await call("adminSetSetting", { key: k === "vac" ? "VAC_OPEN" : "RUN_OPEN", value: open ? 1 : 0 }); if (!r.ok) return toast(r.msg); }   // 0 = 잠금 · 1 = 열기 (2 = 입력·신청만 막기는 위에서)
+    OP[k].open = open ? 1 : 0; await opDraw(); if (k === "vac") refreshWaitDates();
+    return toast("기사님 " + name + " 탭을 " + (open ? "열었습니다." : "테스트 중으로 잠갔습니다."), true); }
+  const ad = t.closest("[data-opadd]"); if (ad) { const k = ad.dataset.opadd, i = $("opin-" + k), c = String(+i.value || "");
+    if (!(+c >= 201 && +c <= 260)) return toast("호수를 확인해 주세요 (201~260)."); if (OP[k].cars.includes(c)) return toast(c + "호는 이미 들어 있습니다.");
+    const L = OP[k].cars.concat(c).sort(); if (!(await opSet(k, "cars", L, (k === "run" ? "운행기록" : "휴가") + " 탭 먼저 써 볼 차량에 " + c + "호 추가"))) return; OP[k].cars = L; await opDraw(); return toast(c + "호는 잠겨 있어도 먼저 써 볼 수 있습니다.", true); }
+  const dl = t.closest("[data-opdel]"); if (dl) { const [k, c] = dl.dataset.opdel.split("|"); const L = OP[k].cars.filter(x => x !== c); if (!(await opSet(k, "cars", L, (k === "run" ? "운행기록" : "휴가") + " 탭 먼저 써 볼 차량에서 " + c + "호 빼기"))) return; OP[k].cars = L; await opDraw(); return; }
+});
+document.addEventListener("keydown", e => { const i = e.target; if (e.key === "Enter" && i.id && i.id.startsWith("opin-")) { e.preventDefault(); const b = document.querySelector('[data-opadd="' + i.id.slice(5) + '"]'); if (b) b.click(); } });
+let opT = 0;
+document.addEventListener("input", e => { const m = e.target.closest("[data-opmsg]"); if (!m) return; const k = m.dataset.opmsg; OP[k].msg = m.value;
+  const p = m.closest(".op-card").querySelector(".op-phone p"); if (p) p.textContent = m.value; clearTimeout(opT); opT = setTimeout(async () => { if (await opSet(k, "msg", OP[k].msg, (k === "run" ? "운행기록" : "휴가") + " 탭 안내 문구 수정")) toast("안내 문구를 저장했습니다.", true); }, 900); });
+// 휴가 탭이 테스트 중이면 휴가 관련 기사님 알림을 보내지 않음 (안내 문구도 그렇게)
+(function () { const t = $("toast"); if (!t) return; let busy = false;
+  const LV = ["v-month", "v-day", "v-add", "v-cars", "v-list", "v-lim", "v-hol", "v-set", "v-bulk"];
+  new MutationObserver(() => { if (busy) return; const v = (document.querySelector(".view.on") || {}).id; if (!LV.includes(v) || vacMode() === 1) return;
+    const m = t.textContent; if (!/기사님.*알림|알림을 보냈|알렸/.test(m) || /알림 안 보냄/.test(m)) return;
+    busy = true; t.textContent = m.replace(/[^.]*(알림을 보냈|알렸)[^.]*\.?/g, "").trim() + " (휴가 탭 테스트 중 · 기사님께 알림 안 보냄)"; busy = false; }).observe(t, { childList: true, characterData: true, subtree: true });
+})();
 /* ---------- 시작 ---------- */
 if (!API_URL) $("login-demo").classList.remove("hidden");
+if (!API_URL) { try { PW = localStorage.getItem("demoAdminPw") || "1111"; } catch (e) { PW = "1111"; } }   // 체험 모드(API_URL 비었을 때): 로그인 없이 바로
 showView("v-month");
 if (PW) start();
+navGo(TABS[0] || "o:today");
 
 /* ---------- 관리자 앱으로 설치 (홈 화면·바탕화면 아이콘) ---------- */
 const A_UA = navigator.userAgent || "";
@@ -3482,6 +4424,28 @@ $("pt-send").onclick = async () => {
   toast(r.msg, r.ok);
 };
 
+
+/* ---------- 용차 출하 (출하기록 300번대) ---------- */
+const YG_SEED = {};
+let YG_LOG = {};
+const ygLog = () => YG_LOG;
+async function yongLoad() { const D = await admData(); if (!D.ok) return; YG_LOG = {}; Object.keys(D.ship || {}).forEach(d => { let v = D.ship[d]; if (typeof v === "string") { try { v = JSON.parse(v); } catch (e) { v = null; } } if (v && Array.isArray(v.rows)) YG_LOG[d] = v; }); yongDraw(); }
+let YG_D = "";
+function yongDraw() { const LOG = ygLog(), ds = Object.keys(LOG).sort(); if (!YG_D || !LOG[YG_D]) YG_D = ds[ds.length - 1] || "";
+  const W = "일월화수목금토", lab = d => (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일 (" + W[new Date(d + "T00:00:00").getDay()] + ")", i = ds.indexOf(YG_D);
+  $("yg-d").textContent = YG_D ? lab(YG_D) : "출하기록 없음"; $("yg-prev").disabled = i <= 0; $("yg-next").disabled = i < 0 || i >= ds.length - 1;
+  if (!YG_D) { $("yg-body").innerHTML = '<div class="yg-empty">아직 올린 출하기록이 없습니다. [운행 기록표 → 출하 기록]에서 올려 주세요.</div>'; return; }
+  const Y = LOG[YG_D].rows.filter(x => !(+x[0] >= 201 && +x[0] <= 260)), G = {}, S = {}, hm = t => t.slice(0, 2) + ":" + t.slice(2);
+  Y.forEach(x => { const g = G[x[0]] = G[x[0]] || { n: 0, v: 0, L: [] }; g.n += +x[5] || 0; g.v += +x[6] || 0; g.L.push(x); const q = S[x[3]] = S[x[3]] || { n: 0, v: 0, cars: new Set() }; q.n += +x[5] || 0; q.v += +x[6] || 0; q.cars.add(x[0]); });
+  const cs = Object.keys(G).sort((a, b) => a - b), tn = cs.reduce((a, c) => a + G[c].n, 0), tv = cs.reduce((a, c) => a + G[c].v, 0), ss = Object.keys(S).sort((a, b) => S[b].n - S[a].n);
+  const md = ds.filter(d => d.slice(0, 7) === YG_D.slice(0, 7) && d <= YG_D), mt = md.reduce((a, d) => a + LOG[d].rows.filter(x => !(+x[0] >= 201 && +x[0] <= 260)).reduce((b, x) => b + (+x[5] || 0), 0), 0);
+  if (!cs.length) { $("yg-body").innerHTML = '<div class="yg-empty">이날 용차 출하가 없습니다. (' + (+YG_D.slice(5, 7)) + '월 총 회전 ' + mt + '회)</div>'; return; }
+  $("yg-body").innerHTML = '<div class="yg-sum"><div><small>용차</small><b>' + cs.length + '</b>대</div><div><small>회전</small><b>' + tn + '</b>회</div><div><small>운반량</small><b>' + tv.toLocaleString("ko-KR") + '</b>㎥</div><div><small>현장</small><b>' + ss.length + '</b>곳</div><div class="yg-mon"><small>' + (+YG_D.slice(5, 7)) + '월 총 회전</small><b>' + mt + '</b>회<i>' + md.length + '일치 · 올린 날만</i></div></div>' +
+    '<div class="yg-st"><h3>현장별</h3><ul>' + ss.map(k => '<li><b>' + esc(k) + '</b><span>' + S[k].cars.size + '대 · ' + S[k].n + '회 · ' + S[k].v + '㎥</span></li>').join("") + '</ul><h3>호수별</h3></div>' +
+    '<ul class="yg-l">' + cs.map(c => { const g = G[c]; g.L.sort((a, b) => a[4].localeCompare(b[4]));
+      return '<li><div class="yg-h"><b>' + esc(c) + '호</b><span>' + g.n + '회 · ' + g.v + '㎥</span></div><div class="yg-s">' + g.L.map(x => '<div><em>' + hm(x[4]) + '</em>' + esc(x[3]) + '</div>').join("") + '</div></li>'; }).join("") + '</ul>'; }
+document.addEventListener("click", e => { const p = e.target.closest("#yg-prev"), n = e.target.closest("#yg-next"); if (!p && !n) return; const ds = Object.keys(ygLog()).sort(), i = ds.indexOf(YG_D) + (p ? -1 : 1); if (ds[i]) { YG_D = ds[i]; yongDraw(); } });
+{ const _sv = showView; showView = function (v) { _sv(v); if (v === "v-yong") yongDraw(); }; }   // 자료는 viewLoad의 yongLoad가 받음
 </script>
 </body>
 </html>
