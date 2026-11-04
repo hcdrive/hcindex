@@ -7,8 +7,15 @@
  *                     기사님들은 그대로 구글 서버를 씀
  */
 window.HC_CFG = {
-  api: "",
-  fb: null,
+  api: "https://asia-northeast3-hcindex-7d2f1.cloudfunctions.net/api",
+  fb: {
+    apiKey: "AIzaSyBce5UMPIc2u2_mYtLH8DytgsHhkYnz46I",
+    authDomain: "hcindex-7d2f1.firebaseapp.com",
+    projectId: "hcindex-7d2f1",
+    storageBucket: "hcindex-7d2f1.firebasestorage.app",
+    messagingSenderId: "333779771082",
+    appId: "1:333779771082:web:aaac0d81ed43bb5e155e33"
+  },
   testApi: "https://asia-northeast3-hcindex-7d2f1.cloudfunctions.net/api",
   testFb: {
     apiKey: "AIzaSyBce5UMPIc2u2_mYtLH8DytgsHhkYnz46I",
