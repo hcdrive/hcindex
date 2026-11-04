@@ -3105,5 +3105,14 @@ document.querySelectorAll("body > .nav span").forEach((s, i) => { if (i !== 1) s
 document.querySelectorAll("[data-host]").forEach(b => b.addEventListener("click", () => { try { parent.postMessage({ hostClick: b.dataset.host }, "*"); } catch (e) {} }));
 addEventListener("message", e => { const m = e.data || {}; if (m.slide) { const w = document.getElementById("ptr-page"); w.classList.remove("in-r", "in-l"); void w.offsetWidth; w.classList.add(m.slide === "r" ? "in-r" : "in-l"); window.scrollTo(0, 0); } });
 </script>
+<script>/* 팝업이 열려 있으면 뒤 화면이 같이 스크롤되지 않게 (닫으면 보던 위치 그대로) */
+(function () { const SEL = ".sheet.show:not(.inline), .ask.show, .bell-panel.show, .sht.show, .mpop.open"; let locked = false, y = 0, raf = 0;
+  const st = document.createElement("style"); st.textContent = ".sheet, .ask, .bell-panel, .sht, .mpop, .sheet *, .ask *, .bell-panel *, .sht *, .mpop * { overscroll-behavior: contain; } html.pop-lock, html.pop-lock body { overflow: hidden !important; } html.pop-lock body { position: fixed !important; left: 0; right: 0; width: 100%; }"; document.head.appendChild(st);
+  function check() { raf = 0; const on = !!document.querySelector(SEL); if (on === locked) return; locked = on; const H = document.documentElement;
+    if (on) { y = window.scrollY; document.body.style.top = (-y) + "px"; H.classList.add("pop-lock"); }
+    else { H.classList.remove("pop-lock"); document.body.style.top = ""; window.scrollTo(0, y); } }
+  new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(check); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
+})();
+</script>
 </body>
 </html>
