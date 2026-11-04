@@ -550,6 +550,7 @@
   .add-ntf { display: flex; align-items: flex-start; gap: 10px; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); cursor: pointer; }
   .add-ntf input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; } .add-ntf span { display: grid; gap: 2px; } .add-ntf b { font-size: 15px; } .add-ntf small { color: var(--muted); font-size: 13px; }
 </style>
+<script src="hc-config.js"></script><script src="hc-live.js"></script>
 </head>
 <body>
 
@@ -1092,7 +1093,7 @@
 
 <script>
 // 구글 시트 Apps Script "웹 앱" 주소 (기사님 사이트 index.html과 같은 주소). 비워두면 체험 모드
-const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec"; const APP_VER = "20261104e";
+const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */ const APP_VER = "20261104e";
 
 const VAC_SEED = [];   // 체험 모드(API_URL 비었을 때)용 자료 · 완성본은 비움
 // 체험 모드 자료 버전: 바뀌면 이 브라우저에 쌓인 시험 기록·비밀번호·로그인을 모두 지우고 새 자료로 시작
@@ -3594,6 +3595,12 @@ document.querySelectorAll(".reload-btn").forEach(b => b.onclick = () => reloadNo
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && !$("app").classList.contains("hidden") && Date.now() - lastLoad > 60000) reloadNow(true);
 });
+
+// 실시간 반영 (Firebase): 기사 입력·휴가 변경이 오면 지금 화면을 조용히 새로 고침 (창을 열고 고치는 중이면 닫을 때까지 기다림)
+if (window.hcLive) { let liveWait = null; const busy = () => !!document.querySelector(".sheet.show:not(.inline), .ask.show") || document.documentElement.classList.contains("pop-lock") || !!document.querySelector("iframe.sht-open");
+  hcLive(ch => { if (!ch.some(x => x !== "기록" && x !== "관리자기록")) return; if (liveWait) return;
+    const go = () => { if (document.hidden || $("app").classList.contains("hidden")) { liveWait = null; return; } if (busy() || reloading || Date.now() - lastLoad < 15000) { liveWait = setTimeout(go, 5000); return; } liveWait = null; reloadNow(true); };
+    liveWait = setTimeout(go, 800); }); }
 
 /* ---------- 이벤트 ---------- */
 $("login-btn").onclick = login;

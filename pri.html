@@ -262,6 +262,7 @@ main > section.card:not(.c-avg):not(.c-cg), .c-nx, .c-lv, .c-tn, #vtabs, .hdr-r,
 main .grid2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 @media (min-width: 1100px) { main .grid2:first-of-type { grid-template-columns: minmax(0, 1fr); } }
 </style>
+<script src="hc-config.js"></script><script src="hc-live.js"></script>
 </head><body>
 <div class="boot" id="boot"><div class="boot-in"><span class="boot-sp"></span>불러오는 중…</div></div>
 <header class="top"><div class="in">
@@ -315,7 +316,7 @@ main .grid2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 
 <div class="toast" id="toast"></div>
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";
+const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
 const APP_VER = "20261103a";
 const PAGE_KEY = "ship";
 const $ = id => document.getElementById(id);

@@ -228,6 +228,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
 #kcard, #v-next, #dbig, #chg, #vtabs [data-v="log"], #v-log, #vtabs [data-v="site"], #v-site, .hdr-r, #edit-lock { display: none !important; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<script src="hc-config.js"></script><script src="hc-live.js"></script>
 </head><body>
 <div class="boot" id="boot"><div class="boot-in"><span class="boot-sp"></span>불러오는 중…</div></div>
 <header class="top"><div class="in">
@@ -317,7 +318,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
   <div class="acts"><button type="button" class="btn" data-close="shp">닫기</button><button type="button" class="btn pri" id="shp-ok">적용하기</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";
+const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
 const APP_VER = "20261103a";
 const PAGE_KEY = "acct";
 const $ = id => document.getElementById(id);
