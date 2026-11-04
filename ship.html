@@ -269,7 +269,7 @@ body.v-site-on main > *:not(#v-site) { display: none !important; } body.v-site-o
 </div></header>
 <main>
   <section class="dbig" id="dbig"><div class="dbig-d"><span id="dbig-tag"></span><b id="dbig-t"></b><button type="button" class="chg-chip" id="chg-open" hidden></button></div></section>
-  <section class="card"><h2>운행 차량 <small id="k-sub"></small></h2><div class="kpis" id="kpis"></div>
+  <section class="card"><h2><span id="k-h">오늘 운행 차량</span> <small id="k-sub"></small></h2><div class="kpis" id="kpis"></div>
     <p class="note">기사님 화면의 '연차'는 이 화면에서 <b>정비휴무</b>로 표시됩니다. 여름휴가는 그대로 표시됩니다.</p></section>
   <section class="card c-nx"><h2>다음 근무일 예정 <small id="nx-sub"></small><span class="r nx-rf"><span id="nx-at"></span><button type="button" class="btn rf-btn" id="nx-rf">새로고침</button></span></h2><div class="nx" id="nx"></div></section>
   <div class="grid2">
@@ -348,7 +348,7 @@ body.v-site-on main > *:not(#v-site) { display: none !important; } body.v-site-o
 <div class="toast" id="toast"></div>
 <script>
 const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
-const APP_VER = "20261104a";
+const APP_VER = "20261104c";
 const PAGE_KEY = "ship";
 const $ = id => document.getElementById(id);
 const toast = (m, bad) => { const t = $("toast"); t.textContent = m; t.classList.toggle("bad", !!bad); t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), bad ? 3600 : 2400); };
@@ -516,10 +516,11 @@ function draw() {
   { const n = typeof changesOf === "function" ? changesOf(D).length : 0; $("chg-open").hidden = !n || D > TODAY; $("chg-open").textContent = "어제 예정에서 변동 " + n + "건"; }
   $("dbig-t").textContent = mdL(D); $("dbig-tag").textContent = (fut ? "운행 예정" : D === TODAY ? "오늘" : "지난 날짜") + (S.wk ? " · " + (HOLI[D] || W[wd(D)] + "요일") + " 근무" : ""); $("dbig-tag").className = fut ? "t-fut" : D === TODAY ? "t-today" : "t-past";
   $("k-sub").textContent = mdL(D) + " · 전체 " + CARS.length + "대";
+  const KL = D === TODAY ? "오늘 운행 차량" : fut ? "운행 예정 차량" : "운행 차량"; $("k-h").textContent = KL;   // 파란 상자 = 결근·휴가·집대기 아닌 출근 차량 (입력 여부와 상관없음)
   const K = (c, l, v, s, u) => '<div class="kpi ' + c + '"><small>' + l + '</small><b>' + v + '<i>' + (u || "대") + '</i></b>' + '<span>' + (s || "") + '</span></div>';   // 설명이 없어도 빈 줄을 두어 상자 높이를 모두 같게
-  if (S.wk) { $("kpis").innerHTML = K("main", "운행 차량", S.run, (HOLI[D] || W[wd(D)] + "요일") + " 출근 차량") + K("", "비번", S.rest, "출근 차량 아님 · 0회로 평균에 반영") +
+  if (S.wk) { $("kpis").innerHTML = K("main", KL, S.run, (HOLI[D] || W[wd(D)] + "요일") + " 출근 차량") + K("", "비번", S.rest, "출근 차량 아님 · 0회로 평균에 반영") +
     '<div class="kpi wk-note"><small>' + (HOLI[D] || "토요일") + ' 근무</small><span>관리자가 고른 ' + S.run + '대만 운행합니다. 퇴근조·집대기·휴가는 이날 적용하지 않습니다.</span></div>'; }
-  else $("kpis").innerHTML = K("main", "운행 차량", S.run, CARS.length + "대 중" + (S.none && D === TODAY ? " · 입력 전 " + S.none + "대" : "")) + K("", "정비휴무", S.leave) + K("amb", "여름휴가 등", S.summer) + K("red", "결근", S.absent) + K("amb", "집대기", S.home) +
+  else $("kpis").innerHTML = K("main", KL, S.run + S.none, CARS.length + "대 중 · 결근·휴가·집대기 뺀 수") + K("", "정비휴무", S.leave) + K("amb", "여름휴가 등", S.summer) + K("red", "결근", S.absent) + K("amb", "집대기", S.home) +
     K("grn", "퇴근조", S.go) + K("red", "조퇴", S.early) + K("", "지각", S.late) + K("", "차량고장", S.mnt);
   const acc = cumUpTo(fut ? TODAY : D);
   // 선배차 = 보고 있는 날짜(당일)의 선배차. 기준은 전 근무일까지 누적 평균 (전날 밤에 정해진 것)
@@ -790,7 +791,7 @@ return { resync, today: () => TODAY };
 }
 </script>
 <div class="sheet" id="stk" style="z-index:60"><div class="box stk-box">
-  <div class="kp-h"><div><h3 id="stk-t"></h3><div class="sub">평균 차이 차트 · 재미로 보는 화면</div></div><button type="button" class="kp-x" data-close="stk" aria-label="닫기">×</button></div>
+  <div class="kp-h"><div><h3 id="stk-t"></h3><div class="sub">평균 차이 차트</div></div><button type="button" class="kp-x" data-close="stk" aria-label="닫기">×</button></div>
   <div class="stk-now"><b id="stk-v"></b><span id="stk-d"></span></div>
   <div class="stk-rng" id="stk-rng"><button type="button" data-rng="10" class="on">최근 10일</button><button type="button" data-rng="30">최근 30일</button></div>
   <div class="stk-ch" id="stk-ch"></div>

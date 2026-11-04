@@ -293,7 +293,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
 <div class="sheet" id="rd"><div class="box rd-box">
   <div class="kp-h"><div><h3 id="rd-t"></h3><div class="sub" id="rd-s"></div></div><button type="button" class="kp-x" id="rd-x" aria-label="닫기">×</button></div>
   <div id="rd-b"></div>
-  <div class="acts"><button class="btn" id="rd-c" onclick="hideSheet('rd')">닫기</button><button class="btn pri" id="rd-ed">수정하기</button></div>
+  <div class="acts"><button type="button" class="btn" id="rd-c">닫기</button><button class="btn pri" id="rd-ed">수정하기</button></div>
 </div></div>
 <div class="sheet" id="cf" style="z-index:45"><div class="box cf-box">
   <div class="cf-warn">수정 확인</div>
@@ -347,7 +347,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
 <div class="toast" id="toast"></div>
 <script>
 const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
-const APP_VER = "20261104a";
+const APP_VER = "20261104b";
 const PAGE_KEY = "acct";
 const $ = id => document.getElementById(id);
 </script>
@@ -809,7 +809,7 @@ document.addEventListener("click", e => { const t = e.target;
   if (t.closest("#c-prev")) { const i = CARS.indexOf(CAR); if (i > 0) { CAR = CARS[i - 1]; draw(); } return; }
   if (t.closest("#c-next")) { const i = CARS.indexOf(CAR); if (i < CARS.length - 1) { CAR = CARS[i + 1]; draw(); } return; }
   const rc = t.closest("[data-rec]"); if (rc) { const kc = t.closest("[data-k]"); return openRec(rc.dataset.rec, kc ? kc.dataset.k : ""); }
-  if (t.id === "rd" || t.closest("#rd-x")) return hideSheet("rd");
+  if (t.id === "rd" || t.closest("#rd-x") || t.closest("#rd-c")) return hideSheet("rd");   /* 아래 닫기 버튼도 (onclick은 appMain 안의 함수를 못 봄) */
   if (t.closest("#rd-ed")) { hideSheet("rd"); return openEd(RD.c, RD.k); }
   if (t.id === "ed" || t.closest("#ed-x")) return hideSheet("ed");
   const sx = t.closest("[data-spx]"); if (sx) { const [k, i] = sx.dataset.spx.split("|"); ED.sites[k].splice(+i, 1); return drawEdSites(); }
