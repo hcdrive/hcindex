@@ -1414,7 +1414,7 @@ function render() {
   const S = { real: 0, conv: 0, km: 0, toll: 0, fuel: 0, jan: 0, wait: 0, early: 0, late: 0, yard: 0, ga: 0, back19: 0, work: 0, tun: 0, pay: 0, payTurn: 0, payExtra: 0, payHalf: 0, rates: {} }, L = {};
   days.forEach(d => { const r = DB[d];
     S.real += realOf(r); S.conv += conv(r); S.km += +r.km || 0;
-    { const RT = rateOn(d); S.rates[RT] = 1; S.pay += conv(r) * RT; S.payTurn += (realOf(r) + (+r.wait || 0)) * RT; S.payExtra += ((+r.late || 0) + (+r.early || 0) * 0.5) * RT; S.payHalf += ((+r.jan || 0) + (+r.yard || 0)) * 0.5 * RT; }   // 운반비는 날짜마다 그날 단가로 S.toll += +r.toll || 0; S.fuel += +r.fuel || 0;
+    { const RT = rateOn(d); S.rates[RT] = 1; S.pay += conv(r) * RT; S.payTurn += (realOf(r) + (+r.wait || 0)) * RT; S.payExtra += ((+r.late || 0) + (+r.early || 0) * 0.5) * RT; S.payHalf += ((+r.jan || 0) + (+r.yard || 0)) * 0.5 * RT; }   /* 운반비는 날짜마다 그날 단가로 */ S.toll += +r.toll || 0; S.fuel += +r.fuel || 0;
     ["jan", "wait", "early", "late", "yard", "ga"].forEach(k => S[k] += +r[k] || 0);
     if (r.back19) S.back19++; if (realOf(r) > 0) S.work++;
     S.tun += (r.lifts || []).reduce((a, x) => a + (+x.n || 0), 0);
