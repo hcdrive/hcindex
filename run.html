@@ -2053,9 +2053,9 @@ function openJo() {
   $("jt-top").hidden = true; $("jt-s").textContent = "관리자가 정하는 순번"; $("jt-t").textContent = "조출 순번";
   $("jt-body").innerHTML = (next ? '<div class="jt-me ok"><small>조출 확정</small><b>' + md(next.d) + '</b><span>8시 이전 상차 · ' + next.picked.map(x => x.c).join(" · ") + '</span></div>' :
       '<div class="jt-me"><small>다음 조출 때 내 순서</small><b>' + pos + '<em>번째</em></b><span>조출이 ' + pos + '대 이상 필요하면 내 차례입니다.</span></div>') +
-    '<div class="jt-h">다음 조출 순번' + (next ? ' (' + md(next.d) + ' 다음부터)' : '') + '</div><ul class="jt-q">' + q.slice(0, 20).map((x, i) => '<li class="' + (x.c === ME ? 'me' : x.owe ? 'owe' : '') + '"><i>' + (x.owe ? x.owe + ' 빠짐' : (i + 1) + '번') + '</i><b>' + x.c + '</b></li>').join("") + '</ul>' +
+    '<div class="jt-h">다음 조출 순번' + (next ? ' (' + md(next.d) + ' 다음부터)' : '') + '</div><ul class="jt-q">' + q.slice(0, 20).map((x, i) => '<li class="' + (x.c === ME ? 'me' : x.owe ? 'owe' : '') + '"><i>' + ((i + 1) + '번') + '</i><b>' + x.c + '</b></li>').join("") + '</ul>' +
     '<p class="cmp-info" style="margin-top:8px">201호부터 차례대로 돌아갑니다. 노란 칸은 지난번에 휴가·결근 등으로 빠진 차량이라 다음에 먼저 들어갑니다.</p>' +
-    '<div class="jt-h">내 조출 기록 · 올해 ' + mine.length + '번</div><ul class="jt-l">' + (mine.concat(skipped).sort((a, b) => b.d.localeCompare(a.d)).map(e => '<li>' + md(e.d) + '<span>' + (e.skip.some(x => x.c === ME) ? e.skip.find(x => x.c === ME).why + '로 빠짐 · 다음에 먼저' : '조출함') + '</span></li>').join("") || '<li>아직 조출한 날이 없습니다.</li>') + '</ul>';
+    '<div class="jt-h">내 조출 기록 · 올해 ' + mine.length + '번</div><ul class="jt-l">' + (mine.concat(skipped).sort((a, b) => b.d.localeCompare(a.d)).map(e => '<li>' + md(e.d) + '<span>' + (e.skip.some(x => x.c === ME) ? (w => /빠짐$/.test(w) ? '빠짐 · 다음에 먼저' : w + '로 빠짐 · 다음에 먼저')(e.skip.find(x => x.c === ME).why) : '조출함') + '</span></li>').join("") || '<li>아직 조출한 날이 없습니다.</li>') + '</ul>';
   $("jt-body").scrollTop = 0; $("jt").classList.add("show");
 }
 function openTn() {
@@ -2247,7 +2247,7 @@ function extraOf(no, d, r) {   // 운행거리·통행료·잔수·추가탕(2�
   if (no === ME && d >= REC_START) { const x = DB[d]; if (!x) return {}; return { km: +x.km || 0, toll: +x.toll || 0, jan: (+x.jan || 0), svc: (+x.wait || 0) + (+x.late || 0) + (+x.early || 0) * 0.5,
     wait: +x.wait || 0, late: +x.late || 0, back19: x.back19 ? 1 : 0, fuel: +x.fuel || 0, lift: (x.lifts || []).reduce((a, l) => a + (+l.n || 0), 0) }; }
   if (r.st !== "work") return {};
-  if (REAL[d] && REAL[d][no]) { const x = REAL[d][no]; return { km: x.km || 0, toll: x.toll || 0, jan: x.jan || 0, svc: (x.wait || 0) + (x.late || 0), wait: x.wait || 0, late: x.late || 0, back19: x.back19 ? 1 : 0, fuel: 0, lift: x.lift || 0 }; }
+  if (REAL[d] && REAL[d][no]) { const x = REAL[d][no]; return { km: x.km || 0, toll: x.toll || 0, jan: x.jan || 0, svc: (x.wait || 0) + (x.late || 0), wait: x.wait || 0, late: x.late || 0, back19: x.back19 ? 1 : 0, fuel: x.fuel || 0, lift: x.lift || 0 }; }
   return {};   // 기록이 없는 차량
 }
 const ilboDays = () => { const c = confirmedDay(); return workDays().filter(x => x <= c); };
