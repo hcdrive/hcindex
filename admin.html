@@ -1092,7 +1092,7 @@
 
 <script>
 // 구글 시트 Apps Script "웹 앱" 주소 (기사님 사이트 index.html과 같은 주소). 비워두면 체험 모드
-const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec"; const APP_VER = "20261103a";
+const API_URL = "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec"; const APP_VER = "20261104d";
 
 const VAC_SEED = [];   // 체험 모드(API_URL 비었을 때)용 자료 · 완성본은 비움
 // 체험 모드 자료 버전: 바뀌면 이 브라우저에 쌓인 시험 기록·비밀번호·로그인을 모두 지우고 새 자료로 시작
@@ -2735,8 +2735,10 @@ async function api(action, p) {
 // 쓰기 요청이 성공하면 프레임(ops·sheet·pri)이 쓰는 자료 묶음(ADM_DATA)을 다시 받아 보냄
 const ADM_WRITE = { adminRunSave: 1, adminGaSave: 1, adminGaDel: 1, adminKvSet: 1, adminStaff: 1, adminCarActive: 1, adminResetPin: 1, adminCarAdd: 1, adminSiteMeta: 1, adminHolAdd: 1, adminHolDel: 1, adminSetSetting: 1,
   adminCarPw: 1, adminOfficePw: 1, adminAuditUndo: 1, adminAdd: 1, adminSetStatus: 1, adminEdit: 1, adminBulk: 1, adminSiteSave: 1, adminSiteDel: 1, adminSitesPaste: 1, adminSitesFix: 1, adminTodaySet: 1, adminBlockAdd: 1, adminBlockDel: 1, adminSetDayLimit: 1, adminSetTotal: 1, adminSetSummer: 1, adminKick: 1 };
+const DAY_READS = { adminDay: 1, adminMonth: 1, adminCars: 1, adminCar: 1, adminList: 1, adminSettings: 1, adminHolidays: 1, adminLogs: 1, adminRunRead: 1, adminAudit: 1, adminPwList: 1, adminWaitDates: 1, adminSites: 1, adminToday: 1, adminNotices: 1, adminReps: 1, adminLogin: 1, adminBlocks: 1, adminDayLimits: 1, adminPri: 1, adminBackupInfo: 1 };
 async function call(action, p) {
   const r = await api(action, p);
+  if (r && r.ok && !DAY_READS[action] && typeof DAYCACHE !== "undefined") DAYCACHE = {};   // 무엇을 고쳤으면 날짜별 기억을 비움
   if (r.auth) { toast(r.msg); logout(); }
   else if (r.ok && ADM_WRITE[action] && !(p && p.dry)) admDirty();
   return r;
@@ -2778,7 +2780,7 @@ const editBtn = x => { ITEMS[x.id] = x; return '<button class="btn small" data-e
 const rows = (list, fn, hl) => list.length ? '<ul class="rows">' + list.map(x => '<li' + (hl && hl(x) ? ' class="hl"' : '') + '>' + fn(x) + '</li>').join("") + '</ul>'
   : '<p class="empty">없음</p>';
 const groupOf = no => Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10)));
-function refreshAll() { COPYDAY = {}; if (TODAY) prefetchCopyDays(); if (curMonth) loadMonth(curMonth); if (curDate) loadDay(curDate); refreshWaitDates(); loadCars(); }
+function refreshAll() { COPYDAY = {}; DAYCACHE = {}; if (TODAY) prefetchCopyDays(); if (curMonth) loadMonth(curMonth); if (curDate) loadDay(curDate); refreshWaitDates(); loadCars(); }
 
 /* ---------- 로그인 ---------- */
 /* 비밀번호 5번 틀리면 '이 기기만' 10분 잠금 (다른 기기·이미 로그인한 기기는 그대로) */
@@ -2917,11 +2919,27 @@ function renderWaitDates(list) {
 }
 async function refreshWaitDates() { const w = await call("adminWaitDates"); if (w.ok) { RV = w.rules; renderWaitDates(w.dates); } }
 
+var DAYCACHE = {}, DAYSEQ = 0;   // 날짜별 자료 기억 { 날짜: { d, at, p } } · DAYSEQ: 마지막으로 고른 날짜 번호
+function dayFetch(date) {
+  const c = DAYCACHE[date] || {}; if (c.p) return c.p;
+  const p = call("adminDay", { date }).then(d => { const e = DAYCACHE[date] || {}; delete e.p; if (d && d.ok) { e.d = d; e.at = Date.now(); } DAYCACHE[date] = e; return d; },
+    () => { const e = DAYCACHE[date] || {}; delete e.p; DAYCACHE[date] = e; return { ok: false, msg: "불러오지 못했습니다. 연결을 확인해 주세요." }; });
+  DAYCACHE[date] = Object.assign(c, { p }); return p;
+}
+function dayPrefetch(date) { [1, -1, 2, -2].forEach(k => { const x = addDays(date, k), c = DAYCACHE[x]; if (!c || (!c.d && !c.p) || (c.d && !c.p && Date.now() - c.at > 60000)) dayFetch(x); }); }
 async function loadDay(date) {
-  curDate = date; $("day-date").value = date;
-  $("day").innerHTML = '<p class="info">불러오는 중…</p>';
-  const d = await call("adminDay", { date });
-  if (!d.ok) { $("day").innerHTML = '<p class="info">' + esc(d.msg) + '</p>'; $("day-lists").innerHTML = ""; return; }
+  const seq = ++DAYSEQ; curDate = date; $("day-date").value = date;
+  const c = DAYCACHE[date], had = c && c.d ? c.d : null, hadAt = c && c.d ? c.at : 0;   // 받아 둔 자료 (기억 칸은 응답이 오면 바뀌므로 지금 값을 따로 둠)
+  if (had) renderDay(had);   // 본 적 있는 날짜는 바로 그림
+  else { $("day").innerHTML = '<p class="info">' + esc(md(date)) + ' 불러오는 중…</p>'; $("day-lists").innerHTML = ""; }
+  if (had && Date.now() - hadAt < 20000) { dayPrefetch(date); return; }   // 방금 받은 자료면 다시 묻지 않음
+  const d = await dayFetch(date);
+  if (seq !== DAYSEQ) return;   // 기다리는 사이 다른 날짜로 옮겼으면 이 응답은 버림
+  if (!d.ok) { if (!had) { $("day").innerHTML = '<p class="info">' + esc(d.msg) + '</p>'; $("day-lists").innerHTML = ""; } return; }
+  if (!had || JSON.stringify(had) !== JSON.stringify(d)) renderDay(d);
+  dayPrefetch(date);
+}
+function renderDay(d) {
   const full = d.taken >= d.limit, L = d.rules.lockDays;
   const withDate = x => Object.assign({ date: d.date }, x);
   let html = '<div class="card" style="margin-top:12px"><div class="sum-head"><div><div class="d">' + esc(d.long) + '</div>' +
@@ -4276,7 +4294,7 @@ async function opFetch() {
   if (D && D.ok) { OP.run.cars = (D.runCars || []).map(String); OP.vac.cars = (D.vacCars || []).map(String); if (D.runMsg) OP.run.msg = D.runMsg; if (D.vacMsg) OP.vac.msg = D.vacMsg; if (r.ok) { RV = RV || {}; RV.vacMode = OP.vac.open; } }
   return OP; }
 const opKey = (k, w) => k + (w === "cars" ? "Cars" : "Msg");   // runCars · vacCars · runMsg · vacMsg
-async function opSet(k, w, v, label) { const r = await call("adminKvSet", { kind: "set", key: opKey(k, w), value: v, label, detail: w === "cars" ? v.join(", ") : v.slice(0, 60) }); if (!r.ok) toast(r.msg); return r.ok; }
+async function opSet(k, w, v, label) { const r = await call("adminKvSet", { kind: "set", key: opKey(k, w), value: v, label, detail: w === "cars" ? v.join(", ") : v.slice(0, 60) }); if (!r.ok) toast(r.msg); else if (ADM_DATA) ADM_DATA[opKey(k, w)] = v; return r.ok; }
 function opSave() {}
 const LOCK_SVG = '<svg class="lk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 async function opDraw() {
@@ -4285,11 +4303,11 @@ async function opDraw() {
     return '<div class="op-card"><div class="op-h"><b>' + name + ' 탭</b><span class="op-st ' + (lock ? 'lock">테스트 중 (잠김)' : view ? 'view">' + vw : 'open">열림') + '</span></div>' +
       '<p class="info" style="margin:8px 0 0">' + (lock ? '기사님 화면 ' + name + ' 탭에는 아래 안내만 보입니다. 관리자 페이지에서는 그대로 입력할 수 있습니다.' : view ? (k === "vac" ? '기사님은 <b>내 휴가 기록</b>과 <b>날짜별 신청 인원(숫자만)</b>만 볼 수 있고, 휴가·조퇴·지각·결근 신청과 취소는 못 합니다. 기사님 화면에 "관리자에게 따로 말씀해 주세요"가 보이고, 휴가는 <b>관리자만</b> 넣고 고칠 수 있습니다.' : '기사님은 운행기록 탭에서 <b>내 기록·평균·선배차·물량표</b>는 다 보지만, <b>일일 기록 입력·수정·삭제는 못 합니다.</b> 기사님 화면에 "지금은 관리자가 대신 입력합니다 · 관리자에게 말씀해 주세요"가 보이고, 기록은 <b>관리자가 입력 현황에서 대신 입력</b>합니다. 알림은 보내지 않습니다.') : '모든 기사님이 ' + name + ' 탭에서 ' + what + ' 할 수 있습니다.') + '</p>' +
       '<div class="segs seg3w"><button class="seg' + (lock ? ' on lk' : '') + '" data-opk="' + k + '" data-opv="0">테스트 중 (잠그기)</button><button class="seg' + (view ? ' on vw' : '') + '" data-opk="' + k + '" data-opv="2">' + vb + '</button><button class="seg' + (!lock && !view ? ' on op' : '') + '" data-opk="' + k + '" data-opv="1">열기</button></div>' +
-      (lock ? '<p class="op-lab">기사님께 보일 안내 문구</p><textarea data-opmsg="' + k + '" maxlength="120">' + esc(x.msg) + '</textarea>' +
-        '<p class="op-lab">먼저 써 볼 차량 <span style="font-weight:600">· 잠겨 있어도 이 차량만 열림 (테스트 참여)</span></p>' +
+      (lock ? '<p class="op-lab">기사님께 보일 안내 문구</p><textarea data-opmsg="' + k + '" maxlength="120">' + esc(x.msg) + '</textarea>' : '') +
+      (lock || view ? '<p class="op-lab">먼저 써 볼 차량 <span style="font-weight:600">· ' + (lock ? '잠겨 있어도' : (k === "vac" ? '신청을 막아도' : '입력을 막아도')) + ' 이 차량만 열림 (테스트 참여 · 알림은 안 감)</span></p>' +
         '<div class="op-cars">' + (x.cars.length ? x.cars.map(c => '<span>' + c + '호<button type="button" data-opdel="' + k + '|' + c + '" aria-label="' + c + '호 빼기">×</button></span>').join("") : '<span style="padding:4px 12px;color:var(--muted);font-weight:600">없음</span>') + '</div>' +
         '<div class="op-add"><input class="field" type="number" inputmode="numeric" placeholder="호수 (예: 233)" id="opin-' + k + '" enterkeyhint="done"><button class="btn" type="button" data-opadd="' + k + '">넣기</button></div>' +
-        '<div class="op-prev"><small>기사님 화면 미리보기</small><div class="op-phone">' + LOCK_SVG + '<b>' + name + ' · 테스트 중</b><p>' + esc(x.msg) + '</p></div></div>' : '') + '</div>'; };
+        (lock ? '<div class="op-prev"><small>기사님 화면 미리보기</small><div class="op-phone">' + LOCK_SVG + '<b>' + name + ' · 테스트 중</b><p>' + esc(x.msg) + '</p></div></div>' : '') : '') + '</div>'; };
   const NL = [["run", "선배차 확정 · 예상 · 빠짐 알림"], ["run", "밤 8시 운행기록 미입력 알림"], ["run", "대신 입력 · 정정 알림"], ["run", "가탕 입력 알림"], ["run", "유류 단가 확정 알림"], ["run", "퇴근조 · 집대기 · 조출 알림"], ["vac", "휴가 입력 · 수정 · 취소 알림"], ["vac", "휴가 순번 · 대기 알림"]];
   $("op-nl").innerHTML = NL.map(([k, n]) => '<li class="' + (OP[k].open === 1 ? "on" : "") + '">' + n + ' <small>' + (k === "run" ? "운행기록" : "휴가") + ' 탭 ' + (OP[k].open === 1 ? "열림" : OP[k].open === 2 ? (k === "run" ? "입력만 막음" : "신청만 막음") : "테스트 중") + '</small></li>').join("");
   frameLock();
@@ -4313,7 +4331,7 @@ document.addEventListener("click", async e => { const t = e.target;
     return toast("기사님 " + name + " 탭을 " + (open ? "열었습니다." : "테스트 중으로 잠갔습니다."), true); }
   const ad = t.closest("[data-opadd]"); if (ad) { const k = ad.dataset.opadd, i = $("opin-" + k), c = String(+i.value || "");
     if (!(+c >= 201 && +c <= 260)) return toast("호수를 확인해 주세요 (201~260)."); if (OP[k].cars.includes(c)) return toast(c + "호는 이미 들어 있습니다.");
-    const L = OP[k].cars.concat(c).sort(); if (!(await opSet(k, "cars", L, (k === "run" ? "운행기록" : "휴가") + " 탭 먼저 써 볼 차량에 " + c + "호 추가"))) return; OP[k].cars = L; await opDraw(); return toast(c + "호는 잠겨 있어도 먼저 써 볼 수 있습니다.", true); }
+    const L = OP[k].cars.concat(c).sort(); if (!(await opSet(k, "cars", L, (k === "run" ? "운행기록" : "휴가") + " 탭 먼저 써 볼 차량에 " + c + "호 추가"))) return; OP[k].cars = L; await opDraw(); return toast(c + "호는 " + (OP[k].open === 0 ? "잠겨 있어도" : "막혀 있어도") + " 먼저 써 볼 수 있습니다. 기사님이 화면을 새로 열면 바로 적용됩니다.", true); }
   const dl = t.closest("[data-opdel]"); if (dl) { const [k, c] = dl.dataset.opdel.split("|"); const L = OP[k].cars.filter(x => x !== c); if (!(await opSet(k, "cars", L, (k === "run" ? "운행기록" : "휴가") + " 탭 먼저 써 볼 차량에서 " + c + "호 빼기"))) return; OP[k].cars = L; await opDraw(); return; }
 });
 document.addEventListener("keydown", e => { const i = e.target; if (e.key === "Enter" && i.id && i.id.startsWith("opin-")) { e.preventDefault(); const b = document.querySelector('[data-opadd="' + i.id.slice(5) + '"]'); if (b) b.click(); } });

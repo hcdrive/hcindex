@@ -1297,7 +1297,7 @@ const SPECIAL = D.special || {}, EDITS = D.edits || {};   // 특별휴가 사유
 const LEAVE = (() => { const o = {}; Object.keys(REAL).forEach(d => { const x = REAL[d][ME]; if (!x) return; if (x.st === "leave") o[d] = x.lv || "연차"; else if (x.st === "absent") o[d] = "결근"; else if (x.st === "work" && x.part && x.part !== "외출") o[d] = x.part; }); return o; })();
 const LV_OFF = ["연차", "여름휴가", "특별휴가"], LV_PART = ["조퇴", "지각", "정비"];
 // 회사 사사오입: 0.5 이상 올림, 단 0보다 크면 최소 1 (0.3 → 1, 1.49 → 1, 1.5 → 2)
-const roundGa = x => x > 0 ? Math.max(1, Math.floor(x + 0.5 + 1e-9)) : 0;
+const roundGa = x => x > 0 ? Math.max(1, Math.floor(Math.round(x * 10 + 1e-9) / 10 + 0.5 + 1e-9)) : 0;   // 엑셀과 같게: 소수 첫째 자리 반올림 → 사사오입 (3.45 → 3.5 → 4)
 // 조퇴·지각: 올림 (2.01 → 3)
 const ceilGa = x => x > 0 ? Math.ceil(x - 1e-9) : 0;
 // 가탕 계산 (관리자): 해당 구간에 나간 출하 대수 ÷ (그날 근무 차량 수 − 1)
@@ -1581,7 +1581,7 @@ function dutyMe(no, d) { const du = dutyOf(no, d); return du === "home" && no ==
 function dutySwap(no, d) { const D = DUTY[d]; if (!D) return null; const x = liveSw(D).find(([a, b]) => a === no || b === no); return x ? { other: x[0] === no ? x[1] : x[0], took: x[1] === no, kind: x[2] } : null; }
 function recOf(no, d) {
   if (no !== ME && REAL[d] && (REAL[d][no] || d <= TODAY)) { const x = REAL[d][no] || (d === TODAY ? { st: "pending" } : { st: "rest" });   // 서버 기록 · 오늘 아직 안 쓴 차량은 '작성 전' · 앞날짜는 휴가 줄만 있으므로 없는 차량은 아래 규칙으로
-    if (x.st === "pending") return { st: "pending" }; if (x.st === "rest") return { st: "off0" }; if (x.st === "home") return { st: "home" }; if (x.st === "absent") return { st: "absent" };
+    if (x.st === "pending") return { st: "pending" }; if (x.st === "rest") return { st: "off0" }; if (x.st === "home") return { st: "home" }; if (x.st === "absent") return { st: "absent", gaSet: x.ga && !x.gaAuto ? +x.ga : 0 };
     if (x.st === "leave") { const why = x.why || (SPECIAL[d] || {})[no]; return { st: "leave", lv: x.lv === "특별휴가" && why ? why : x.lv === "연차" ? "정비휴무" : x.lv }; }
     const o = { real: x.real, yard: x.yard || 0, ga: x.ga, st: "work" }; if (x.go) o.go = true; if (x.part || x.note) o.lv = x.part || x.note; return o; }
   const du = dutyMe(no, d);
@@ -1596,7 +1596,7 @@ function recOf(no, d) {
   if (no === ME && LEAVE[d] && lvKind(LEAVE[d]) === "off") {   // 휴가 탭: 연차(정비휴무)·휴가
     const r = DB[d];   // 상차한 뒤 조퇴·정비 대신 연차를 쓴 날: 실탕은 그대로, 가탕 없음
     return r ? { real: realOf(r), yard: +r.yard || 0, ga: 0, st: "work", lv: LEAVE[d] } : { st: "leave", lv: LEAVE[d] }; }
-  if (no === ME && LEAVE[d] === "결근") return { st: "absent" };                          // 휴가 탭: 결근 → 가탕 자동
+  if (no === ME && LEAVE[d] === "결근") { const x = (REAL[d] || {})[ME]; return { st: "absent", gaSet: x && x.st === "absent" && x.ga && !x.gaAuto ? +x.ga : 0 }; }                          // 휴가 탭: 결근 → 가탕 자동
   if (no === ME) { const r = DB[d]; return r ? { real: realOf(r), yard: +r.yard || 0, ga: +r.ga || 0, st: r.absent ? "absent" : "work" } : { st: "none" }; }
   return { st: "none" };
 }
@@ -1622,11 +1622,11 @@ function fleetUpTo(d) {
   days.forEach(x => {
     const R = {}; let sum = 0, n = 0;
     CARS_ALL.forEach(c => { const r = R[c] = recOf(c, x); if (r.st === "work" && r.real + r.yard > 0) { sum += r.real + r.yard; n++; } });
-    const base = n ? sum / n : 0, gaAbs = roundGa(Math.round(base * 100) / 100);   // 사사오입 (4.5 → 5, 4.49 → 4, 0.3 → 1)
+    const base = n ? sum / n : 0, gaAbs = roundGa(base);   // 엑셀과 같게: 소수 첫째 자리 반올림 → 사사오입 (3.4545 → 3.5 → 4 · 0.3 → 1)
     let tot = 0, m = 0, nAb = 0;
     CARS_ALL.forEach(c => {
       const r = R[c];
-      if (r.st === "absent") { r.ga = gaAbs; r.real = 0; r.yard = 0; }
+      if (r.st === "absent") { r.ga = r.gaSet ? r.gaSet : gaAbs; r.real = 0; r.yard = 0; }   // 관리자가 가탕 탭에 넣은 결근 가탕이 있으면 그 값
       // 실 회전·영내·가탕이 모두 0인 기록(2시간·잔수만 있는 날 등)은 운행한 날로 보지 않고 계산에서 뺌
       if (r.st === "work" && r.real + r.yard * 0.5 + r.ga === 0) r.st = "zero";
       // 60대 모두 그날 평균에 포함: 일한 만큼(결근은 가탕), 쉰 차량은 0회
@@ -2574,7 +2574,7 @@ function drawForm() {
   const st = s => SITE_KEYS.includes(s.k) ? stSite(s) : '<div class="f"><div class="lab"><b>' + s.b + (s.k !== "real" ? '<span class="pay">' + s.rate + "회전" + '</span>' : '') + '</b><small>' + s.s + '</small>' +
     '</div>' +
     '<div class="step"><button data-m="' + s.k + '" aria-label="빼기">−</button><output data-o="' + s.k + '">' + fmt(F[s.k] || 0) + '</output><button data-p="' + s.k + '" aria-label="더하기">+</button></div></div>';
-  const nm = n => '<div class="f"><div class="lab"><b>' + n.b + '</b><small>' + n.s + '</small></div><div class="num"><input type="number" inputmode="decimal" enterkeyhint="next" min="0" data-n="' + n.k + '" value="' + esc(F[n.k]) + '" placeholder="0"><span>' + n.u + '</span></div></div>';
+  const nm = n => '<div class="f"><div class="lab"><b>' + n.b + '</b><small>' + n.s + '</small></div><div class="num"><input type="text" class="kp" inputmode="' + (n.k === "fuel" ? "decimal" : "numeric") + '" pattern="[0-9.]*" autocomplete="off" enterkeyhint="next" data-n="' + n.k + '" value="' + esc(F[n.k]) + '" placeholder="0"><span>' + n.u + '</span></div></div>';
   $("form").innerHTML =
     '<div class="sec">운행</div>' + st(STEPS[0]) + NUMS.slice(0, 3).map(nm).join("") +
     '<div class="sec">추가 회전 (급여 환산)</div>' + STEPS.slice(1).filter(s => !s.weekend || off || F[s.k]).map(st).join("") +
@@ -3077,6 +3077,11 @@ document.addEventListener("click", e => { const it = e.target.closest("#cmp-body
 
 }
 try { parent.postMessage({ ready: 1 }, "*"); } catch (e) {}
+</script>
+<script>/* 운행거리·통행료·주유량: 키패드로 숫자만 (위아래 화살표·휠 없음) */
+document.addEventListener("input", e => { const t = e.target; if (!t.matches || !t.matches("input.kp")) return; const dec = t.inputMode === "decimal";
+  let v = t.value.replace(/[^0-9.]/g, ""); if (!dec) v = v.replace(/\./g, ""); else { const i = v.indexOf("."); if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, ""); }
+  if (v !== t.value) { t.value = v; t.dispatchEvent(new Event("input", { bubbles: true })); } }, true);
 </script>
 </body>
 </html>

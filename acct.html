@@ -763,7 +763,7 @@ function openRec(c, k) { const r = rec(c, D), e = r.edited; RD = { c, k };
   showSheet("rd"); }
 function openEd(c, focusK) { if (!acctEditOn()) return toast("관리자가 기록 수정 권한을 꺼 두었습니다. 수정이 필요하면 관리자에게 말씀해 주세요."); const r0 = baseRec(c, D), r = rec(c, D); if (r.st !== "work") return toast(c + "호는 이날 " + (r.st === "leave" || r.st === "absent" ? "결근" : r.st === "rest" ? "비번" : "집대기") + "라 고칠 운행기록이 없습니다.");
   ED = { c, r0, r }; $("ed-t").textContent = c + "호 · " + mdL(D); $("ed-s").textContent = "관리팀은 회전수 · 운행거리 · 통행료만 고칠 수 있습니다. 원래 기사님이 적은 값은 수정 기록에 남습니다.";
-  $("ed-f").innerHTML = COLS.filter(([k]) => EDIT_K.includes(k)).map(([k, n]) => '<label class="' + (k === "km" ? 'km' : '') + '">' + n + (r.edited && k in r.edited.v ? ' <i>원래 ' + r.edited.orig[k] + '</i>' : '') + '<input type="number" inputmode="' + (k === "km" || k === "toll" || k === "fuel" ? "decimal" : "numeric") + '" data-f="' + k + '" value="' + (k === "back19" ? (r[k] ? 1 : 0) : r[k]) + '"' + (k === "back19" ? ' min="0" max="1"' : ' min="0"') + ' enterkeyhint="next"></label>').join("");
+  $("ed-f").innerHTML = COLS.filter(([k]) => EDIT_K.includes(k)).map(([k, n]) => '<label class="' + (k === "km" ? 'km' : '') + '">' + n + (r.edited && k in r.edited.v ? ' <i>원래 ' + r.edited.orig[k] + '</i>' : '') + '<input type="' + (k === "km" || k === "toll" || k === "fuel" ? "text" : "number") + '"' + (k === "km" || k === "toll" || k === "fuel" ? ' class="kp" pattern="[0-9.]*" autocomplete="off"' : '') + ' inputmode="' + (k === "fuel" ? "decimal" : "numeric") + '" data-f="' + k + '" value="' + (k === "back19" ? (r[k] ? 1 : 0) : r[k]) + '"' + (k === "back19" ? ' min="0" max="1"' : ' min="0"') + ' enterkeyhint="next"></label>').join("");
   $("ed-sp").hidden = true;   // 특이사항 현장 지우기는 관리팀에서 사용 안 함
   $("ed-why").value = r.edited ? r.edited.why || "" : ""; showSheet("ed"); setTimeout(() => { if (!EDIT_K.includes(focusK)) focusK = "real"; if (SITE_K.includes(focusK)) { const g = document.querySelector('#ed-sp [data-g="' + focusK + '"]'); if (g) { g.scrollIntoView({ block: "center" }); g.classList.add("flash"); } return; } const f = document.querySelector('#ed-f [data-f="' + (focusK || "km") + '"]'); if (f) { f.focus(); f.select(); } }, 50); }
 const EDIT_K = ["real", "km", "toll"];   // 관리팀이 고칠 수 있는 칸: 회전수 · 운행거리 · 통행료만
@@ -994,5 +994,10 @@ function bootStart() { if (!SESS_OK) return; bootShow('<span class="boot-sp"></s
   syncNow().then(r => { if (!r || !r.ok) bootShow('<b>서버에 연결하지 못했습니다</b>' + (r && r.msg && !r.net ? '<small>' + r.msg + '</small>' : '') + '<button type="button" class="btn pri" id="boot-retry">다시 시도</button>'); }); }
 document.addEventListener("click", e => { if (e.target.closest("#boot-retry")) bootStart(); });
 bootStart();
+</script>
+<script>/* 운행거리·통행료·주유량: 키패드로 숫자만 (위아래 화살표·휠 없음) */
+document.addEventListener("input", e => { const t = e.target; if (!t.matches || !t.matches("input.kp")) return; const dec = t.inputMode === "decimal";
+  let v = t.value.replace(/[^0-9.]/g, ""); if (!dec) v = v.replace(/\./g, ""); else { const i = v.indexOf("."); if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, ""); }
+  if (v !== t.value) { t.value = v; t.dispatchEvent(new Event("input", { bubbles: true })); } }, true);
 </script>
 </body></html>
