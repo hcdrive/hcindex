@@ -1443,8 +1443,8 @@ function render() {
   $("avg-tile").classList.toggle("pri-maybe", FC.state === "maybe");
   const cd = confirmedDay();
   // 내 평균 아래: 평소엔 전날 대비 변동 / 오후 5시 이후 미입력 차량이 있으면 '평균 미갱신'
-  const miss = FC.state === "writing" && afterClose();
-  if (miss) { const WS = writeStat(FC.d); $("avg-sub").className = "tiny"; $("avg-sub").innerHTML = WS.done + '/' + WS.total + ' 입력중'; }   // 한 줄: 주황 '입력 54/57' = 아직 다 안 써서 평균 미갱신
+  const miss = FC.state === "writing" && (FC.hold || afterClose());
+  if (miss) { const WS = writeStat(FC.d); $("avg-sub").className = "tiny"; $("avg-sub").innerHTML = FC.hold ? (+FC.d.slice(5, 7)) + '/' + (+FC.d.slice(8)) + ' 미입력 ' + (WS.total - WS.done) + '대 · 보류' : WS.done + '/' + WS.total + ' 입력중'; }   // 한 줄: 주황 '입력 54/57' = 아직 다 안 써서 평균 미갱신
   else { const ds = workDays(), i = ds.indexOf(cd), pv = ds[i - 1], ch = pv ? Math.round((fleetUpTo(cd).acc[ME] - fleetUpTo(pv).acc[ME]) * 100) / 100 : 0;
     $("avg-sub").innerHTML = !pv ? '전체 누적' : ch ? '<span class="sub-l">전날 </span><i class="arw">' + (ch > 0 ? '▲' : '▼') + '</i>' + fmt2(Math.abs(ch)) : '변동 없음';
     $("avg-sub").className = "tiny " + (ch > 0 ? "up" : ch < 0 ? "dn" : ""); }
@@ -1684,11 +1684,21 @@ function prioritySkipped(acc, d) { const nd = nextWork(d), L = Object.keys(acc).
 //  · 아직 작성 안 한 차량 / 가탕이 아직 안 들어간 조퇴·지각 차량이 있으면, 그 차량들이 나올 수 있는 값의 범위를
 //    여러 경우로 넣어 계산해 보고 → 어떤 경우에도 내가 목록에 들면 '확정', 일부 경우에만 들면 '예상'
 // 그날 아직 작성하지 않은 차량 (오늘만 · 지난 날짜는 밤 12시까지 안 쓰면 관리자가 대신 넣으므로 확정으로 봄)
-function pendingCars(d) { return d === TODAY ? CARS_ALL.filter(c => { const r = recOf(c, d); return r.st === "pending" || r.st === "none" || r.who; }) : []; }
+// 그날 꼭 입력해야 하는 차량인지 (평일 전부 · 토·공휴일은 관리자가 고른 차량만)
+const reqOn = (c, d) => !isOff(d) || (WEEKEND_WORK[d] || []).includes(c);
+const hasRecOf = (c, d) => !!((REAL[d] && REAL[d][c]) || (c === ME && DB[d]));
+function pendingCars(d) {
+  if (d === TODAY) return CARS_ALL.filter(c => { const r = recOf(c, d); return r.st === "pending" || r.st === "none" || r.who; });
+  if (d > TODAY) return [];
+  return CARS_ALL.filter(c => reqOn(c, d) && !hasRecOf(c, d));   // 지난날 미입력 차량 (관리자가 넣어 줄 때까지 그날부터 평균·선배차 보류)
+}
+// 미입력이 남아 있는 첫 지난 근무일 (없으면 "")
+function holdDay() { const ds = workDays(); for (const d of ds) { if (d >= TODAY) break; if (pendingCars(d).length) return d; } return ""; }
 function forecast() {
-  const wds = workDays(), d = wds[wds.length - 1];
+  const wds = workDays(), hd = holdDay(), d = hd || wds[wds.length - 1];
   if (!d) return { state: "none" };
   const pend = pendingCars(d);
+  if (hd) return { state: "writing", d: hd, done: false, pend: pend.length, hold: true };   // 지난날 미입력 → 평균·선배차 보류
   // 아직 작성 안 한 차량이 있으면: 평균도 선배차도 아직 (발표 전)
   if (pend.length) return { state: "writing", d, done: false, pend: pend.length };
   const PR = priorityCars(fleetUpTo(d).acc, d); return { state: PR.includes(ME) ? "sure" : "none", d, done: true, part: 0 };
@@ -1697,7 +1707,8 @@ const nextWork = d => { let t = Date.parse(d + "T00:00:00Z"); for (let i = 0; i 
 const MINI_CL = { ga: "ga", wait: "g", late: "g", jan: "y", yard: "y", early: "y", tun: "p", back19: "" };   // 초록 1회전 · 노랑 0.5회전 · 회색 식권
 // 평균에 반영된 마지막 날: 그날 운행한 차량이 모두 작성해야 반영 (작성 중이면 그 전 근무일까지)
 function confirmedDay() {
-  const days = workDays(), last = days[days.length - 1] || "";
+  const days = workDays(), hd = holdDay(); if (hd) { const i = days.indexOf(hd); return i > 0 ? days[i - 1] : ""; }   // 미입력 보류: 그 전날까지만 확정
+  const last = days[days.length - 1] || "";
   return pendingCars(last).length ? days[days.length - 2] || "" : last;
 }
 // 지금 시각 (한국 시간) — 오후 5시(업무 마감)부터 미입력 표시
@@ -2978,8 +2989,8 @@ function drawAvg() {
 }
 // 그날 작성 현황 (작성해야 하는 차량 중 몇 대가 썼는지) — 모든 화면에서 같은 숫자를 씀
 function writeStat(d) {
-  const ok = [], miss = [];
-  CARS_ALL.forEach(c => { const r = recOf(c, d); if (r.st === "work" || r.st === "zero") ok.push(c); else if (r.st === "pending" || r.st === "none") miss.push(c); });
+  const ok = [], miss = d < TODAY ? pendingCars(d) : [];
+  CARS_ALL.forEach(c => { if (miss.includes(c)) return; const r = recOf(c, d); if (r.st === "work" || r.st === "zero") ok.push(c); else if (d === TODAY && (r.st === "pending" || r.st === "none")) miss.push(c); });
   return { done: ok.length, total: ok.length + miss.length, miss };
 }
 // 작성 중인 날: 평균 대신 기사별 입력 / 미입력

@@ -426,7 +426,9 @@ function dayStat(d) {
     mnt: n(c => R[c].part === "정비"), rest: n(c => R[c].st === "rest"), none: n(c => R[c].st === "none"), wk: isOff(d), avg: tot / (CARS.length || 1) };
 }
 // 누적 평균 차이 (이월 + 기록 시작일부터) · 우선배차
-function cumUpTo(d) { const acc = {}; CARS.forEach(c => acc[c] = CARRY[c] || 0); DAYS.filter(x => x <= d).forEach(x => { const S = dayStat(x); CARS.forEach(c => acc[c] += avgVal(S.R[c]) - S.avg); }); return acc; }
+// 지난 근무일에 미입력 차량이 있으면 그날부터 평균·누적 보류 (관리자가 넣어 주면 자동으로 다시 계산) → 첫 보류일 { d, n } 또는 null
+function holdOf(upTo) { for (const x of DAYS) { if (x >= TODAY || x > upTo) break; const n = dayStat(x).none; if (n) return { d: x, n }; } return null; }
+function cumUpTo(d) { const acc = {}; CARS.forEach(c => acc[c] = CARRY[c] || 0); const H = holdOf(d); DAYS.filter(x => x <= d && (!H || x < H.d)).forEach(x => { const S = dayStat(x); CARS.forEach(c => acc[c] += avgVal(S.R[c]) - S.avg); }); return acc; }
 // 터널 (리프트) 횟수: 서버 tun(차량 → ["2026-10-15 월판선", …]) 기준 · 보는 날의 달 전까지 누적 + 그 달
 const tunDate = s => String(s).slice(0, 10);
 function tunPrev(upto) { const o = {}, m0 = upto.slice(0, 7) + "-01"; CARS.forEach(c => o[c] = (TUN[c] || []).filter(s => tunDate(s) < m0).length); return o; }
@@ -496,7 +498,8 @@ function draw() {
   let pbD = addDay(fut ? TODAY : D, fut ? 0 : -1); while (pbD >= DAYS[0] && !isWork(pbD)) pbD = addDay(pbD, -1);
   const accP = pbD >= DAYS[0] ? cumUpTo(pbD) : Object.fromEntries(CARS.map(c => [c, CARRY[c] || 0]));
   const tgt = D, noPriDay = isOff(D);   // 토요일·공휴일 출근은 선배차 운영 안 함
-  const priAll = noPriDay ? [] : CARS.filter(c => accP[c] <= -3).sort((a, b) => accP[a] - accP[b] || a - b), pri = [], priSkip = [];
+  const HP = holdOf(pbD);   // 선배차 기준일까지 미입력 보류가 있으면 선배차 없음
+  const priAll = noPriDay || HP ? [] : CARS.filter(c => accP[c] <= -3).sort((a, b) => accP[a] - accP[b] || a - b), pri = [], priSkip = [];
   const EXD = PRI_EX[tgt] || {};   // 관리자가 '선배차 제외'로 고른 차량 (그날만 · 관리자 페이지에서 정함)
   drawPriEx(tgt, noPriDay, priAll, accP);
   for (const c of priAll) { if (pri.length >= 5) break; if ((R[c].st === "work" || R[c].st === "none") && R[c].part !== "지각" && !EXD[c]) pri.push(c); else priSkip.push(c); }   // 지각도 선배차에서 뺌 · 아직 입력 전(none)인 차량은 출근으로 봄
@@ -530,8 +533,8 @@ function draw() {
   // 평균
   const dayH = (k, d) => { const t = d === TODAY, f = d > TODAY; return '<span class="db' + (t ? '' : f ? ' fut' : ' past') + '">' + (t ? "오늘" : f ? "예정" : "지난 날") + '</span><span class="dt">' + mdL(d) + '</span><span class="dk">' + k + '</span>'; };
   $("pri-h").innerHTML = dayH("선배차", D);
-  $("avg-sub").textContent = fut ? md(TODAY) + "까지 기준 · " + md(D) + " 선배차" : "그날 평균 " + fmt(S.avg) + "회";
-  $("pri").innerHTML = noPriDay ? '<div class="nopri"><b>선배차 없음 · ' + (HOLI[tgt] ? '공휴일' : W[wd(tgt)] + '요일') + ' 근무</b><span>' + md(tgt) + '은 ' + (HOLI[tgt] ? '공휴일' : W[wd(tgt)] + '요일') + ' 출근이라 선배차를 운영하지 않습니다. 관리자가 고른 차량만 운행합니다.</span><small>다음 평일 근무일부터 다시 선배차가 있습니다.</small></div>' : pri.length ? pri.map((c, k) => '<div><small>' + (k + 1) + '번째</small><b>' + c + '</b><small>' + fmt(accP[c]) + '</small></div>').join("") + '<p class="pri-note">' + (pbD >= DAYS[0] ? md(pbD) + '까지 누적 기준' : '기록 시작일') + ' · 누적 −3 이하 중 낮은 순 5대' + (priSkip.length ? '<br><b>빠짐:</b> ' + priSkip.map(c => c + '호(' + (EXD[c] ? '관리자 제외' + (EXD[c] !== 1 ? ' · ' + esc(EXD[c]) : '') : ((lab(R[c]) || ["휴무"])[0])) + ')').join(", ") + ' → 다음 순번이 선배차' : '') + '</p>' : (() => { const lo = CARS.slice().sort((a, b) => accP[a] - accP[b])[0];
+  { const HA = holdOf(fut ? TODAY : D); $("avg-sub").textContent = HA ? "평균 보류 · " + md(HA.d) + " 미입력 " + HA.n + "대" : fut ? md(TODAY) + "까지 기준 · " + md(D) + " 선배차" : "그날 평균 " + fmt(S.avg) + "회"; }
+  $("pri").innerHTML = HP ? '<div class="nopri"><b>선배차 보류 · ' + md(HP.d) + ' 미입력 ' + HP.n + '대</b><span>' + md(HP.d) + ' 운행기록을 아직 넣지 않은 차량이 있어 평균과 선배차를 정하지 않았습니다. 관리자가 입력하면 바로 확정됩니다.</span><small>그때까지는 평소 순번대로 배차합니다.</small></div>' : noPriDay ? '<div class="nopri"><b>선배차 없음 · ' + (HOLI[tgt] ? '공휴일' : W[wd(tgt)] + '요일') + ' 근무</b><span>' + md(tgt) + '은 ' + (HOLI[tgt] ? '공휴일' : W[wd(tgt)] + '요일') + ' 출근이라 선배차를 운영하지 않습니다. 관리자가 고른 차량만 운행합니다.</span><small>다음 평일 근무일부터 다시 선배차가 있습니다.</small></div>' : pri.length ? pri.map((c, k) => '<div><small>' + (k + 1) + '번째</small><b>' + c + '</b><small>' + fmt(accP[c]) + '</small></div>').join("") + '<p class="pri-note">' + (pbD >= DAYS[0] ? md(pbD) + '까지 누적 기준' : '기록 시작일') + ' · 누적 −3 이하 중 낮은 순 5대' + (priSkip.length ? '<br><b>빠짐:</b> ' + priSkip.map(c => c + '호(' + (EXD[c] ? '관리자 제외' + (EXD[c] !== 1 ? ' · ' + esc(EXD[c]) : '') : ((lab(R[c]) || ["휴무"])[0])) + ')').join(", ") + ' → 다음 순번이 선배차' : '') + '</p>' : (() => { const lo = CARS.slice().sort((a, b) => accP[a] - accP[b])[0];
     return '<div class="nopri"><b>선배차 없음</b><span>평균 차이가 −3 이하인 차량이 없습니다. 모든 차량 평균이 비슷해서 이날은 평소 순번대로 배차합니다.</span><small>가장 낮은 차량 <em>' + lo + '호 ' + fmt(accP[lo]) + '</em> · 기준 −3</small></div>'; })();
   const mx = Math.max(...CARS.map(c => Math.abs(acc[c]))) || 1;
   $("avg-t").innerHTML = '<tr><th>순서</th><th class="l">호차</th><th>조</th><th>당일</th><th class="dv-h"><span>− 적게</span><span>0</span><span>많이 +</span></th><th>평균 차이</th></tr>' +

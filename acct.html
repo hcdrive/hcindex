@@ -347,7 +347,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
 <div class="toast" id="toast"></div>
 <script>
 const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
-const APP_VER = "20261104b";
+const APP_VER = "20261105a";
 const PAGE_KEY = "acct";
 const $ = id => document.getElementById(id);
 </script>
@@ -455,7 +455,9 @@ function dayStat(d) {
     mnt: n(c => R[c].part === "정비"), rest: n(c => R[c].st === "rest"), none: n(c => R[c].st === "none"), wk: isOff(d), avg: tot / (CARS.length || 1) };
 }
 // 누적 평균 차이 (이월 + 기록 시작일부터) · 우선배차
-function cumUpTo(d) { const acc = {}; CARS.forEach(c => acc[c] = CARRY[c] || 0); DAYS.filter(x => x <= d).forEach(x => { const S = dayStat(x); CARS.forEach(c => acc[c] += avgVal(S.R[c]) - S.avg); }); return acc; }
+// 지난 근무일에 미입력 차량이 있으면 그날부터 평균·누적 보류 (관리자가 넣어 주면 자동으로 다시 계산) → 첫 보류일 { d, n } 또는 null
+function holdOf(upTo) { for (const x of DAYS) { if (x >= TODAY || x > upTo) break; const n = dayStat(x).none; if (n) return { d: x, n }; } return null; }
+function cumUpTo(d) { const acc = {}; CARS.forEach(c => acc[c] = CARRY[c] || 0); const H = holdOf(d); DAYS.filter(x => x <= d && (!H || x < H.d)).forEach(x => { const S = dayStat(x); CARS.forEach(c => acc[c] += avgVal(S.R[c]) - S.avg); }); return acc; }
 // 터널 (리프트) 횟수: 서버 tun(차량 → ["2026-10-15 월판선", …]) 기준 · 보는 날의 달 전까지 누적 + 그 달
 const tunDate = s => String(s).slice(0, 10);
 function tunPrev(upto) { const o = {}, m0 = upto.slice(0, 7) + "-01"; CARS.forEach(c => o[c] = (TUN[c] || []).filter(s => tunDate(s) < m0).length); return o; }
