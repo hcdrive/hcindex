@@ -1033,15 +1033,32 @@
   .rp-tb tr.me td { background: var(--accent-bg); font-weight: 800; }
   .ow-btns:has(#ow-ok[hidden]) { grid-template-columns: 1fr; } .ow-btns:has(#ow-ok[hidden]) #ow-no { height: 54px; }
   .demo-lv { display: none !important; }
+  /* 운행기록 탭: 위 고정 줄(종 · 호수 · 로그아웃) · 아래 메뉴 — 운행거리·휴가 탭과 같은 규격 (위 줄 56px · 아래 메뉴 64px) */
+  .nav span { cursor: pointer; }
+  #ptr-page.in-r { animation: inR .28s cubic-bezier(.2,.7,.3,1); } #ptr-page.in-l { animation: inL .28s cubic-bezier(.2,.7,.3,1); }
+  @keyframes inR { from { transform: translateX(40%); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes inL { from { transform: translateX(-40%); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #ptr-page.in-r, #ptr-page.in-l { animation: none; } }
+  body { padding-top: calc(env(safe-area-inset-top) + 56px) !important; padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+  .tbar { position: fixed; top: 0; left: 0; right: 0; z-index: 12; padding-top: env(safe-area-inset-top); background: var(--bg); }
+  .tbar .in { max-width: 1100px; margin: 0 auto; height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+  .tbar::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 24px; pointer-events: none; background: linear-gradient(to bottom, var(--bg), transparent); }
+  .tbar .tl, .tbar .tr { display: inline-flex; align-items: center; gap: 8px; } .tbar .tr b { font-size: 15px; font-weight: 700; }
+  .tbar .hbell { position: relative; width: 44px; height: 44px; margin: -6px 0 -6px -8px; border: 0; border-radius: 50%; padding: 0; background: none; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .tbar .hbell svg { width: 27px; height: 27px; }
+  .tbar .hout { border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; line-height: 1.3; cursor: pointer; white-space: nowrap; }
+  .wrap > h1, h1 { font-size: 28px !important; font-weight: 700; letter-spacing: -0.5px; margin: 24px 0 6px !important; }
+  body > .nav { height: calc(64px + env(safe-area-inset-bottom)) !important; z-index: 11; }
+  body > .nav span { gap: 4px !important; font-size: 13px !important; font-weight: 600 !important; } body > .nav span.on { font-weight: 600 !important; } body > .nav span svg { width: 24px; height: 24px; }
 </style>
 </head>
 <body>
+<header class="tbar"><div class="in"><span class="tl"><button type="button" class="hbell" data-host="bell" aria-label="알림"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button></span><span class="tr"><b id="top-me"></b><button type="button" class="hout" data-host="who-out">로그아웃</button></span></div></header>
 <div class="ptr" id="ptr" aria-hidden="true">
   <div class="ptr-ball" id="ptr-ball"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div>
   <div class="ptr-txt" id="ptr-txt">당겨서 새로고침</div>
 </div>
 <div class="wrap" id="ptr-page">
-  <div class="top"><span class="tag">현창레미콘 · 운행기록</span><b id="top-me"></b></div>
   <h1>운행기록</h1>
 
   <div class="pri-banner" id="pri-banner" hidden role="button" tabindex="0"></div>
@@ -1259,7 +1276,7 @@ D = D || {};
 const TODAY = String(D.today || new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10));   // 오늘 (서버 기준)
 HOST_BUSY = () => { const sh = document.getElementById("sheet"), pn = sh && sh.querySelector(".panel");
   const writing = !!(sh && sh.classList.contains("show") && pn && !pn.classList.contains("vmode") && !pn.classList.contains("done-mode"));
-  return writing || !!document.querySelector(".sheet.confirm.show") || !!SAVING; };
+  return writing || !!document.querySelector(".sheet.confirm.show") || !!SAVING || !!document.querySelector(".show:not(#toast):not(.toast)"); };   /* 어떤 창이든 열려 있으면 자동 새로고침 안 함 */
 /* ---------- 입력 항목 (회전 환산: 급여표 기준) ---------- */
 const STEPS = [
   { k: "real", b: "실 회전수", s: "오늘 실제로 운반한 횟수", step: 1, rate: 1 },
@@ -3082,6 +3099,11 @@ try { parent.postMessage({ ready: 1 }, "*"); } catch (e) {}
 document.addEventListener("input", e => { const t = e.target; if (!t.matches || !t.matches("input.kp")) return; const dec = t.inputMode === "decimal";
   let v = t.value.replace(/[^0-9.]/g, ""); if (!dec) v = v.replace(/\./g, ""); else { const i = v.indexOf("."); if (i >= 0) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, ""); }
   if (v !== t.value) { t.value = v; t.dispatchEvent(new Event("input", { bubbles: true })); } }, true);
+</script>
+<script>/* 아래 메뉴 · 종 · 로그아웃 → 바깥 화면(index.html)이 처리 */
+document.querySelectorAll("body > .nav span").forEach((s, i) => { if (i !== 1) s.addEventListener("click", () => { try { parent.postMessage({ goView: i === 0 ? "dist" : "vac" }, "*"); } catch (e) {} }); });
+document.querySelectorAll("[data-host]").forEach(b => b.addEventListener("click", () => { try { parent.postMessage({ hostClick: b.dataset.host }, "*"); } catch (e) {} }));
+addEventListener("message", e => { const m = e.data || {}; if (m.slide) { const w = document.getElementById("ptr-page"); w.classList.remove("in-r", "in-l"); void w.offsetWidth; w.classList.add(m.slide === "r" ? "in-r" : "in-l"); window.scrollTo(0, 0); } });
 </script>
 </body>
 </html>
