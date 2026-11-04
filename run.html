@@ -1046,6 +1046,8 @@
   .tbar .tl, .tbar .tr { display: inline-flex; align-items: center; gap: 8px; } .tbar .tr b { font-size: 15px; font-weight: 700; }
   .tbar .hbell { position: relative; width: 44px; height: 44px; margin: -6px 0 -6px -8px; border: 0; border-radius: 50%; padding: 0; background: none; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
   .tbar .hbell svg { width: 27px; height: 27px; }
+  .bell-n { position: absolute; top: 3px; right: 2px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px; background: #e5484d; color: #fff; font-size: 12px; font-weight: 800; line-height: 19px; text-align: center; box-sizing: border-box; border: 2px solid var(--bg); z-index: 1; }
+  .bell-n.hidden { display: none; }
   .tbar .hout { border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 999px; padding: 5px 11px; font: inherit; font-size: 13px; line-height: 1.3; cursor: pointer; white-space: nowrap; }
   .wrap > h1, h1 { font-size: 28px !important; font-weight: 700; letter-spacing: -0.5px; margin: 24px 0 6px !important; }
   body > .nav { height: calc(64px + env(safe-area-inset-bottom)) !important; z-index: 11; }
@@ -1053,7 +1055,7 @@
 </style>
 </head>
 <body>
-<header class="tbar"><div class="in"><span class="tl"><button type="button" class="hbell" data-host="bell" aria-label="알림"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button></span><span class="tr"><b id="top-me"></b><button type="button" class="hout" data-host="who-out">로그아웃</button></span></div></header>
+<header class="tbar"><div class="in"><span class="tl"><button type="button" class="hbell" data-host="bell" aria-label="알림"><span class="bell-n hidden" id="bell-n"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button></span><span class="tr"><b id="top-me"></b><button type="button" class="hout" data-host="who-out">로그아웃</button></span></div></header>
 <div class="ptr" id="ptr" aria-hidden="true">
   <div class="ptr-ball" id="ptr-ball"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div>
   <div class="ptr-txt" id="ptr-txt">당겨서 새로고침</div>
@@ -3103,7 +3105,7 @@ document.addEventListener("input", e => { const t = e.target; if (!t.matches || 
 <script>/* 아래 메뉴 · 종 · 로그아웃 → 바깥 화면(index.html)이 처리 */
 document.querySelectorAll("body > .nav span").forEach((s, i) => { if (i !== 1) s.addEventListener("click", () => { try { parent.postMessage({ goView: i === 0 ? "dist" : "vac" }, "*"); } catch (e) {} }); });
 document.querySelectorAll("[data-host]").forEach(b => b.addEventListener("click", () => { try { parent.postMessage({ hostClick: b.dataset.host }, "*"); } catch (e) {} }));
-addEventListener("message", e => { const m = e.data || {}; if (m.slide) { const w = document.getElementById("ptr-page"); w.classList.remove("in-r", "in-l"); void w.offsetWidth; w.classList.add(m.slide === "r" ? "in-r" : "in-l"); window.scrollTo(0, 0); } });
+addEventListener("message", e => { const m = e.data || {}; if (m.bellN !== undefined) { const el = document.getElementById("bell-n"); el.textContent = m.bellN > 9 ? "9+" : String(m.bellN); el.classList.toggle("hidden", !m.bellN); } if (m.slide) { const w = document.getElementById("ptr-page"); w.classList.remove("in-r", "in-l"); void w.offsetWidth; w.classList.add(m.slide === "r" ? "in-r" : "in-l"); window.scrollTo(0, 0); } });
 </script>
 <script>/* 팝업이 열려 있으면 뒤 화면이 같이 스크롤되지 않게 (닫으면 보던 위치 그대로) */
 (function () { const SEL = ".sheet.show:not(.inline), .ask.show, .bell-panel.show, .sht.show, .mpop.open"; let locked = false, y = 0, raf = 0;
