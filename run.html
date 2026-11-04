@@ -1444,7 +1444,7 @@ function render() {
   const cd = confirmedDay();
   // 내 평균 아래: 평소엔 전날 대비 변동 / 오후 5시 이후 미입력 차량이 있으면 '평균 미갱신'
   const miss = FC.state === "writing" && (FC.hold || afterClose());
-  if (miss) { const WS = writeStat(FC.d); $("avg-sub").className = "tiny"; $("avg-sub").innerHTML = FC.hold ? (+FC.d.slice(5, 7)) + '/' + (+FC.d.slice(8)) + ' 미입력 ' + (WS.total - WS.done) + '대 · 보류' : WS.done + '/' + WS.total + ' 입력중'; }   // 한 줄: 주황 '입력 54/57' = 아직 다 안 써서 평균 미갱신
+  if (miss) { const WS = writeStat(FC.d); $("avg-sub").className = "tiny"; $("avg-sub").innerHTML = FC.hold ? (+FC.d.slice(5, 7)) + '/' + (+FC.d.slice(8)) + ' 미입력 ' + (WS.total - WS.done) + '대' : WS.done + '/' + WS.total + ' 입력중'; }   // 한 줄: 주황 '입력 54/57' = 아직 다 안 써서 평균 미갱신
   else { const ds = workDays(), i = ds.indexOf(cd), pv = ds[i - 1], ch = pv ? Math.round((fleetUpTo(cd).acc[ME] - fleetUpTo(pv).acc[ME]) * 100) / 100 : 0;
     $("avg-sub").innerHTML = !pv ? '전체 누적' : ch ? '<span class="sub-l">전날 </span><i class="arw">' + (ch > 0 ? '▲' : '▼') + '</i>' + fmt2(Math.abs(ch)) : '변동 없음';
     $("avg-sub").className = "tiny " + (ch > 0 ? "up" : ch < 0 ? "dn" : ""); }
@@ -2927,7 +2927,7 @@ $("mini").addEventListener("click", e => {
 let avgDay = "";
 // 평균 칸을 누르면: 오늘(가장 최근 근무일) 작성이 아직 안 끝났어도 그날 화면부터 → 기사별 입력/미입력 표시
 function openAvg() { $("rcpt-sheet").classList.add("plain");   // 평균 창은 일반 팝업 모양
-  const FC = forecast(); avgDay = FC.state === "writing" && afterClose() ? FC.d : confirmedDay(); drawAvg(); $("rcpt-sheet").classList.add("show"); $("rcpt-scroll").scrollTop = 0; }
+  const FC = forecast(); avgDay = FC.state === "writing" && (FC.hold || afterClose()) ? FC.d : confirmedDay(); drawAvg(); $("rcpt-sheet").classList.add("show"); $("rcpt-scroll").scrollTop = 0; }
 function drawAvg() {
   const days = workDays(), k = days.indexOf(avgDay), cls = n => n > 0 ? "up" : n < 0 ? "down" : "zero";
   if (!avgDay) { $("rcpt").innerHTML = '<div class="rc-title">전체 평균</div><p class="rc-foot">이번 달 근무일 기록이 없습니다.</p>'; return; }
@@ -2997,14 +2997,16 @@ function writeStat(d) {
 function drawAvgStatus(FC, days, k) {
   const d = FC.d, G = groupOf, R = {};
   CARS_ALL.forEach(c => { R[c] = recOf(c, d); });
-  const stOf = r => r.st === "work" || r.st === "zero" ? ["ok", "입력"] : r.st === "absent" ? ["ab", "결근"] : r.st === "leave" ? ["lv", r.lv || "연차"] : r.st === "off0" ? ["lv", "휴무"] : r.st === "home" ? ["lv", "집대기"] : afterClose() ? ["no", "미입력"] : ["run", "운행 중"];
-  const target = CARS_ALL.filter(c => ["ok", "no", "run"].includes(stOf(R[c])[0])), done = target.filter(c => stOf(R[c])[0] === "ok"), miss = target.filter(c => stOf(R[c])[0] !== "ok");
+  const PEND = new Set(d < TODAY ? pendingCars(d) : []), past = d < TODAY;   // 지난날 미입력 차량 = '미입력' (휴무 아님)
+  const stOf0 = r => r.st === "work" || r.st === "zero" ? ["ok", "입력"] : r.st === "absent" ? ["ab", "결근"] : r.st === "leave" ? ["lv", r.lv || "연차"] : r.st === "off0" ? ["lv", "휴무"] : r.st === "home" ? ["lv", "집대기"] : (past || afterClose()) ? ["no", "미입력"] : ["run", "운행 중"];
+  const stOf = (r, c) => c !== undefined && PEND.has(c) ? ["no", "미입력"] : stOf0(r);
+  const target = CARS_ALL.filter(c => ["ok", "no", "run"].includes(stOf(R[c], c)[0])), done = target.filter(c => stOf(R[c], c)[0] === "ok"), miss = target.filter(c => stOf(R[c], c)[0] !== "ok");
   const dl = (+d.slice(5, 7)) + '/' + (+d.slice(8)) + '(' + W[wd(d)] + ')', prev = days[k - 1], pl = prev ? (+prev.slice(5, 7)) + '/' + (+prev.slice(8)) : '';
-  const me = stOf(R[ME]);
+  const me = stOf(R[ME], ME);
   let groups = "";
   for (let g = 1; g <= 6; g++) {
     const cars = CARS_ALL.filter(c => G(c) === g);
-    groups += '<div class="av-g"><div class="av-gt">' + g + '조</div><div class="av-cells">' + cars.map(c => { const [t, txt] = stOf(R[c]);
+    groups += '<div class="av-g"><div class="av-gt">' + g + '조</div><div class="av-cells">' + cars.map(c => { const [t, txt] = stOf(R[c], c);
       return '<div data-stk="' + c + '" class="av-c st-' + t + (c === ME ? ' me' : '') + (t === "ab" ? ' d-ab' : t === "lv" ? ' d-lv' : '') + '">' + (c === ME ? '<i class="me-n">나</i>' : '') + '<span>' + c + '</span><b class="st-b">' + esc(txt) + '</b></div>'; }).join("") + '</div></div>';
   }
   $("rcpt").innerHTML =
@@ -3014,7 +3016,7 @@ function drawAvgStatus(FC, days, k) {
     '<div data-stk="' + ME + '" class="av-me"><span class="me-l"><span class="me-no">' + ME + '호</span><em class="me-day ' + (me[0] === "ok" ? '' : me[0] === "no" ? 'pd' : me[0] === "run" ? 'lv' : me[0]) + '">' + (me[0] === "ok" ? '입력 완료' : esc(me[1])) + '</em></span>' +
       '<b class="st-cnt">' + done.length + ' / ' + target.length + '<small>대</small></b><small class="chg">작성 완료</small></div>' +
     '</div>' +
-    (afterClose() ? '<div class="ib-warn" style="margin:10px 0"><div class="wr-big">미입력 차량 ' + miss.length + '대 · 평균 미갱신</div>' : '<div class="ib-warn calm" style="margin:10px 0"><div class="wr-big">운행 중 · ' + done.length + '대 작성</div>') + '모든 기사님이 입력하면 ' + dl + ' 평균과 선배차가 정해집니다.<br>지금 평균은 <b>' + pl + ' 기준</b>입니다 (◀ 를 눌러 보기)</div>' +
+    ((past || afterClose()) ? '<div class="ib-warn" style="margin:10px 0"><div class="wr-big">미입력 차량 ' + miss.length + '대 · 평균 미갱신</div>' : '<div class="ib-warn calm" style="margin:10px 0"><div class="wr-big">운행 중 · ' + done.length + '대 작성</div>') + (past ? '관리자가 미입력 차량을 입력하면 ' : '모든 기사님이 입력하면 ') + dl + ' 평균과 선배차가 정해집니다.<br>지금 평균은 <b>' + pl + ' 기준</b>입니다 (◀ 를 눌러 보기)</div>' +
     groups +
     '<div class="rc-foot">초록 = 입력 완료 · 회색 = 운행 중 (오후 5시 전) · 빨강 테두리 = 미입력 (오후 5시부터)<br>휴가·결근 차량은 작성하지 않아도 됩니다<br>밤 12시까지 입력하지 않으면 관리자가 대신 입력합니다</div>';
   $("av-prev").onclick = () => { if (k > 0) { avgDay = days[k - 1]; drawAvg(); } };
