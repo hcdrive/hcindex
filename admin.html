@@ -541,6 +541,8 @@
   .kakao-pre pre { margin: 0; white-space: pre-wrap; font: inherit; font-size: 15px; line-height: 1.6; color: var(--text); }
 
   .pr-wrap { border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: auto; } #pr-frame { display: block; width: 1123px; height: 794px; border: 0; transform-origin: 0 0; }
+  .sf-l { list-style: none; margin: 8px 0; padding: 0; border-top: 1px solid var(--line); } .sf-l li { border-bottom: 1px solid var(--line); } .sf-l label { display: flex; align-items: center; gap: 12px; min-height: 48px; font-size: 17px; cursor: pointer; } .sf-l input { width: 22px; height: 22px; } .sf-l b { min-width: 60px; } .sf-l span { margin-left: auto; font-weight: 800; color: var(--accent); }
+  .sf-note { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 14.5px; line-height: 1.6; margin-top: 10px; }
   .pr-hold { background: #fdecea; color: var(--red); border-radius: 10px; padding: 12px 14px; font-weight: 700; line-height: 1.6; margin: 6px 0 10px; }
   .yg-nav { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; } .yg-nav b { text-align: center; font-size: 19px; } .yg-nav button { height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 22px; cursor: pointer; color: inherit; } .yg-nav button:disabled { opacity: .35; }
   .yg-mon { background: #eef3ff !important; } .yg-mon b { color: var(--accent); } .yg-mon i { display: block; font-style: normal; font-size: 12px; color: var(--muted); font-weight: 600; }
@@ -1052,6 +1054,14 @@
   <p class="label">여름휴가 일수 (한 해)</p><input enterkeyhint="done" class="field" id="ca-summer" type="number" inputmode="numeric" min="0" max="30">
   <p class="label">비밀번호 (숫자 4~8자리, 비워 두면 나중에)</p><input enterkeyhint="done" class="field" id="ca-pin" type="text" inputmode="numeric" maxlength="8">
   <button class="btn primary wide" id="ca-save" style="margin-top:14px">추가하기</button>
+</div></div>
+<!-- 관리팀 출하기록 → 미입력 차량 회전수 넣기 -->
+<div class="sheet" id="sf-sheet"><div class="panel">
+  <div class="panel-head"><span id="sf-title">출하기록으로 미입력 채우기</span><button class="link" data-close="sf-sheet">닫기</button></div>
+  <div id="sf-body"></div>
+  <button class="btn primary wide" id="sf-ok" style="margin-top:16px">반영하기</button>
+  <button class="btn wide" id="sf-later" style="margin-top:8px">나중에 (다음에 다시 묻기)</button>
+  <button class="btn wide" id="sf-no" style="margin-top:8px">이번 출하기록은 반영 안 함</button>
 </div></div>
 <!-- 물량표 반영 전 확인 -->
 <div class="sheet" id="review-sheet"><div class="panel">
@@ -3959,7 +3969,7 @@ async function admRead() {
 function admData() { if (ADM_DATA) return Promise.resolve(ADM_DATA); return admRefresh(); }
 async function admRefresh() {
   if (ADM_LOADING) return ADM_LOADING;
-  ADM_LOADING = (async () => { const D = await admRead(); if (D.ok) { ADM_DATA = D; frameAll({ data: D }); frameLock(); } return D; })();
+  ADM_LOADING = (async () => { const D = await admRead(); if (D.ok) { ADM_DATA = D; frameAll({ data: D }); frameLock(); setTimeout(() => sfCheck(D), 600); } return D; })();
   try { return await ADM_LOADING; } finally { ADM_LOADING = null; }
 }
 function admDirty() { clearTimeout(ADM_T); if (!ADM_DATA) return; ADM_T = setTimeout(() => admRefresh(), 250); }
@@ -4491,6 +4501,41 @@ function yongDraw() { const LOG = ygLog(), ds = Object.keys(LOG).sort(); if (!YG
 document.addEventListener("click", e => { const p = e.target.closest("#yg-prev"), n = e.target.closest("#yg-next"); if (!p && !n) return; const ds = Object.keys(ygLog()).sort(), i = ds.indexOf(YG_D) + (p ? -1 : 1); if (ds[i]) { YG_D = ds[i]; yongDraw(); } });
 { const _sv = showView; showView = function (v) { _sv(v); if (v === "v-yong") yongDraw(); }; }   // 자료는 viewLoad의 yongLoad가 받음
 
+/* ===== 관리팀이 올린 지난 날짜 출하기록 → 미입력 차량 회전수 넣기 (관리자가 확인한 뒤에만) ===== */
+let SF = null; const SF_SNOOZE = {};   // [나중에] 누른 출하기록은 1시간 동안 다시 묻지 않음
+const sfKey = (d, at) => "shipFill:" + d + "|" + (at || "");
+const sfSeen = k => { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } };
+const sfMark = k => { try { localStorage.setItem(k, "1"); } catch (e) {} };
+const sfLab = d => { const W = "일월화수목금토", x = new Date(d + "T00:00:00"); return (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일 (" + W[x.getDay()] + ")"; };
+async function sfCheck(D) { if (SF || document.querySelector(".sheet.show")) return; const today = D.today || TODAY; if (!today) return;
+  const lim = new Date(today + "T00:00:00"); lim.setDate(lim.getDate() - 10); const from = lim.getFullYear() + "-" + String(lim.getMonth() + 1).padStart(2, "0") + "-" + String(lim.getDate()).padStart(2, "0");
+  const ds = Object.keys(D.ship || {}).filter(d => d < today && d >= from).sort().reverse();
+  for (const d of ds) { let v = D.ship[d]; if (typeof v === "string") { try { v = JSON.parse(v); } catch (e) { v = null; } } if (!v || v.by !== "관리팀") continue;
+    const k = sfKey(d, v.at); if (sfSeen(k) || (SF_SNOOZE[k] || 0) > Date.now()) continue;
+    const r = await call("adminShipFill", { date: d, dry: 1 }); if (!r || !r.ok) continue;
+    if (!r.cand.length) { sfMark(k); continue; }
+    if (SF || document.querySelector(".sheet.show")) return;
+    return sfOpen(r, true); } }
+async function sfOpenDate(d) { const r = await call("adminShipFill", { date: d, dry: 1 }); if (!r || !r.ok) return toast(r && r.msg ? r.msg : "출하기록을 확인하지 못했습니다.");
+  if (!r.cand.length) return toast(sfLab(d) + " 미입력 차량 중 출하기록에 회전수가 있는 차량이 없습니다."); sfOpen(r, false); }
+function sfOpen(r, auto) { SF = r; SF.auto = auto;
+  $("sf-title").textContent = (r.by === "관리팀" ? "관리팀이 " : "") + sfLab(r.date) + " 출하기록을 올렸습니다";
+  $("sf-body").innerHTML = '<p style="margin:4px 0 0;font-size:16px;line-height:1.6">그날 <b>미입력 ' + (r.cand.length + r.none.length) + '대</b> 중 출하기록에 회전수가 있는 차량입니다. 체크한 차량을 <b>출하기록 회전수(실 회전)</b>로 넣을까요?</p>' +
+    '<ul class="sf-l">' + r.cand.map(x => '<li><label><input type="checkbox" data-sf="' + esc(x.no) + '" checked><b>' + esc(x.no) + '호</b><span>' + x.n + '회</span></label></li>').join("") + '</ul>' +
+    '<div class="sf-note">운행거리·통행료·주유량 등 다른 칸은 0으로 들어가고, 기사님께 알림이 갑니다. 출하기록은 영내작업을 따로 나누지 않아 영내작업도 실 회전에 들어갑니다. 넣은 뒤에도 운행 기록표에서 고칠 수 있고, 관리자 작업 기록에서 되돌릴 수 있습니다.' +
+    (r.none.length ? '<br><b>출하기록에도 없는 차량 ' + r.none.length + '대:</b> ' + r.none.map(esc).join(", ") + ' (결근인지 확인해 주세요)' : '') + '</div>';
+  $("sf-later").hidden = !auto; $("sf-no").hidden = !auto; sfCount(); $("sf-sheet").classList.add("show"); }
+function sfCount() { const n = document.querySelectorAll("#sf-body [data-sf]:checked").length, b = $("sf-ok"); b.textContent = n ? n + "대 반영하기" : "고른 차량 없음"; b.disabled = !n; }
+document.addEventListener("change", e => { if (e.target.matches && e.target.matches("[data-sf]")) sfCount(); });
+document.addEventListener("click", async e => { const t = e.target; if (!SF) return;
+  const close = () => { $("sf-sheet").classList.remove("show"); SF = null; };
+  if (t.closest("#sf-later") || t.closest('[data-close="sf-sheet"]')) { SF_SNOOZE[sfKey(SF.date, SF.at)] = Date.now() + 3600e3; $("sf-sheet").classList.remove("show"); SF = null; return; }
+  if (t.closest("#sf-no")) { sfMark(sfKey(SF.date, SF.at)); toast(sfLab(SF.date) + " 출하기록은 반영하지 않습니다. 필요하면 출하실 일보 인쇄 화면에서 다시 할 수 있습니다."); return close(); }
+  if (t.closest("#sf-ok")) { const b = $("sf-ok"); if (b.disabled) return; const cars = [...document.querySelectorAll("#sf-body [data-sf]:checked")].map(x => x.dataset.sf); if (!cars.length) return;
+    b.disabled = true; b.textContent = "넣는 중…"; const r = await call("adminShipFill", { date: SF.date, cars }); b.disabled = false;
+    if (!r || !r.ok) { sfCount(); return toast(r && r.msg ? r.msg : "넣지 못했습니다."); }
+    sfMark(sfKey(SF.date, SF.at)); close(); toast(r.msg, true); admDirty(); if (CUR === "v-print") prLoad(); } });
+
 /* ===== 출하실 일보 인쇄 (A4 가로 한 장) · 서버 adminIlbo ===== */
 let PR_D = "", PR = null;
 const prLab = d => { const W = "일월화수목금토", x = new Date(d + "T00:00:00"); return (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일 (" + W[x.getDay()] + ")"; };
@@ -4526,7 +4571,7 @@ function prHtml(R, memo) {
     '<table class="lo"><colgroup><col class="c0"><col></colgroup>' + low + '</table></div>' +
     '<script>(function(){var g=document.querySelector(".pg"),h=g.scrollHeight;if(h>745)g.style.zoom=(745/h).toFixed(3);})();<\/script></body></html>'; }
 function prDraw() { const R = PR; if (!R) return; const f = $("pr-frame");
-  if (R.hold) { $("pr-msg").innerHTML = '<div class="pr-hold">' + prDay(R.hold.day) + ' 미입력 ' + R.hold.miss.length + '대 (' + R.hold.miss.map(esc).join(", ") + ') · 평균과 선배차가 보류라서 인쇄할 수 없습니다. 미입력 기록을 넣은 뒤 [새로고침]을 눌러 주세요.</div>'; f.srcdoc = ""; $("pr-go").disabled = true; return; }
+  if (R.hold) { $("pr-msg").innerHTML = '<div class="pr-hold">' + prDay(R.hold.day) + ' 미입력 ' + R.hold.miss.length + '대 (' + R.hold.miss.map(esc).join(", ") + ') · 평균과 선배차가 보류라서 인쇄할 수 없습니다. 미입력 기록을 넣은 뒤 [새로고침]을 눌러 주세요.</div><button type="button" class="btn wide" id="pr-fill" data-d="' + R.hold.day + '" style="margin-bottom:10px">' + prDay(R.hold.day) + ' 출하기록 회전수로 미입력 채우기</button>'; f.srcdoc = ""; $("pr-go").disabled = true; return; }
   f.srcdoc = prHtml(R, $("pr-memo").value); $("pr-go").disabled = false; prFit(); }
 function prFit() { const w = $("pr-frame").parentElement.clientWidth, k = Math.min(1, (w - 2) / 1123), f = $("pr-frame"); f.style.transform = "scale(" + k + ")"; f.parentElement.style.height = Math.ceil(794 * k) + 2 + "px"; }
 addEventListener("resize", () => { if (CUR === "v-print") prFit(); });
@@ -4535,6 +4580,7 @@ document.addEventListener("click", e => { const t = e.target;
   if (t.closest("#pr-prev")) { PR_D = prShift(PR_D || TODAY, -1); return prLoad(); }
   if (t.closest("#pr-next")) { if ((PR_D || TODAY) >= TODAY) return; PR_D = prShift(PR_D, 1); return prLoad(); }
   if (t.closest("#pr-re")) return prLoad();
+  if (t.closest("#pr-fill")) return sfOpenDate(t.closest("#pr-fill").dataset.d);
   if (t.closest("#pr-go")) { if (!PR || PR.hold) return; const w = $("pr-frame").contentWindow; try { w.focus(); w.print(); } catch (x) { toast("인쇄 창을 열지 못했습니다."); } } });
 { const _sv = showView; showView = function (v) { _sv(v); if (v === "v-print") prLoad(); }; }
 </script>
