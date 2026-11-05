@@ -3136,5 +3136,15 @@ addEventListener("message", e => { const m = e.data || {}; if (m.bellN !== undef
   new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(check); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
 })();
 </script>
+<script>/* 숫자 칸 입력 중에 다른 곳을 누르거나 화면을 밀면 키패드를 내림 (가려진 부분을 볼 수 있게) · 다른 입력 칸을 누르면 그대로 옮겨 감 */
+(function () {
+  var sx = 0, sy = 0;
+  var isField = function (el) { return !!(el && el.matches && el.matches("input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]), textarea, select, [contenteditable=true]")); };
+  var down = function () { var a = document.activeElement; if (isField(a)) a.blur(); };
+  document.addEventListener("touchstart", function (e) { var t = e.touches && e.touches[0]; if (t) { sx = t.clientX; sy = t.clientY; }
+    if (!isField(document.activeElement)) return; var g = e.target; if (isField(g) || (g.closest && g.closest("label") && g.closest("label").control)) return; down(); }, { passive: true, capture: true });
+  document.addEventListener("touchmove", function (e) { if (!isField(document.activeElement)) return; var t = e.touches && e.touches[0]; if (t && (Math.abs(t.clientY - sy) > 12 || Math.abs(t.clientX - sx) > 12)) down(); }, { passive: true, capture: true });
+})();
+</script>
 </body>
 </html>

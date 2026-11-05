@@ -540,6 +540,8 @@
   .kakao-pre .kh { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
   .kakao-pre pre { margin: 0; white-space: pre-wrap; font: inherit; font-size: 15px; line-height: 1.6; color: var(--text); }
 
+  .pr-wrap { border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: auto; } #pr-frame { display: block; width: 1123px; height: 794px; border: 0; transform-origin: 0 0; }
+  .pr-hold { background: #fdecea; color: var(--red); border-radius: 10px; padding: 12px 14px; font-weight: 700; line-height: 1.6; margin: 6px 0 10px; }
   .yg-nav { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; } .yg-nav b { text-align: center; font-size: 19px; } .yg-nav button { height: 44px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 22px; cursor: pointer; color: inherit; } .yg-nav button:disabled { opacity: .35; }
   .yg-mon { background: #eef3ff !important; } .yg-mon b { color: var(--accent); } .yg-mon i { display: block; font-style: normal; font-size: 12px; color: var(--muted); font-weight: 600; }
   .yg-sum { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 10px 0; } .yg-sum div { background: var(--card); border-radius: 12px; padding: 10px 12px; } .yg-sum small { display: block; color: var(--muted); font-weight: 700; font-size: 13px; } .yg-sum b { font-size: 24px; } @media (max-width: 520px) { .yg-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } .yg-mon { grid-column: 1 / -1; } }
@@ -603,6 +605,7 @@
     <button data-ops="wk">공휴일 출근</button>
     <button data-ops="spc">특이사항 현장</button>
     <button data-side="v-yong">용차 출하</button>
+    <button data-side="v-print">출하실 일보 인쇄</button>
     <button data-ops="ilbo">일보 · 엑셀</button>
     <button data-ops="staff">입퇴사 관리</button>
     <button data-ops="set">단가 설정</button>
@@ -799,6 +802,21 @@
     </section>
 
     <!-- ───── 용차 출하 (출하기록의 300번대 차량) ───── -->
+    <section class="view" id="v-print">
+      <button class="back" data-sub="v-more">← 전체 메뉴</button>
+      <div class="yg-nav"><button type="button" id="pr-prev" aria-label="이전 날">‹</button><b id="pr-d"></b><button type="button" id="pr-next" aria-label="다음 날">›</button></div>
+      <p class="info" style="margin-top:6px">출하실 모니터 아래에 두는 운행일보입니다. 숫자는 전 근무일까지의 누적 평균 차이(선배차 기준, 반올림)이고 -3 이하는 분홍색입니다. 지난 근무일에 미입력 차량이 있으면 인쇄할 수 없습니다.</p>
+      <label class="lbl" for="pr-wait" style="display:block;font-weight:700;margin:10px 0 6px" id="pr-wait-l">2시간대기 (현장 이름이 길면 줄여서 고쳐 주세요)</label>
+      <textarea class="field" id="pr-wait" rows="2" maxlength="600" enterkeyhint="done"></textarea>
+      <label class="lbl" for="pr-late" style="display:block;font-weight:700;margin:10px 0 6px" id="pr-late-l">시간외 출하</label>
+      <textarea class="field" id="pr-late" rows="2" maxlength="600" enterkeyhint="done"></textarea>
+      <label class="lbl" for="pr-memo" style="display:block;font-weight:700;margin:10px 0 6px">메모 (인쇄물 맨 아래 칸에 들어감)</label>
+      <textarea class="field" id="pr-memo" rows="3" maxlength="300" placeholder="비워 두면 손으로 적을 수 있게 빈칸으로 나옵니다" enterkeyhint="done"></textarea>
+      <div style="display:flex;gap:8px;margin:10px 0"><button type="button" class="btn" id="pr-re">새로고침</button><button type="button" class="btn primary wide" id="pr-go" style="flex:1">인쇄하기</button></div>
+      <div id="pr-msg"></div>
+      <div class="pr-wrap"><iframe id="pr-frame" title="운행일보 미리보기"></iframe></div>
+    </section>
+
     <section class="view" id="v-yong">
       <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <div class="yg-nav"><button type="button" id="yg-prev" aria-label="이전 날">‹</button><b id="yg-d"></b><button type="button" id="yg-next" aria-label="다음 날">›</button></div>
@@ -3519,7 +3537,7 @@ async function loadLogs(more) {
 }
 
 /* ---------- 화면 전환 ---------- */
-const SUBS = { "v-yong": 1, "v-pw": 1, "v-noti": 1, "v-reps": 1, "v-backup": 1, "v-apw": 1, "v-dev": 1, "v-audit": 1, "v-open": 1, "v-list": 1, "v-logs": 1, "v-hol": 1, "v-set": 1, "v-bulk": 1, "v-sites": 1, "v-paste": 1, "v-today": 1, "v-lim": 1 };
+const SUBS = { "v-print": 1, "v-yong": 1, "v-pw": 1, "v-noti": 1, "v-reps": 1, "v-backup": 1, "v-apw": 1, "v-dev": 1, "v-audit": 1, "v-open": 1, "v-list": 1, "v-logs": 1, "v-hol": 1, "v-set": 1, "v-bulk": 1, "v-sites": 1, "v-paste": 1, "v-today": 1, "v-lim": 1 };
 function showView(v) {
   if (v !== "v-ops" && document.body.classList.contains("ops-dim")) { document.body.classList.remove("ops-dim"); try { opsFrame().contentWindow.postMessage({ closeSht: 1 }, "*"); } catch (e) {} }   // 운행기록 화면을 떠나면 그 안 팝업도 닫음
   document.querySelectorAll(".view").forEach(el => el.classList.toggle("on", el.id === v));
@@ -3958,6 +3976,7 @@ addEventListener("message", async e => { const m = e.data || {}, id = frameIdOf(
 });
 const AM_IC = {
   "v-pri": '<path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="18" cy="7" r="1.6"/>',
+  "v-print": '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
   "v-yong": '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
   "v-pw": '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
   "v-sheet": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
@@ -3994,13 +4013,13 @@ const AM_IC = {
   "v-more": '<path d="M4 6h16M4 12h16M4 18h16"/>',
 };
 const AM_GROUPS = [
-  ["운행기록", [["o:today", "입력 현황"], ["v-sheet", "운행 기록표"], ["v-pri", "선배차·평균"], ["o:ga", "가탕 및 정비"], ["o:duty", "집대기·퇴근"], ["o:jo", "조출"], ["o:tn", "터널"], ["o:wk", "공휴일 출근"], ["o:spc", "특이사항 현장"], ["v-yong", "용차 출하"], ["o:ilbo", "일보·엑셀"], ["o:staff", "입퇴사 관리"], ["o:set", "단가 설정"], ["o:noti", "알림 설정"]]],
+  ["운행기록", [["o:today", "입력 현황"], ["v-sheet", "운행 기록표"], ["v-pri", "선배차·평균"], ["o:ga", "가탕 및 정비"], ["o:duty", "집대기·퇴근"], ["o:jo", "조출"], ["o:tn", "터널"], ["o:wk", "공휴일 출근"], ["o:spc", "특이사항 현장"], ["v-yong", "용차 출하"], ["v-print", "출하실 일보 인쇄"], ["o:ilbo", "일보·엑셀"], ["o:staff", "입퇴사 관리"], ["o:set", "단가 설정"], ["o:noti", "알림 설정"]]],
   ["휴가", [["v-month", "휴가·결근 달력"], ["v-day", "날짜별"], ["v-add", "휴가 입력"], ["v-cars", "차량 휴가관리"], ["v-list", "전체 신청 목록"], ["v-lim", "연차 제한"], ["v-hol", "공휴일·휴무일"], ["v-bulk", "새해 일괄 수정"], ["v-set", "휴가 규칙"]]],
   ["현장", [["v-today", "금일 물량"], ["v-sites", "현장 운행거리"], ["v-reps", "영업사원 연락처"]]],
   ["알림 · 기록 · 관리", [["v-open", "기사 탭 잠금"], ["v-noti", "기사님 알림"], ["v-logs", "기록"], ["v-backup", "백업"], ["v-apw", "관리자 비밀번호"], ["v-pw", "계정 및 권한"], ["v-dev", "로그인 기기"], ["v-audit", "관리자 작업 기록"]]],
 ];
 const AM_NAME = Object.fromEntries(AM_GROUPS.flatMap(g => g[1]).concat([["v-more", "전체 메뉴"]]));
-const AM_SHORT = { "o:ga": "가탕·정비", "v-pri": "선배차", "v-yong": "용차", "v-pw": "계정·권한", "v-sheet": "기록표", "v-open": "탭 잠금", "v-dev": "로그인 기기", "v-audit": "작업 기록", "o:today": "입력 현황", "o:duty": "집대기·퇴근", "o:wk": "공휴일", "o:ilbo": "일보", "o:set": "단가설정", "o:staff": "입퇴사", "o:spc": "특이사항", "o:noti": "알림설정", "v-month": "휴가·결근 달력", "v-day": "날짜별", "v-add": "휴가 입력", "v-cars": "차량 휴가", "v-list": "신청 목록", "v-lim": "연차 막기", "v-hol": "휴무일", "v-set": "휴가 규칙", "v-bulk": "일괄 수정", "v-today": "금일 물량", "v-sites": "운행거리", "v-reps": "연락처", "v-noti": "알림", "v-backup": "백업", "v-apw": "비밀번호" };
+const AM_SHORT = { "v-print": "일보 인쇄", "o:ga": "가탕·정비", "v-pri": "선배차", "v-yong": "용차", "v-pw": "계정·권한", "v-sheet": "기록표", "v-open": "탭 잠금", "v-dev": "로그인 기기", "v-audit": "작업 기록", "o:today": "입력 현황", "o:duty": "집대기·퇴근", "o:wk": "공휴일", "o:ilbo": "일보", "o:set": "단가설정", "o:staff": "입퇴사", "o:spc": "특이사항", "o:noti": "알림설정", "v-month": "휴가·결근 달력", "v-day": "날짜별", "v-add": "휴가 입력", "v-cars": "차량 휴가", "v-list": "신청 목록", "v-lim": "연차 막기", "v-hol": "휴무일", "v-set": "휴가 규칙", "v-bulk": "일괄 수정", "v-today": "금일 물량", "v-sites": "운행거리", "v-reps": "연락처", "v-noti": "알림", "v-backup": "백업", "v-apw": "비밀번호" };
 const AM_DEF = ["o:today", "v-month", "v-add", "o:ga"];
 let TABS = AM_DEF.slice();
 try { const t = JSON.parse(localStorage.getItem("admTabsAll") || "null"); if (Array.isArray(t) && t.every(k => AM_NAME[k])) TABS = t.slice(0, 4); } catch (e) {}
@@ -4471,6 +4490,53 @@ function yongDraw() { const LOG = ygLog(), ds = Object.keys(LOG).sort(); if (!YG
       return '<li><div class="yg-h"><b>' + esc(c) + '호</b><span>' + g.n + '회 · ' + g.v + '㎥</span></div><div class="yg-s">' + g.L.map(x => '<div><em>' + hm(x[4]) + '</em>' + esc(x[3]) + '</div>').join("") + '</div></li>'; }).join("") + '</ul>'; }
 document.addEventListener("click", e => { const p = e.target.closest("#yg-prev"), n = e.target.closest("#yg-next"); if (!p && !n) return; const ds = Object.keys(ygLog()).sort(), i = ds.indexOf(YG_D) + (p ? -1 : 1); if (ds[i]) { YG_D = ds[i]; yongDraw(); } });
 { const _sv = showView; showView = function (v) { _sv(v); if (v === "v-yong") yongDraw(); }; }   // 자료는 viewLoad의 yongLoad가 받음
+
+/* ===== 출하실 일보 인쇄 (A4 가로 한 장) · 서버 adminIlbo ===== */
+let PR_D = "", PR = null;
+const prLab = d => { const W = "일월화수목금토", x = new Date(d + "T00:00:00"); return (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일 (" + W[x.getDay()] + ")"; };
+const prDay = d => (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일";
+function prShift(d, n) { const x = new Date(d + "T00:00:00"); x.setDate(x.getDate() + n); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
+async function prLoad() { if (!PR_D) PR_D = TODAY; $("pr-d").textContent = prLab(PR_D); $("pr-next").disabled = PR_D >= TODAY; $("pr-msg").innerHTML = ""; $("pr-go").disabled = true;
+  const d = PR_D, r = await call("adminIlbo", { date: d }); if (d !== PR_D) return;
+  if (!r || !r.ok) { $("pr-msg").innerHTML = '<div class="pr-hold">' + esc(r && r.msg ? r.msg : "자료를 받지 못했습니다.") + '</div>'; return; }
+  PR = r; if (!r.hold) { const sl = A => A.map(x => x.no + (x.site ? "(" + prSite(x.site) + ")" : "")).join(" "); $("pr-wait").value = sl(r.wait); $("pr-late").value = sl(r.late); $("pr-wait-l").textContent = prDay(r.prev) + " 2시간대기 (현장 이름이 길면 줄여서 고쳐 주세요)"; $("pr-late-l").textContent = prDay(r.prev) + " 시간외 출하"; } prDraw(); }
+const prSite = n => String(n).replace(/\(주\)|㈜|주식회사/g, "").replace(/\s+/g, " ").trim();
+function prHtml(R, memo) {
+  const W = "일월화수목금토", dd = new Date(R.date + "T00:00:00"), made = dd.getFullYear() + "년 " + (dd.getMonth() + 1) + "월 " + dd.getDate() + "일 " + W[dd.getDay()] + "요일 작성";
+  const GC = { 1: "#ffff00", 2: "#92d050", 3: "#00b0f0", 4: "#0070c0", 5: "#ff99ff", 6: "#ffc000" }, GT = { 4: "#fff" };
+  const rn = v => { const x = Math.round(v); return x === 0 ? 0 : x; };
+  const grp = {}; R.cars.forEach(c => { const g = Math.min(6, Math.max(1, Math.ceil((+c - 200) / 10))); (grp[g] = grp[g] || []).push(c); });
+  let rows = ""; for (let g = 1; g <= 6; g++) { const L = (grp[g] || []).slice(0, 10); while (L.length < 10) L.push("");
+    rows += '<tr class="h"><th rowspan="2" class="g" style="background:' + GC[g] + ';color:' + (GT[g] || "#000") + '">' + g + '조</th>' + L.map(c => '<th style="background:' + GC[g] + ';color:' + (GT[g] || "#000") + '">' + c + '</th>').join("") + '<th class="sum">' + (g === 1 ? "조별합계" : "") + '</th></tr>' +
+      '<tr class="v">' + L.map(c => { if (!c) return '<td></td>'; const v = rn(R.cum[c]); return '<td' + (v <= -3 ? ' class="neg"' : '') + '>' + v + '</td>'; }).join("") + '<td class="sum">' + (grp[g] ? rn(R.grp[g] || 0) : "") + '</td></tr>'; }
+  const lst = A => A.map(x => esc(x.no) + (x.site || x.why ? "(" + esc(x.site || x.why) + ")" : "")).join(" ");
+  const sec = d => '<tr class="dh"><td colspan="2">' + prDay(d) + '</td></tr>', ln = (k, v, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><th>' + k + '</th><td>' + (v || "") + '</td></tr>';
+  const tx = id => esc($(id).value || "").replace(/\n/g, " ");
+  const low = sec(R.prev) + ln("2시간대기", tx("pr-wait")) + ln("시간외 출하", tx("pr-late")) +
+    sec(R.date) + ln("결&#12288;&#12288;근", lst(R.on.off)) + ln("조퇴/지각", lst(R.on.part)) + ln("선 배 차", R.pick.map(esc).join(" / ")) +
+    sec(R.next) + ln("결근예정", lst(R.nx.off)) + ln("조퇴/지각예정", lst(R.nx.part)) + ln("메&#12288;모", esc(memo || "").replace(/\n/g, "<br>"), "memo");
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>운행일보 ' + R.date + '</title><style>' +
+    '@page{size:A4 landscape;margin:7mm}html,body{margin:0;background:#fff;color:#000;font-family:"Malgun Gothic","맑은 고딕","Noto Sans KR",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    '.pg{width:1083px;margin:0 auto;padding:6px 0}.top{display:grid;grid-template-columns:1fr 300px;border:2px solid #000;border-bottom:0}.top h1{margin:0;text-align:center;font-size:28px;letter-spacing:12px;font-weight:900;padding:2px 0}.top div{display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border-left:1px solid #000}' +
+    'table{border-collapse:collapse;width:100%;table-layout:fixed}td,th{border:1px solid #000;font-size:14px;height:19px;padding:0 6px}' +
+    '.gt{border:2px solid #000}.gt col.c0{width:84px}.gt col.cs{width:112px}.gt .h th{font-weight:800;text-align:center;font-size:19px;height:28px}.gt th.g{font-weight:800;font-size:21px}.gt .v td{text-align:center;font-weight:800;font-size:30px;height:50px;padding:0}.gt td.neg{background:#ffc7ce;color:#9c0006}.gt th.sum{background:#fff;font-weight:800;font-size:17px}.gt td.sum{text-align:center;font-weight:900;font-size:30px}' +
+    '.lo{border:2px solid #000;border-top:0}.lo col.c0{width:108px}.lo th{font-weight:500;text-align:center;font-size:13px;white-space:nowrap}.lo td{font-weight:700;font-size:13.5px;line-height:1.35;padding:1px 6px}.lo tr.dh td{font-weight:800;font-size:14px;border-top:2px solid #000;height:18px}.lo tr.memo th,.lo tr.memo td{height:40px}' +
+    '</style></head><body><div class="pg"><div class="top"><h1>운행일보</h1><div>' + made + '</div></div>' +
+    '<table class="gt"><colgroup><col class="c0">' + '<col>'.repeat(10) + '<col class="cs"></colgroup>' + rows + '</table>' +
+    '<table class="lo"><colgroup><col class="c0"><col></colgroup>' + low + '</table></div>' +
+    '<script>(function(){var g=document.querySelector(".pg"),h=g.scrollHeight;if(h>745)g.style.zoom=(745/h).toFixed(3);})();<\/script></body></html>'; }
+function prDraw() { const R = PR; if (!R) return; const f = $("pr-frame");
+  if (R.hold) { $("pr-msg").innerHTML = '<div class="pr-hold">' + prDay(R.hold.day) + ' 미입력 ' + R.hold.miss.length + '대 (' + R.hold.miss.map(esc).join(", ") + ') · 평균과 선배차가 보류라서 인쇄할 수 없습니다. 미입력 기록을 넣은 뒤 [새로고침]을 눌러 주세요.</div>'; f.srcdoc = ""; $("pr-go").disabled = true; return; }
+  f.srcdoc = prHtml(R, $("pr-memo").value); $("pr-go").disabled = false; prFit(); }
+function prFit() { const w = $("pr-frame").parentElement.clientWidth, k = Math.min(1, (w - 2) / 1123), f = $("pr-frame"); f.style.transform = "scale(" + k + ")"; f.parentElement.style.height = Math.ceil(794 * k) + 2 + "px"; }
+addEventListener("resize", () => { if (CUR === "v-print") prFit(); });
+document.addEventListener("input", e => { if (["pr-memo", "pr-wait", "pr-late"].includes(e.target.id) && PR && !PR.hold) { clearTimeout(prDraw.t); prDraw.t = setTimeout(prDraw, 300); } });
+document.addEventListener("click", e => { const t = e.target;
+  if (t.closest("#pr-prev")) { PR_D = prShift(PR_D || TODAY, -1); return prLoad(); }
+  if (t.closest("#pr-next")) { if ((PR_D || TODAY) >= TODAY) return; PR_D = prShift(PR_D, 1); return prLoad(); }
+  if (t.closest("#pr-re")) return prLoad();
+  if (t.closest("#pr-go")) { if (!PR || PR.hold) return; const w = $("pr-frame").contentWindow; try { w.focus(); w.print(); } catch (x) { toast("인쇄 창을 열지 못했습니다."); } } });
+{ const _sv = showView; showView = function (v) { _sv(v); if (v === "v-print") prLoad(); }; }
 </script>
 <script>/* 팝업이 열려 있으면 뒤 화면이 같이 스크롤되지 않게 (닫으면 보던 위치 그대로) */
 (function () { const SEL = ".sheet.show:not(.inline), .ask.show, .bell-panel.show, .sht.show, .mpop.open"; let locked = false, y = 0, raf = 0;

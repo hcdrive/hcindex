@@ -111,6 +111,11 @@ table.t th.g { text-align: center; background: #eef2fb; color: var(--accent); }
 .warn-box button { border: 1.5px solid #f3b4b4; background: #fff; color: #b42318; border-radius: 8px; height: 30px; padding: 0 10px; font-weight: 800; cursor: pointer; }
 .sheet { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: none; align-items: center; justify-content: center; z-index: 40; padding: 16px; }
 .sheet.show { display: flex; } .sheet .box { overflow-x: hidden; background: var(--card); border-radius: 18px; width: 100%; max-width: 560px; max-height: 92vh; overflow: auto; padding: 18px 20px; }
+.kfx-box { max-width: 760px !important; } .kfx-box textarea { width: 100%; box-sizing: border-box; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; font-size: 15px; min-height: 220px; resize: vertical; background: var(--bg); color: inherit; }
+.kfx-t td, .kfx-t th { white-space: nowrap; } .kfx-t td.why { white-space: normal; min-width: 120px; } .kfx-st { display: inline-block; border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 800; }
+.kfx-st.ok { background: #e6f4ea; color: #188038; } .kfx-st.same { background: #eef0f3; color: var(--muted); } .kfx-st.bad { background: #fdecea; color: var(--red); }
+.kfx-skip { background: #fff3c4; color: #7a5a00; border-radius: 10px; padding: 8px 12px; margin: 8px 0; font-size: 14.5px; line-height: 1.6; } .kfx-nt { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; margin: 10px 0 0; }
+.kfx-nt input { width: 20px; height: 20px; }
 .sheet h3 { margin: 0 0 4px; font-size: 20px; } .sheet .sub { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
 .fg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; } .fg label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(--muted); }
 .fg input { width: 100%; min-width: 0; height: 44px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 10px; font: inherit; font-size: 17px; font-weight: 800; text-align: right; color: var(--fg); }
@@ -245,7 +250,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
   <section class="card" id="v-next"><h2>다음 근무일 예정 <small id="nx-sub"></small><span class="r nx-rf"><span id="nx-at"></span><button type="button" class="btn rf-btn" id="nx-rf">새로고침</button></span></h2><div class="nx" id="nx"></div></section>
   <section class="card" id="v-day">
     <h2>차량별 기록 <small id="live"></small><small>차량을 누르면 일일기록 · 수정은 일일기록에서 · 노란 칸 = 관리팀이 고친 값 · 빨간 칸 = 확인 필요</small></h2>
-    <div class="flt"><input type="search" id="q" placeholder="호차 찾기 (예: 214)" enterkeyhint="search"><button class="btn pri xls" style="margin-left:auto">엑셀로 받기</button></div>
+    <div class="flt"><input type="search" id="q" placeholder="호차 찾기 (예: 214)" enterkeyhint="search"><button type="button" class="btn" id="kfx-open" style="margin-left:auto">카톡 정정 붙여넣기</button><button class="btn pri xls">엑셀로 받기</button></div>
     <div id="warn"></div>
     <div class="tw"><table class="t" id="dt"></table></div>
     <p class="note">수정하면 기사님께 수정 알림이 가고, 고친 값은 기사님 화면·평균·운반비에 바로 반영되며 '수정 기록'에 남습니다.</p>
@@ -310,6 +315,12 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
   <div class="acts" style="grid-template-columns:1fr"><button class="btn pri" id="chg-ok">확인</button></div>
 </div></div>
 
+<div class="sheet" id="kfx"><div class="box kfx-box"><h3>카톡 정정 붙여넣기</h3>
+  <div id="kfx-in"><p class="note">관리팀이 카톡으로 보낸 내용을 그대로 붙여넣고 [내용 확인]을 누르세요. 날짜 줄(예: 10월 21일) 아래 '호수 : 이전-정정(사유)' 또는 '호수 : 통행료 금액' 줄을 읽습니다. 바로 저장하지 않고 먼저 보여 드립니다.</p>
+  <textarea id="kfx-t" placeholder="10월 21일&#10;207 : 135-140(계산실수)&#10;209 : 통행료 7,800원" enterkeyhint="done"></textarea><p class="shp-msg" id="kfx-msg"></p>
+  <div class="acts"><button type="button" class="btn" data-close="kfx">닫기</button><button type="button" class="btn pri" id="kfx-chk">내용 확인</button></div></div>
+  <div id="kfx-pv" hidden><div id="kfx-b"></div><label class="kfx-nt"><input type="checkbox" id="kfx-ntf" checked>고친 차량 기사님께 알림 보내기</label>
+  <div class="acts"><button type="button" class="btn" id="kfx-back">다시 붙여넣기</button><button type="button" class="btn pri" id="kfx-ok">반영하기</button></div></div></div></div>
 <div class="sheet" id="shc"><div class="box shp-box"><h3>출하기록 적용 확인</h3><div id="shc-b"></div>
   <div class="acts"><button type="button" class="btn" data-close="shc">취소</button><button type="button" class="btn pri" id="shc-ok">적용하기</button></div></div></div>
 <div class="sheet" id="shp"><div class="box shp-box"><h3>출하기록 붙여넣기</h3>
@@ -319,7 +330,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
 <div class="toast" id="toast"></div>
 <script>
 const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
-const APP_VER = "20261105e";
+const APP_VER = "20261105f";
 const PAGE_KEY = "acct";
 const $ = id => document.getElementById(id);
 </script>
@@ -653,7 +664,7 @@ function shipApply(A, name) { const by = {};
 async function shipPut(d, v, label, detail) { const r = await api("adminKvSet", { kind: "ship", key: d, value: v, label, detail }); if (!r.ok) { toast(r.msg || "저장하지 못했습니다.", true); return false; } if (v) SHIPLOG[d] = v; else delete SHIPLOG[d]; return true; }
 document.addEventListener("click", async e => { const t = e.target;
   const c = t.closest("[data-close]"); if (c) return hideSheet(c.dataset.close);
-  if (t.classList && t.classList.contains("sheet") && ["shc", "shp"].includes(t.id)) return hideSheet(t.id);
+  if (t.classList && t.classList.contains("sheet") && ["shc", "shp", "kfx"].includes(t.id)) return hideSheet(t.id);
   if (t.closest("#shc-ok") && SHC) { const { by, name, ds } = SHC, at = nowAt(), b = $("shc-ok"); if (b.disabled) return; b.disabled = true; b.textContent = "저장 중…";
     let done = 0; for (const d of ds) { const prev = SHIPLOG[d] || null; if (await shipPut(d, { file: name, rows: by[d], by: "관리자", at }, md(d) + " 출하기록 올림", name + " · " + by[d].length + "건")) { SHIP_PREV[d] = { v: prev, at }; done++; } }
     b.disabled = false; b.textContent = "적용하기"; SHC = null; hideSheet("shc"); if (ALLD.includes(ds[0])) D = ds[0]; DIST_M = null; draw();
@@ -673,6 +684,47 @@ document.addEventListener("click", e => { const t = e.target;
     const n = shipApply(A, "붙여넣기");
     if (!n) { $("shp-msg").textContent = "출하일자·차량번호가 있는 줄을 찾지 못했습니다. 엑셀 전체를 선택해서 복사했는지 확인해 주세요."; return; }
     hideSheet("shp"); } });
+// ===== 카톡 정정 붙여넣기 (관리자) =====
+//  관리팀 카톡: '10월 21일' 날짜 줄 아래 '207 : 135-140(계산실수)' = 운행거리 135 → 140 · '209 : 통행료 7,800원' = 통행료를 7,800원으로
+//  미리보기에서 지금 값과 맞춰 보고 → [반영하기] → 서버 adminFixPaste (지금 값이 카톡 '이전' 값과 다르면 서버도 건너뜀)
+let KFX = null;
+function kfxYear(m, d) { const y = +TODAY.slice(0, 4); let k = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"); if (k > TODAY) k = (y - 1) + k.slice(4); return k; }
+function kfxParse(txt) { const items = [], skip = []; let day = "";
+  String(txt || "").replace(/\r/g, "").split("\n").forEach(raw => { const l = raw.trim(); if (!l) return;
+    let m = l.match(/^(\d{1,2})\s*월\s*(\d{1,2})\s*일/) || l.match(/^(\d{1,2})\s*[./]\s*(\d{1,2})\s*(?:\(.*\))?\s*$/);
+    if (m) { day = kfxYear(+m[1], +m[2]); return; }
+    m = l.match(/^(\d{3})\s*(?:호)?\s*[:：]?\s*(.+)$/); if (!m || !day) return skip.push(l);
+    const no = m[1], rest = m[2].trim();
+    if (/통행료/.test(rest)) { const t = rest.match(/통행료\s*([\d,]+)\s*원?/); if (!t) return skip.push(l); return items.push({ d: day, no, k: "toll", from: null, to: +t[1].replace(/,/g, ""), why: "통행료 정정", line: l }); }
+    const k = rest.match(/^(\d+)\s*[-–~→>]\s*(\d+)\s*(?:\((.*)\))?\s*$/); if (!k) return skip.push(l);
+    const why = (k[3] || "").trim().replace(/(\d+)\s*[-–~]\s*(\d+)/g, "$1→$2") || "관리팀 정정";
+    items.push({ d: day, no, k: "km", from: +k[1], to: +k[2], why, line: l }); });
+  return { items, skip }; }
+function kfxCheck(it) { if (!CARS.includes(it.no)) return ["bad", "없는 호수"]; if (it.d < REC_START) return ["bad", "기록 시작 전 날짜"];
+  const r = rec(it.no, it.d); if (r.st !== "work") return ["bad", "운행기록 없음"];
+  const now = +r[it.k] || 0; it.cur = now; if (now === it.to) return ["same", "이미 반영됨"];
+  if (it.k === "km" && it.from !== now) return ["bad", "지금 값이 " + now + " (카톡 이전 값 " + it.from + ")"];
+  return ["ok", "반영"]; }
+function kfxDraw() { const { items, skip } = KFX; items.forEach(it => { [it.st, it.msg] = kfxCheck(it); });
+  const n = items.filter(x => x.st === "ok").length, fmt = (k, v) => v === null || v === undefined ? "" : k === "toll" ? (+v).toLocaleString("ko-KR") + "원" : v + "km";
+  $("kfx-b").innerHTML = '<div class="sh-sum"><div class="ok"><small>반영할 것</small><b>' + n + '</b>건</div><div><small>이미 반영됨</small><b>' + items.filter(x => x.st === "same").length + '</b>건</div><div class="' + (items.some(x => x.st === "bad") ? "bad" : "") + '"><small>확인 필요 (안 고침)</small><b>' + items.filter(x => x.st === "bad").length + '</b>건</div></div>' +
+    (items.length ? '<div class="tw"><table class="t kfx-t"><tr><th class="l">날짜</th><th>호차</th><th class="l">항목</th><th>지금 값</th><th>카톡</th><th class="l">사유</th><th class="l">결과</th></tr>' + items.map(it => '<tr><td class="l">' + md(it.d) + '</td><td><b>' + esc(it.no) + '</b></td><td class="l">' + (it.k === "km" ? "운행거리" : "통행료") + '</td><td>' + fmt(it.k, it.cur) + '</td><td>' + (it.k === "km" ? it.from + " → " : "") + '<b>' + fmt(it.k, it.to) + '</b></td><td class="l why">' + esc(it.why) + '</td><td class="l"><span class="kfx-st ' + it.st + '">' + esc(it.msg) + '</span></td></tr>').join("") + '</table></div>' : '') +
+    (skip.length ? '<div class="kfx-skip"><b>읽지 못한 줄 ' + skip.length + '개 (반영 안 함 · 필요하면 일일기록에서 직접 고쳐 주세요)</b><br>' + skip.map(esc).join("<br>") + '</div>' : '');
+  $("kfx-ok").textContent = n ? n + "건 반영하기" : "반영할 것 없음"; $("kfx-ok").disabled = !n; }
+document.addEventListener("click", async e => { const t = e.target;
+  if (t.closest("#kfx-open")) { $("kfx-t").value = ""; $("kfx-msg").textContent = ""; $("kfx-in").hidden = false; $("kfx-pv").hidden = true; KFX = null; showSheet("kfx"); setTimeout(() => $("kfx-t").focus(), 60); return; }
+  if (t.closest("#kfx-back")) { $("kfx-in").hidden = false; $("kfx-pv").hidden = true; return; }
+  if (t.closest("#kfx-chk")) { const v = $("kfx-t").value; if (!v.trim()) { $("kfx-msg").textContent = "붙여넣은 내용이 없습니다."; return; }
+    KFX = kfxParse(v); if (!KFX.items.length) { $("kfx-msg").textContent = "날짜 줄과 '호수 : 이전-정정' 줄을 찾지 못했습니다. 카톡 내용을 그대로 붙여넣었는지 확인해 주세요."; return; }
+    $("kfx-in").hidden = true; $("kfx-pv").hidden = false; kfxDraw(); $("kfx").querySelector(".box").scrollTop = 0; return; }
+  if (t.closest("#kfx-ok") && KFX) { const b = $("kfx-ok"); if (b.disabled) return; const go = KFX.items.filter(x => x.st === "ok"); if (!go.length) return;
+    b.disabled = true; b.textContent = "반영 중…";
+    const r = await api("adminFixPaste", { items: go.map(x => ({ d: x.d, no: x.no, k: x.k, from: x.from, to: x.to, why: x.why })), notify: $("kfx-ntf").checked });
+    if (!r || !r.ok) { b.disabled = false; b.textContent = go.length + "건 반영하기"; return toast(r && r.msg ? r.msg : "반영하지 못했습니다. 잠시 후 다시 시도해 주세요.", true); }
+    let ok = 0; (r.items || []).forEach(x => { if (x.st !== "ok") return; ok++; (REAL[x.d] = REAL[x.d] || {})[x.no] = x.rec; const E = convEdits({ [x.d]: { [x.no]: x.edits } }); (EDITS[x.d] = EDITS[x.d] || {})[x.no] = E[x.d][x.no]; if (CHK[x.d]) delete CHK[x.d][x.no]; });
+    const miss = (r.items || []).filter(x => x.st !== "ok");
+    hideSheet("kfx"); KFX = null; draw(); syncNow();
+    return toast(ok + "건 반영했습니다." + (miss.length ? " " + miss.length + "건은 그 사이 값이 바뀌어 건너뛰었습니다." : ""), !!miss.length); } });
 function drawShip() { const L = SHIPLOG[D], S = dayStat(D), R = S.R; drawTun(); drawYong();
   $("sh-sub").innerHTML = esc(mdL(D)) + (L ? " · " + esc(upLab(L)) : "") + (SHIP_PREV[D] ? '<button type="button" class="btn sh-undo" data-shundo="' + D + '">되돌리기</button>' : "");
   if (!L) { $("sh-body").innerHTML = '<div class="sh-empty">' + mdL(D) + ' 출하기록이 아직 없습니다.<br>위 [출하기록 파일 올리기]로 그날 엑셀을 올려 주세요.</div>'; $("sh-miss").innerHTML = '<div class="sh-empty">출하기록을 올리면 나옵니다.</div>'; }
