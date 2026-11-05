@@ -319,7 +319,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
 <div class="toast" id="toast"></div>
 <script>
 const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
-const APP_VER = "20261104b";
+const APP_VER = "20261105e";
 const PAGE_KEY = "acct";
 const $ = id => document.getElementById(id);
 </script>
@@ -777,7 +777,7 @@ function draw() { document.querySelectorAll("#vtabs [data-v]").forEach(b => b.cl
   $("v-day").hidden = V !== "day"; $("v-next").hidden = V !== "day"; $("v-month").hidden = V !== "month"; $("v-car").hidden = V !== "car"; $("v-log").hidden = V !== "log"; $("v-ship").hidden = V !== "ship"; ["v-ship2", "v-ship3", "v-ship4", "v-ship5"].forEach(k => $(k).hidden = V !== "ship" || !ADMIN_VIEW); $("dnav").style.display = V === "day" || V === "ship" ? "" : "none"; const mv = V === "month" || V === "car"; $("mnav").style.display = mv ? "" : "none";
   if (mv) { const i = MONTHS.indexOf(MON); $("m-t").textContent = MON.slice(0, 4) + "년 " + ML(); $("m-prev").disabled = i <= 0; $("m-next").disabled = i >= MONTHS.length - 1; } $("kcard").hidden = V === "log" || V === "site" || V === "ship"; $("v-site").hidden = V !== "site"; if (V === "site") drawSite();
   $("dbig").hidden = V === "log" || V === "site";
-  if (V === "day" || V === "ship") { $("dbig-t").textContent = mdL(D); $("dbig-tag").textContent = D === TODAY ? "오늘" : "지난 날짜"; $("dbig-tag").className = D === TODAY ? "t-today" : "t-past"; }
+  if (V === "day" || V === "ship") { const di = ALLD.indexOf(D); $("d-t").textContent = mdL(D); $("d-in").value = D; $("d-prev").disabled = di <= 0; $("d-next").disabled = di >= ALLD.length - 1; $("dbig-t").textContent = mdL(D); $("dbig-tag").textContent = D === TODAY ? "오늘" : "지난 날짜"; $("dbig-tag").className = D === TODAY ? "t-today" : "t-past"; }
   else { const cur = MON === TODAY.slice(0, 7); $("dbig-t").textContent = MON.slice(0, 4) + "년 " + ML() + (V === "car" ? " · " + CAR + "호" : ""); $("dbig-tag").textContent = cur ? "이번 달" : "지난 달"; $("dbig-tag").className = cur ? "t-today" : "t-past"; }
   drawKpi(); if (V === "day") drawDay(); if (V === "month") drawMonth(); if (V === "car") drawCar(); if (V === "log") drawLog(); if (V === "ship") drawShip(); }
 // 고치기
