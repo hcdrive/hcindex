@@ -765,7 +765,7 @@ function drawDay() { drawNext();
   $("dt").innerHTML = '<tr><th>호차</th><th class="l">상태</th>' + COLS.map(([k, n]) => '<th>' + n + '</th>').join("") + '</tr>' +
     L.map(c => { const r = R[c], e = r.edited;
       if (r.st !== "work") return '<tr class="off" data-rec="' + c + '"><td class="no">' + c + '</td><td class="l">' + stLab(r) + '</td>' + COLS.map(() => '<td class="z">-</td>').join("") + '</tr>';
-      return '<tr data-rec="' + c + '"><td class="no">' + c + '</td><td class="l">' + stLab(r) + '</td>' + COLS.map(([k]) => { const v = k === "back19" ? (r[k] ? "○" : "") : r[k], ch = e && k in e.v, w = k === "km" && kmWarn(r), sx = k === "real" && shipDiff(c, D) !== null;
+      return '<tr data-rec="' + c + '"><td class="no">' + c + '</td><td class="l">' + stLab(r) + '</td>' + COLS.map(([k]) => { const v = k === "back19" ? (r[k] ? 1 : 0) : r[k], ch = e && k in e.v, w = k === "km" && kmWarn(r), sx = k === "real" && shipDiff(c, D) !== null;
         return '<td class="ed' + (ch ? ' chg' : '') + (w ? ' warn' : '') + (sx ? ' sh-x' : '') + '" data-k="' + k + '"' + (sx ? ' title="출하기록 ' + shipDiff(c, D) + '회 (8시 전·17시 후 포함) · 기사님 ' + mineTxt(r) + '"' : '') + (ch ? ' title="원래 ' + (k === "back19" ? (e.orig[k] ? "○" : "없음") : e.orig[k]) + '"' : '') + '>' + (v === 0 || v === "" ? '<span class="z">0</span>' : (k === "toll" ? (+v).toLocaleString("ko-KR") : v)) + '' + '</td>'; }).join("") +
         '</tr>'; }).join("") ||
     '<tr><td colspan="13" class="l" style="padding:18px;color:var(--muted)">해당 차량이 없습니다.</td></tr>';
@@ -804,7 +804,7 @@ function carSum(c) { const T = { work: 0, ab: 0, home: 0 }; CCOLS.forEach(([k]) 
   return T; }
 function drawCar() { const sel = $("c-sel"); if (!sel.options.length) sel.innerHTML = CARS.map(c => '<option value="' + c + '">' + c + '호</option>').join(""); sel.value = CAR;
   const i = CARS.indexOf(CAR); $("c-prev").disabled = i <= 0; $("c-next").disabled = i >= CARS.length - 1;
-  const T = carSum(CAR), num = (k, v) => k === "back19" ? (v ? "○" : '<span class="z">0</span>') : !v ? '<span class="z">0</span>' : k === "toll" || k === "km" ? (+v).toLocaleString("ko-KR") : v;
+  const T = carSum(CAR), num = (k, v) => (k === "back19" && (v = v ? 1 : 0), !v) ? '<span class="z">0</span>' : k === "toll" || k === "km" ? (+v).toLocaleString("ko-KR") : v;
   $("ct").innerHTML = '<tr><th>날짜</th><th>상태</th>' + CCOLS.map(([, n]) => '<th>' + n + '</th>').join("") + '</tr>' +
     MD().map(d => { const r = rec(CAR, d), e = r.edited;
       return '<tr data-crec="' + d + '"' + (r.st !== "work" ? ' class="off"' : '') + '><td class="no">' + md(d) + '</td><td>' + stLab(r) + '</td>' +
