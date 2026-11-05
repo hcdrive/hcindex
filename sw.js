@@ -3,7 +3,7 @@
    - 구글 시트와 주고받는 자료(script.google.com)는 손대지 않음 */
 // 휴대폰 푸시 알림 (원시그널): 알림을 받고, 누르면 앱을 여는 일을 맡김
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"); } catch (e) {}
-const CACHE = "hc-app-v40";
+const CACHE = "hc-app-v41";
 const FILES = ["./", "./index.html", "./run.html", "./ship.html", "./acct.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./admin.html", "./ops.html", "./sheet.html", "./pri.html", "./hc-config.js", "./hc-live.js", "./admin.webmanifest", "./admin-icon-192.png", "./admin-apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener("activate", e => {
