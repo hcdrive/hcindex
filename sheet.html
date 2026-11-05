@@ -647,9 +647,17 @@ document.addEventListener("change", e => { if (e.target.id !== "sh-file") return
 const SHIP_PREV = {};
 const nowAt = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 16).replace("T", " ");
 let SHC = null;
-function shipApply(A, name) { const by = {};
-  A.forEach(r => { const m = String(r[0] || "").trim().match(/^(\d{4})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})/); if (!m) return; const d = m[1] + "-" + m[2].padStart(2, "0") + "-" + m[3].padStart(2, "0"), c = String(r[1] || "").trim(); if (!c) return;
-    (by[d] = by[d] || []).push([c, r[2] || "", r[3] || "", String(r[4] || "").trim(), String(r[5] || "").replace(/\D/g, "").padStart(4, "0"), +r[6] || 0, +r[7] || 0]); });
+// 엑셀 칸 위치는 제목 줄(출하일자·차량번호·운전자·소속·거래처 현장·출하시간·회전수·운반량)을 찾아 이름으로 맞춤 (2026-11 양식에서 운전자·소속 칸이 빠짐)
+//  제목 줄이 없으면(붙여넣기에서 제목을 빼고 복사한 경우) 출하시간 칸 위치로 판단: 6번째 칸 = 예전 양식, 4번째 칸 = 새 양식
+function shipCols(A) { const nk = s => String(s == null ? "" : s).replace(/\s+/g, "");
+  for (const r of A.slice(0, 15)) { const h = (r || []).map(nk); if (!h.includes("출하일자")) continue;
+    const at = (...ks) => { for (const k of ks) { const i = h.indexOf(k); if (i >= 0) return i; } for (const k of ks) { const i = h.findIndex(x => x && x.includes(k)); if (i >= 0) return i; } return -1; };
+    return { d: at("출하일자"), c: at("차량번호", "차량"), dr: at("운전자", "기사"), so: at("소속"), s: at("거래처현장", "현장", "거래처"), t: at("출하시간", "시간"), n: at("회전수", "회전"), v: at("운반량", "물량") }; }
+  const D = A.slice(0, 60).filter(r => /^\d{4}\s*[-./]/.test(String((r || [])[0] || "").trim())), tm = i => D.filter(r => /^\d{3,4}$/.test(String(r[i] == null ? "" : r[i]).trim())).length;   // 출하시간(0947)이 있는 칸으로 판단
+  return tm(5) > tm(3) ? { d: 0, c: 1, dr: 2, so: 3, s: 4, t: 5, n: 6, v: 7 } : { d: 0, c: 1, dr: -1, so: -1, s: 2, t: 3, n: 4, v: 5 }; }
+function shipApply(A, name) { const by = {}, K = shipCols(A), g = (r, i) => i >= 0 ? r[i] : "";
+  A.forEach(r => { r = r || []; const m = String(g(r, K.d) || "").trim().match(/^(\d{4})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})/); if (!m) return; const d = m[1] + "-" + m[2].padStart(2, "0") + "-" + m[3].padStart(2, "0"), c = String(g(r, K.c) || "").trim(); if (!c) return;
+    (by[d] = by[d] || []).push([c, g(r, K.dr) || "", g(r, K.so) || "", String(g(r, K.s) || "").trim(), String(g(r, K.t) || "").replace(/\D/g, "").padStart(4, "0"), +g(r, K.n) || 0, +g(r, K.v) || 0]); });
   const ds = Object.keys(by).sort(); if (!ds.length) return 0;
   SHC = { by, name, ds };
   $("shc-b").innerHTML = ds.map(d => { const R = by[d], cars = new Set(R.filter(x => ourCar(x[0])).map(x => x[0])), old = SHIPLOG[d], w = [];
@@ -657,6 +665,7 @@ function shipApply(A, name) { const by = {};
       if (d > TODAY) w.push("오늘(" + md(TODAY) + ")보다 뒤 날짜입니다.");
       else if (!isWork(d)) w.push(md(d) + "은 근무일이 아닙니다.");
       if (cars.size < 10) w.push("운행차량이 " + cars.size + "대뿐입니다. 다른 공장·다른 파일이 아닌지 확인해 주세요.");
+      if (cars.size && !R.filter(x => ourCar(x[0])).reduce((a, x) => a + x[5], 0)) w.push("회전수가 모두 0입니다. 엑셀 양식(칸 순서)이 바뀌었을 수 있으니 올리지 말고 알려 주세요.");
       return '<ul class="shc-l"><li><span>출하일자</span><b>' + mdL(d) + '</b></li><li><span>출하 건수</span><b>' + R.length + '건</b></li><li><span>운행차량</span><b>' + cars.size + '대 · ' + R.filter(x => ourCar(x[0])).reduce((a, x) => a + x[5], 0) + '회</b></li><li><span>' + (name.startsWith("붙여넣기") ? "가져온 방법" : "파일") + '</span><b>' + esc(name) + '</b></li></ul>' +
         w.map(x => '<div class="shc-w">' + esc(x) + '</div>').join("") +
         (old ? '<div class="shc-i">' + md(d) + '에 이미 올린 기록이 있습니다 (' + esc(upLab(old)) + '). 적용하면 새 내용으로 바뀝니다. 바꾼 뒤 [되돌리기]로 한 번 되돌릴 수 있습니다.</div>' : ''); }).join("");
