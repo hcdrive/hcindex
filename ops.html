@@ -264,6 +264,7 @@
   .clist .vv i { font-style: normal; font-size: 11px; font-weight: 800; color: var(--amber); } .clist .vv i.r { color: var(--red); } .clist .vv i.w { color: var(--amber); background: var(--amber-bg); border-radius: 5px; padding: 0 3px; white-space: nowrap; }
   @media (max-width: 360px) { .clist .vv i.w { font-size: 10px; padding: 0 2px; } .clist .chip2 { font-size: 10.5px; } }
   .clist .grp { grid-column: 1 / -1; display: block; min-height: 0; border: 0; padding: 6px 2px 0; background: none; cursor: default; text-align: left; font-size: 13px; font-weight: 800; color: var(--muted); }
+  .clist .sa { font-style: normal; font-weight: 900; color: #5b3cc4; } .clist li:has(.sa) { background: #efeaff; border-color: #c4b5f5; }
   .clist .gw { font-style: normal; font-weight: 900; } .clist .gw.jt, .clist .gw.jg { color: #c66a00; } .clist .gw.jb { color: #b0306a; }
   .clist li:has(.gw.jt), .clist li:has(.gw.jg) { background: #fff1d6; border-color: #f5c58a; } .clist li:has(.gw.jb) { background: var(--pink-bg); border-color: #f2a6c8; }
   .clist li.st-none { border-color: var(--red); background: var(--red-bg); } .clist li.st-none .chip2 { color: var(--red); }
@@ -1477,6 +1478,8 @@ function dayStat(d) {
 
 /* ---------- 입력 현황 ---------- */
 let AD = "", AF = "all";
+// 관리팀 출하기록 회전수로 관리자가 대신 넣은 기록 (기사님이 직접 쓰지 않음)
+const shipAuto = (d, c) => { const L = (EDITS[d] || {})[c] || [], e = L[L.length - 1]; return !!e && /출하기록 회전수로 대신 입력/.test(String(e.why || "")); };   // 그 뒤에 관리자가 고치면 표시 없어짐
 const STL = { work: "작성", none: "미입력", leave: "휴가", absent: "결근", home: "집대기", off: "쉬는 날" };
 function drawToday() {
   if (!AD) return; syncGa(AD);
@@ -1485,7 +1488,7 @@ function drawToday() {
   const missLbl = AD === TODAY && nowH() < 17 ? "운행 중" : "미입력";
   const gaW = Object.keys(GA_WAIT[AD] || {}).filter(c => S.R[c].st === "work" && S.R[c].ga === null);
   const offN = CARS.filter(c => ["leave", "absent", "home"].includes(S.R[c].st)).length, goN = CARS.filter(c => S.R[c].go).length;
-  const done = !S.miss.length && !gaW.length;
+  const done = !S.miss.length && !gaW.length, saN = CARS.filter(c => S.R[c].st === "work" && shipAuto(AD, c)).length;
   $("a-sum").innerHTML = '<div><small>작성</small><b>' + S.done + '<em>/' + S.need + '대</em></b></div>' +
     '<div class="' + (S.miss.length && missLbl === "미입력" ? 'bad' : '') + '"><small>' + missLbl + '</small><b>' + S.miss.length + '<em>대</em></b></div>' +
     '<div><small>휴가·결근·집대기</small><b>' + offN + '<em>대</em></b></div>' +
@@ -1493,18 +1496,19 @@ function drawToday() {
   let p = "";
   if (S.miss.length && missLbl === "미입력") p += '<div class="alert"><b>미입력 ' + S.miss.length + '대</b> ' + S.miss.join(" · ") + '<div class="btn2" style="margin-top:8px"><button type="button" class="go nl-btn" data-push="miss" data-nl-need="미입력 알림 (관리자가 바로 보냄)" data-nloff="push-off" style="height:46px">지금 알림 보내기</button><button type="button" class="ghost" data-flt="none" style="height:46px">대신 입력하기</button></div><p class="nl-off" id="push-off" hidden>이 알림이 꺼져 있어 보낼 수 없습니다. <button type="button" class="nl-goto" data-nlgo="미입력 알림 (관리자가 바로 보냄)">알림 설정으로 이동하기</button></p><small>' + (window.RUN_LOCK ? '운행기록 탭이 테스트 중이라 밤 8시 자동 알림도 보내지 않습니다. ' : '밤 8시에 자동으로 한 번 더 보냅니다. ') + '밤 12시가 지나면 관리자가 대신 입력해 주세요.</small></div>';
   if (gaW.length) p += '<div class="alert amber"><b>가탕 입력 대기 ' + gaW.length + '대</b> <span style="font-weight:600">· 눌러서 가탕 입력</span><div class="gsq">' + gaW.map(c => '<button type="button" data-gain="' + c + '"><b>' + c + '</b><span class="w-' + GA_WAIT[AD][c] + '">' + GA_WAIT[AD][c] + '</span><small>가탕 입력</small></button>').join("") + '</div></div>';
+  if (saN) p += '<div class="alert" style="background:#efeaff;border-color:#c4b5f5;color:#3b2690"><b>출하기록으로 대신 입력 ' + saN + '대</b> <span style="font-weight:600">· 기사님이 직접 쓰지 않아 회전수만 있고 운행거리 등은 비어 있습니다</span> <button type="button" data-flt="sa" style="margin-left:6px;height:32px;padding:0 12px;border:1px solid #c4b5f5;border-radius:8px;background:#fff;color:#3b2690;font-weight:800;font-size:14px;cursor:pointer">차량 보기</button></div>';
   if (done) p += '<div class="ok-done">모든 차량 작성 완료 · 평균과 운행일보가 확정됐습니다.</div>';
   if (past) p += '<p class="note">지난 날짜를 고치면 평균이 다시 계산되고, 순위가 바뀐 차량에 정정 알림이 갑니다.</p>';
   $("a-push").innerHTML = p;
-  const F = [["all", "전체", CARS.length], ["none", missLbl, S.miss.length], ["work", "작성", S.done], ["off", "휴가·결근·집대기", offN], ["go", "퇴근조", goN]];
+  const F = [["all", "전체", CARS.length], ["none", missLbl, S.miss.length], ["work", "작성", S.done], ["sa", "출하기록 입력", saN], ["off", "휴가·결근·집대기", offN], ["go", "퇴근조", goN]];
   $("a-filter").innerHTML = F.filter(x => x[0] === "all" || x[2]).map(([k, n, c]) => '<button type="button" data-flt="' + k + '"' + (AF === k ? ' class="on"' : '') + '>' + n + ' ' + c + '</button>').join("");
-  const show = c => { const r = S.R[c]; return AF === "all" || (AF === "none" && r.st === "none") || (AF === "work" && r.st === "work") || (AF === "off" && ["leave", "absent", "home"].includes(r.st)) || (AF === "go" && r.go); };
+  const show = c => { const r = S.R[c]; return AF === "all" || (AF === "none" && r.st === "none") || (AF === "work" && r.st === "work") || (AF === "sa" && r.st === "work" && shipAuto(AD, c)) || (AF === "off" && ["leave", "absent", "home"].includes(r.st)) || (AF === "go" && r.go); };
   let lastG = 0;
   $("a-list").innerHTML = CARS.filter(show).map(c => { const g = groupOf(c), gh = g !== lastG ? '<li class="grp">' + g + '조</li>' : ''; lastG = g; const r = S.R[c], st = r.st === "none" ? (missLbl === "운행 중" ? "run" : "none") : r.st;
     // 칸 크기를 모두 같게: 호수 · 상태 · 회수 · 덧붙임(영내·가탕) 네 줄을 항상 같은 자리에
     const val = r.st === "work" ? '<b>' + r.real + '<small>회</small></b>' : '';
     const ext = r.st === "work" ? (r.yard ? '<i>영' + r.yard + '</i>' : '') + (r.ga === null ? '<i class="w">가탕대기</i>' : r.ga ? '<i class="r">가' + r.ga + '</i>' : '') : r.st === "absent" ? '<i class="r">가' + (r.ga && !r.gaAuto ? r.ga : S.gaAbs) + '</i>' : '';
-    return gh + '<li data-car="' + c + '" class="st-' + st + (r.go ? ' go' : '') + '"><span class="no">' + c + '<small>' + groupOf(c) + '조</small></span><span class="chip2">' + (r.st === "leave" ? r.lv : r.st === "none" ? (missLbl) : r.st === "work" && ((GA_WAIT[AD] || {})[c] || (GA_WHY[AD] || {})[c]) ? '<em class="gw ' + ({ 조퇴: "jt", 지각: "jg", 외출: "jt", 총회지각: "jg", 정비: "jb" }[String((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]).split("·")[0]] || "jt") + '">' + ((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]) + '</em>' : STL[r.st]) + (r.go ? ' 퇴근' : '') + '</span><span class="vv">' + val + '</span><span class="ex">' + ext + '</span></li>'; }).join("") || '<li class="empty">해당 차량이 없습니다.</li>';
+    return gh + '<li data-car="' + c + '" class="st-' + st + (r.go ? ' go' : '') + '"><span class="no">' + c + '<small>' + groupOf(c) + '조</small></span><span class="chip2">' + (r.st === "leave" ? r.lv : r.st === "none" ? (missLbl) : r.st === "work" && ((GA_WAIT[AD] || {})[c] || (GA_WHY[AD] || {})[c]) ? '<em class="gw ' + ({ 조퇴: "jt", 지각: "jg", 외출: "jt", 총회지각: "jg", 정비: "jb" }[String((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]).split("·")[0]] || "jt") + '">' + ((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]) + '</em>' : r.st === "work" && shipAuto(AD, c) ? '<em class="sa">출하기록</em>' : STL[r.st]) + (r.go ? ' 퇴근' : '') + '</span><span class="vv">' + val + '</span><span class="ex">' + ext + '</span></li>'; }).join("") || '<li class="empty">해당 차량이 없습니다.</li>';
 }
 document.addEventListener("click", e => { const t = e.target;
   if (t.closest("#a-dprev") || t.closest("#a-dnext")) { const w = workDays(), i = w.indexOf(AD) + (t.closest("#a-dprev") ? -1 : 1); if (w[i]) { AD = w[i]; AF = "all"; drawToday(); } return; }
