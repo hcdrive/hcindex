@@ -809,14 +809,8 @@
     <section class="view" id="v-print">
       <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <div class="yg-nav"><button type="button" id="pr-prev" aria-label="이전 날">‹</button><b id="pr-d"></b><button type="button" id="pr-next" aria-label="다음 날">›</button></div>
-      <p class="info" style="margin-top:6px">출하실 모니터 아래에 두는 운행일보입니다. 숫자는 전 근무일까지의 누적 평균 차이(선배차 기준, 반올림)이고 -3 이하는 분홍색입니다. 지난 근무일에 미입력 차량이 있으면 인쇄할 수 없습니다.</p>
-      <label class="lbl" for="pr-wait" style="display:block;font-weight:700;margin:10px 0 6px" id="pr-wait-l">2시간대기 (현장 이름이 길면 줄여서 고쳐 주세요)</label>
-      <textarea class="field" id="pr-wait" rows="2" maxlength="600" enterkeyhint="done"></textarea>
-      <label class="lbl" for="pr-late" style="display:block;font-weight:700;margin:10px 0 6px" id="pr-late-l">시간외 출하</label>
-      <textarea class="field" id="pr-late" rows="2" maxlength="600" enterkeyhint="done"></textarea>
-      <label class="lbl" for="pr-memo" style="display:block;font-weight:700;margin:10px 0 6px">메모 (인쇄물 맨 아래 칸에 들어감)</label>
-      <textarea class="field" id="pr-memo" rows="3" maxlength="300" placeholder="비워 두면 손으로 적을 수 있게 빈칸으로 나옵니다" enterkeyhint="done"></textarea>
-      <div style="display:flex;gap:8px;margin:10px 0"><button type="button" class="btn" id="pr-re">새로고침</button><button type="button" class="btn primary wide" id="pr-go" style="flex:1">인쇄하기</button></div>
+      <p class="info" style="margin-top:6px">출하실 모니터 아래에 두는 운행일보입니다. [이미지로 복사하기]를 누르면 그림으로 복사돼 카톡에 붙여넣을 수 있습니다. 숫자는 전 근무일까지의 누적 평균 차이(선배차 기준, 반올림)이고 -3 이하는 분홍색입니다. 지난 근무일에 미입력 차량이 있으면 인쇄할 수 없습니다.</p>
+      <div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap"><button type="button" class="btn" id="pr-re">새로고침</button><button type="button" class="btn" id="pr-img" style="flex:1">이미지로 복사하기</button><button type="button" class="btn primary wide" id="pr-go" style="flex:1">인쇄하기</button></div>
       <div id="pr-msg"></div>
       <div class="pr-wrap"><iframe id="pr-frame" title="운행일보 미리보기"></iframe></div>
     </section>
@@ -4549,9 +4543,9 @@ async function sfOpenDate(d) { const r = await call("adminShipFill", { date: d, 
   if (!r.cand.length) return toast(sfLab(d) + " 미입력 차량 중 출하기록에 회전수가 있는 차량이 없습니다."); sfOpen(r, false); }
 function sfOpen(r, auto) { SF = r; SF.auto = auto;
   $("sf-title").textContent = (r.by === "관리팀" ? "관리팀이 " : "") + sfLab(r.date) + " 출하기록을 올렸습니다";
-  $("sf-body").innerHTML = '<p style="margin:4px 0 0;font-size:16px;line-height:1.6">그날 <b>미입력 ' + (r.cand.length + r.none.length) + '대</b> 중 출하기록에 회전수가 있는 차량입니다. 체크한 차량을 <b>출하기록 회전수(실 회전)</b>로 넣을까요?</p>' +
-    '<ul class="sf-l">' + r.cand.map(x => '<li><label><input type="checkbox" data-sf="' + esc(x.no) + '" checked><b>' + esc(x.no) + '호</b><span>' + x.n + '회</span></label></li>').join("") + '</ul>' +
-    '<div class="sf-note">운행거리·통행료·주유량 등 다른 칸은 0으로 들어가고, 기사님께 알림이 갑니다. 출하기록은 영내작업을 따로 나누지 않아 영내작업도 실 회전에 들어갑니다. 넣은 뒤에도 운행 기록표에서 고칠 수 있고, 관리자 작업 기록에서 되돌릴 수 있습니다.' +
+  $("sf-body").innerHTML = '<p style="margin:4px 0 0;font-size:16px;line-height:1.6">그날 <b>미입력 ' + (r.cand.length + r.none.length) + '대</b> 중 출하기록에 회전수가 있는 차량입니다. 체크한 차량을 <b>출하기록 회전수(실 회전)</b>와 <b>17시 상차</b>(출하시간 17:00부터)로 넣을까요?</p>' +
+    '<ul class="sf-l">' + r.cand.map(x => '<li><label><input type="checkbox" data-sf="' + esc(x.no) + '" checked><b>' + esc(x.no) + '호</b><span>' + x.n + '회' + (x.late ? ' <small style="color:var(--muted);font-weight:700">· 17시 ' + x.late + '</small>' : '') + '</span></label></li>').join("") + '</ul>' +
+    '<div class="sf-note">운행거리·통행료·주유량·조출 등 다른 칸은 0으로 들어가고, 기사님께 알림이 갑니다. 출하기록은 영내작업을 따로 나누지 않아 영내작업도 실 회전에 들어갑니다. 넣은 뒤에도 운행 기록표에서 고칠 수 있고, 관리자 작업 기록에서 되돌릴 수 있습니다.' +
     (r.none.length ? '<br><b>출하기록에도 없는 차량 ' + r.none.length + '대:</b> ' + r.none.map(esc).join(", ") + ' (결근인지 확인해 주세요)' : '') + '</div>';
   $("sf-later").hidden = !auto; $("sf-no").hidden = !auto; sfCount(); $("sf-sheet").classList.add("show"); }
 function sfCount() { const n = document.querySelectorAll("#sf-body [data-sf]:checked").length, b = $("sf-ok"); b.textContent = n ? n + "대 반영하기" : "고른 차량 없음"; b.disabled = !n; }
@@ -4570,10 +4564,10 @@ let PR_D = "", PR = null;
 const prLab = d => { const W = "일월화수목금토", x = new Date(d + "T00:00:00"); return (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일 (" + W[x.getDay()] + ")"; };
 const prDay = d => (+d.slice(5, 7)) + "월 " + (+d.slice(8)) + "일";
 function prShift(d, n) { const x = new Date(d + "T00:00:00"); x.setDate(x.getDate() + n); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
-async function prLoad() { if (!PR_D) PR_D = TODAY; $("pr-d").textContent = prLab(PR_D); $("pr-next").disabled = PR_D >= TODAY; $("pr-msg").innerHTML = ""; $("pr-go").disabled = true;
+async function prLoad() { if (!PR_D) PR_D = TODAY; $("pr-d").textContent = prLab(PR_D); $("pr-next").disabled = PR_D >= TODAY; $("pr-msg").innerHTML = ""; $("pr-go").disabled = true; $("pr-img").disabled = true;
   const d = PR_D, r = await call("adminIlbo", { date: d }); if (d !== PR_D) return;
   if (!r || !r.ok) { $("pr-msg").innerHTML = '<div class="pr-hold">' + esc(r && r.msg ? r.msg : "자료를 받지 못했습니다.") + '</div>'; return; }
-  PR = r; if (!r.hold) { const sl = A => A.map(x => x.no + (x.site ? "(" + prSite(x.site) + ")" : "")).join(" "); $("pr-wait").value = sl(r.wait); $("pr-late").value = sl(r.late); $("pr-wait-l").textContent = prDay(r.prev) + " 2시간대기 (현장 이름이 길면 줄여서 고쳐 주세요)"; $("pr-late-l").textContent = prDay(r.prev) + " 시간외 출하"; } prDraw(); }
+  PR = r; prDraw(); }
 const prSite = n => String(n).replace(/\(주\)|㈜|주식회사/g, "").replace(/\s+/g, " ").trim();
 function prHtml(R, memo) {
   const W = "일월화수목금토", dd = new Date(R.date + "T00:00:00"), made = dd.getFullYear() + "년 " + (dd.getMonth() + 1) + "월 " + dd.getDate() + "일 " + W[dd.getDay()] + "요일 작성";
@@ -4585,26 +4579,36 @@ function prHtml(R, memo) {
       '<tr class="v">' + L.map(c => { if (!c) return '<td></td>'; const v = rn(R.cum[c]); return '<td' + (v <= -3 ? ' class="neg"' : '') + '>' + v + '</td>'; }).join("") + '<td class="sum">' + (grp[g] ? rn(R.grp[g] || 0) : "") + '</td></tr>'; }
   const lst = A => A.map(x => esc(x.no) + (x.site || x.why ? "(" + esc(x.site || x.why) + ")" : "")).join(" ");
   const sec = d => '<tr class="dh"><td colspan="2">' + prDay(d) + '</td></tr>', ln = (k, v, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><th>' + k + '</th><td>' + (v || "") + '</td></tr>';
-  const tx = id => esc($(id).value || "").replace(/\n/g, " ");
-  const low = sec(R.prev) + ln("2시간대기", tx("pr-wait")) + ln("시간외 출하", tx("pr-late")) +
-    sec(R.date) + ln("결&#12288;&#12288;근", lst(R.on.off)) + ln("조퇴/지각", lst(R.on.part)) + ln("선 배 차", R.pick.map(esc).join(" / ")) +
-    sec(R.next) + ln("결근예정", lst(R.nx.off)) + ln("조퇴/지각예정", lst(R.nx.part)) + ln("메&#12288;모", esc(memo || "").replace(/\n/g, "<br>"), "memo");
+  const low = sec(R.date) + ln("결&#12288;&#12288;근", lst(R.on.off)) + ln("조퇴/지각", lst(R.on.part)) + ln("선 배 차", R.pick.map(esc).join(" / "), "pick") +
+    sec(R.next) + ln("결근예정", lst(R.nx.off)) + ln("조퇴/지각예정", lst(R.nx.part));
   return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>운행일보 ' + R.date + '</title><style>' +
     '@page{size:A4 landscape;margin:7mm}html,body{margin:0;background:#fff;color:#000;font-family:"Malgun Gothic","맑은 고딕","Noto Sans KR",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
     '.pg{width:1083px;margin:0 auto;padding:6px 0}.top{display:grid;grid-template-columns:1fr 300px;border:2px solid #000;border-bottom:0}.top h1{margin:0;text-align:center;font-size:28px;letter-spacing:12px;font-weight:900;padding:2px 0}.top div{display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;border-left:1px solid #000}' +
     'table{border-collapse:collapse;width:100%;table-layout:fixed}td,th{border:1px solid #000;font-size:14px;height:19px;padding:0 6px}' +
     '.gt{border:2px solid #000}.gt col.c0{width:84px}.gt col.cs{width:112px}.gt .h th{font-weight:800;text-align:center;font-size:19px;height:28px}.gt th.g{font-weight:800;font-size:21px}.gt .v td{text-align:center;font-weight:800;font-size:30px;height:50px;padding:0}.gt td.neg{background:#ffc7ce;color:#9c0006}.gt th.sum{background:#fff;font-weight:800;font-size:17px}.gt td.sum{text-align:center;font-weight:900;font-size:30px}' +
-    '.lo{border:2px solid #000;border-top:0}.lo col.c0{width:108px}.lo th{font-weight:500;text-align:center;font-size:13px;white-space:nowrap}.lo td{font-weight:700;font-size:13.5px;line-height:1.35;padding:1px 6px}.lo tr.dh td{font-weight:800;font-size:14px;border-top:2px solid #000;height:18px}.lo tr.memo th,.lo tr.memo td{height:40px}' +
+    '.lo{border:2px solid #000;border-top:0}.lo col.c0{width:150px}.lo th{font-weight:700;text-align:center;font-size:18px;white-space:nowrap;height:33px}.lo td{font-weight:800;font-size:22px;line-height:1.35;padding:3px 10px}.lo tr.dh td{font-weight:900;font-size:19px;border-top:2px solid #000;height:27px;background:#f2f2f2}.lo tr.pick td{font-size:28px;font-weight:900;letter-spacing:1px}' +
     '</style></head><body><div class="pg"><div class="top"><h1>운행일보</h1><div>' + made + '</div></div>' +
     '<table class="gt"><colgroup><col class="c0">' + '<col>'.repeat(10) + '<col class="cs"></colgroup>' + rows + '</table>' +
     '<table class="lo"><colgroup><col class="c0"><col></colgroup>' + low + '</table></div>' +
-    '<script>(function(){var g=document.querySelector(".pg"),h=g.scrollHeight;if(h>745)g.style.zoom=(745/h).toFixed(3);})();<\/script></body></html>'; }
+    '<script>(function(){var g=document.querySelector(".pg"),h=g.scrollHeight;if(h>715)g.style.zoom=(715/h).toFixed(3);})();<\/script></body></html>'; }
 function prDraw() { const R = PR; if (!R) return; const f = $("pr-frame");
   if (R.hold) { $("pr-msg").innerHTML = '<div class="pr-hold">' + prDay(R.hold.day) + ' 미입력 ' + R.hold.miss.length + '대 (' + R.hold.miss.map(esc).join(", ") + ') · 평균과 선배차가 보류라서 인쇄할 수 없습니다. 미입력 기록을 넣은 뒤 [새로고침]을 눌러 주세요.</div><button type="button" class="btn wide" id="pr-fill" data-d="' + R.hold.day + '" style="margin-bottom:10px">' + prDay(R.hold.day) + ' 출하기록 회전수로 미입력 채우기</button>'; f.srcdoc = ""; $("pr-go").disabled = true; return; }
-  f.srcdoc = prHtml(R, $("pr-memo").value); $("pr-go").disabled = false; prFit(); }
+  f.srcdoc = prHtml(R); $("pr-go").disabled = false; $("pr-img").disabled = false; prFit(); }
 function prFit() { const w = $("pr-frame").parentElement.clientWidth, k = Math.min(1, (w - 2) / 1123), f = $("pr-frame"); f.style.transform = "scale(" + k + ")"; f.parentElement.style.height = Math.ceil(794 * k) + 2 + "px"; }
 addEventListener("resize", () => { if (CUR === "v-print") prFit(); });
-document.addEventListener("input", e => { if (["pr-memo", "pr-wait", "pr-late"].includes(e.target.id) && PR && !PR.hold) { clearTimeout(prDraw.t); prDraw.t = setTimeout(prDraw, 300); } });
+// 이미지로 복사하기: 미리보기 운행일보를 그림(PNG)으로 만들어 클립보드에 넣음 → 카톡·문자에 붙여넣기 · 복사가 안 되는 기기는 그림 파일로 저장
+let H2C = null;
+function prH2c() { if (window.html2canvas) return Promise.resolve(window.html2canvas); if (H2C) return H2C;
+  H2C = new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"; sc.onload = () => ok(window.html2canvas); sc.onerror = () => { H2C = null; no(new Error("load")); }; document.head.appendChild(sc); }); return H2C; }
+function prBlob() { return prH2c().then(h2c => { const doc = $("pr-frame").contentDocument, el = doc && doc.querySelector(".pg"); if (!el) throw new Error("no page"); el.style.zoom = "";
+  return h2c(el, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false, windowWidth: 1123 }); }).then(cv => new Promise((ok, no) => cv.toBlob(b => b ? ok(b) : no(new Error("blob")), "image/png"))); }
+function prSave(blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "운행일보_" + (PR ? PR.date : "") + ".png"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000); }
+document.addEventListener("click", async e => { if (!e.target.closest("#pr-img")) return; if (!PR || PR.hold) return; const b = $("pr-img"); if (b.disabled) return; b.disabled = true; const t0 = b.textContent; b.textContent = "그림 만드는 중…";
+  const p = prBlob(); let copied = false;
+  try { if (navigator.clipboard && window.ClipboardItem) { await navigator.clipboard.write([new ClipboardItem({ "image/png": p })]); copied = true; } } catch (x) {}
+  if (copied) toast("운행일보를 그림으로 복사했습니다. 카톡 등에 붙여넣기 하세요.", true);
+  else { try { prSave(await p); toast("이 기기는 복사가 안 돼서 그림 파일로 저장했습니다."); } catch (x) { toast("그림을 만들지 못했습니다. 잠시 후 다시 해 주세요."); } }
+  b.disabled = false; b.textContent = t0; prDraw(); });
 document.addEventListener("click", e => { const t = e.target;
   if (t.closest("#pr-prev")) { PR_D = prShift(PR_D || TODAY, -1); return prLoad(); }
   if (t.closest("#pr-next")) { if ((PR_D || TODAY) >= TODAY) return; PR_D = prShift(PR_D, 1); return prLoad(); }
