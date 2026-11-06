@@ -4507,17 +4507,17 @@ function tpHtml(R) {
   const body = R.rows.map((r, i) => '<tr><td class="no">' + String(i + 1).padStart(4, "0") + '</td><td class="nm">' + esc(r[0]) + '</td><td class="pd">' + esc(r[1]) + '</td><td class="qt">' + q3(r[2]) + '</td><td class="km' + (km(r[5]).length > 3 ? ' sm' : '') + '">' + km(r[5]) + '</td><td class="rp">' + esc(r[4]) + '</td><td class="ph">' + esc(phone[String(r[4] || "").replace(/\s/g, "")] || "") + '</td></tr>').join("");
   return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>출하예정 집계표 ' + d + '</title><style>' +
     '@page{size:A4 portrait;margin:8mm 8mm}html,body{margin:0;background:#fff;color:#000;font-family:"굴림",Gulim,"돋움",Dotum,"Malgun Gothic","맑은 고딕",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
-    '.pg{width:768px;margin:0 auto}table{border-collapse:collapse;width:100%;table-layout:fixed}' +
+    '.pg{width:100%;max-width:740px;margin:0 auto;padding:0 2px;box-sizing:border-box}table{border-collapse:collapse;width:100%;table-layout:fixed}' +
     '.hd td{font-size:13px;height:26px;padding:0 6px;border:0}.hd .t{text-align:center;font-size:24px;letter-spacing:2px;border:1px solid #000;border-bottom:0}.hd .r{text-align:right}' +
     '.lt th,.lt td{border:1px solid #000;font-size:12.5px;height:25px;padding:0 4px;line-height:1.15;overflow:hidden}' +
     '.lt thead th{background:#d9d9d9;font-weight:700;font-size:14px;text-align:center;height:24px;border-top:2px solid #000}' +
-    '.lt td.no{text-align:left}.lt td.nm{word-break:break-all}.lt td.pd{white-space:nowrap}.lt td.qt{text-align:right}.lt td.km{text-align:center;font-size:19px;white-space:nowrap}.lt td.km.sm{font-size:12.5px}.lt td.rp{text-align:center}.lt td.ph{text-align:center;font-weight:700;font-size:14px;white-space:nowrap}' +
+    '.lt td.no{text-align:left}.lt td.nm{word-break:break-all}.lt td.pd{white-space:nowrap}.lt td.qt{text-align:right}.lt td.km{text-align:center;font-size:19px;white-space:nowrap}.lt td.km.sm{font-size:12.5px}.lt td.rp{text-align:center}.lt td.ph{text-align:center;font-weight:700;font-size:13.5px;white-space:nowrap;padding:0 2px;letter-spacing:-.2px}' +
     '.lt tr{page-break-inside:avoid}.lt thead{display:table-header-group}' +
     '</style></head><body><div class="pg">' +
-    '<table class="hd"><colgroup><col style="width:90px"><col style="width:180px"><col><col style="width:250px"></colgroup>' +
+    '<table class="hd"><colgroup><col style="width:80px"><col style="width:150px"><col><col style="width:220px"></colgroup>' +
     '<tr><td>출하일자 :</td><td>' + d + '</td><td class="t" rowspan="2">출하예정 집계표</td><td></td></tr>' +
     '<tr><td>공장구분 :</td><td>의왕공장 레미콘</td><td class="r">예정수량 : ' + q3(Math.round(tot * 1000) / 1000) + '</td></tr></table>' +
-    '<table class="lt"><colgroup><col style="width:42px"><col><col style="width:88px"><col style="width:74px"><col style="width:52px"><col style="width:64px"><col style="width:118px"></colgroup>' +
+    '<table class="lt"><colgroup><col style="width:42px"><col><col style="width:88px"><col style="width:74px"><col style="width:52px"><col style="width:58px"><col style="width:126px"></colgroup>' +
     '<thead><tr><th>순번</th><th>거래처현장</th><th>제품명</th><th>수량</th><th>km</th><th>담당자</th><th>전화번호</th></tr></thead><tbody>' + body + '</tbody></table></div></body></html>'; }
 async function tpPrint() { const b = $("t-print"); if (b.disabled) return; b.disabled = true; const t0 = b.textContent; b.textContent = "준비 중…";
   try { const r = await call("adminTodayRows", { date: tDate || TODAY });
