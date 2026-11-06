@@ -1707,6 +1707,13 @@ function pendingCars(d) {
 }
 // 미입력이 남아 있는 첫 지난 근무일 (없으면 "")
 function holdDay() { const ds = workDays(); for (const d of ds) { if (d >= TODAY) break; if (pendingCars(d).length) return d; } return ""; }
+// 가탕 입력 대기(조퇴·지각·정비·외출인데 관리자가 가탕을 아직 안 넣음) 때문에 누적 평균 차이가 움직일 수 있는 폭 (기준일까지)
+function pendGaRun(upTo) { const N = CARS_ALL.length || 1, up = {}, down = {}; let n = 0; CARS_ALL.forEach(c => { up[c] = 0; down[c] = 0; });
+  workDays().filter(x => x <= upTo).forEach(x => { const D = REAL[x] || {};
+    const P = CARS_ALL.filter(c => { const r = D[c]; return r && r.st === "work" && /^(조퇴|지각|정비|외출)$/.test(r.part || "") && !r.gaWhy && !(+r.ga); }); if (!P.length) return;
+    const L = CARS_ALL.filter(c => { const r = D[c]; return r && r.st === "work" && (+r.real || 0) + (+r.yard || 0) > 0; }), av = L.length ? L.reduce((a, c) => a + (+D[c].real || 0) + (+D[c].yard || 0), 0) / L.length : 0, gmax = roundGa(av); if (!gmax) return;
+    n += P.length; P.forEach(c => up[c] += gmax * (1 - 1 / N)); CARS_ALL.forEach(c => down[c] += gmax * P.length / N); });
+  return { n, up, down }; }
 function forecast() {
   const wds = workDays(), hd = holdDay(), d = hd || wds[wds.length - 1];
   if (!d) return { state: "none" };
@@ -1714,7 +1721,13 @@ function forecast() {
   if (hd) return { state: "writing", d: hd, done: false, pend: pend.length, hold: true };   // 지난날 미입력 → 평균·선배차 보류
   // 아직 작성 안 한 차량이 있으면: 평균도 선배차도 아직 (발표 전)
   if (pend.length) return { state: "writing", d, done: false, pend: pend.length };
-  const PR = priorityCars(fleetUpTo(d).acc, d); return { state: PR.includes(ME) ? "sure" : "none", d, done: true, part: 0 };
+  const acc = fleetUpTo(d).acc, PR = priorityCars(acc, d), PG = pendGaRun(d);
+  if (!PG.n) return { state: PR.includes(ME) ? "sure" : "none", d, done: true, part: 0 };
+  // 가탕 입력 대기가 있으면: 가탕이 0 ~ 그날 결근 가탕만큼 들어가는 모든 경우를 따져 어느 경우에도 선배차면 '확정', 들 수도 있으면 '예상'
+  const nd = nextWork(d), elig = c => !offOn(c, nd), lo = c => acc[c] - PG.down[c], hi = c => acc[c] + PG.up[c];
+  const sure = elig(ME) && hi(ME) <= PRI_LIMIT && Object.keys(acc).filter(c => c !== ME && elig(c) && lo(c) <= hi(ME)).length < PRI_MAX;
+  const may = elig(ME) && lo(ME) <= PRI_LIMIT && Object.keys(acc).filter(c => c !== ME && elig(c) && hi(c) < lo(ME)).length < PRI_MAX;
+  return { state: sure ? "sure" : may ? "maybe" : "none", d, done: true, part: PG.n };
 }
 const nextWork = d => { let t = Date.parse(d + "T00:00:00Z"); for (let i = 0; i < 10; i++) { t += 864e5; const x = new Date(t).toISOString().slice(0, 10); if (!isOff(x)) return x; } return d; };
 const MINI_CL = { ga: "ga", wait: "g", late: "g", jan: "y", yard: "y", early: "y", tun: "p", back19: "" };   // 초록 1회전 · 노랑 0.5회전 · 회색 식권
