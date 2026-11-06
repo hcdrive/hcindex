@@ -3032,7 +3032,7 @@ function drawAvgStatus(FC, days, k) {
     '<div data-stk="' + ME + '" class="av-me"><span class="me-l"><span class="me-no">' + ME + '호</span><em class="me-day ' + (me[0] === "ok" ? '' : me[0] === "no" ? 'pd' : me[0] === "run" ? 'lv' : me[0]) + '">' + (me[0] === "ok" ? '입력 완료' : esc(me[1])) + '</em></span>' +
       '<b class="st-cnt">' + done.length + ' / ' + target.length + '<small>대</small></b><small class="chg">작성 완료</small></div>' +
     '</div>' +
-    ((past || afterClose()) ? '<div class="ib-warn" style="margin:10px 0"><div class="wr-big">미입력 차량 ' + miss.length + '대 · 평균 미갱신</div>' : '<div class="ib-warn calm" style="margin:10px 0"><div class="wr-big">운행 중 · ' + done.length + '대 작성</div>') + (past ? '관리자가 미입력 차량을 입력하면 ' : '모든 기사님이 입력하면 ') + dl + ' 평균과 선배차가 정해집니다.<br>지금 평균은 <b>' + pl + ' 기준</b>입니다 (◀ 를 눌러 보기)</div>' +
+    ((past || afterClose()) ? '<div class="ib-warn" style="margin:10px 0"><div class="wr-big">미입력 차량 ' + miss.length + '대 · 평균 미갱신</div>' : '<div class="ib-warn calm" style="margin:10px 0"><div class="wr-big">운행 중 · ' + done.length + '대 작성</div>') + (past ? '관리자가 미입력 차량을 입력하면 ' : '모든 기사님이 입력하면 ') + dl + ' 평균과 다음 근무일 선배차가 정해집니다.<br>지금 평균은 <b>' + pl + ' 기준</b>입니다 (◀ 를 눌러 보기)</div>' +
     groups +
     '<div class="rc-foot">초록 = 입력 완료 · 회색 = 운행 중 (오후 5시 전) · 빨강 테두리 = 미입력 (오후 5시부터)<br>휴가·결근 차량은 작성하지 않아도 됩니다<br>밤 12시까지 입력하지 않으면 관리자가 대신 입력합니다</div>';
   $("av-prev").onclick = () => { if (k > 0) { avgDay = days[k - 1]; drawAvg(); } };
