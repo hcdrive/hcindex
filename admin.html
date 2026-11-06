@@ -758,6 +758,7 @@
         <button class="btn" id="t-next" aria-label="다음 날">▶</button>
         <button class="btn" id="t-today">오늘</button>
       </div>
+      <button class="btn wide" id="t-print" style="margin-top:8px">이 날 출하예정 집계표 인쇄</button>
       <div class="t-right">
       <h2 id="t-title">금일 현장</h2>
       <ul class="rows" id="t-list"></ul>
@@ -4496,6 +4497,37 @@ function yongDraw() { const LOG = ygLog(), ds = Object.keys(LOG).sort(); if (!YG
       return '<li><div class="yg-h"><b>' + esc(c) + '호</b><span>' + g.n + '회 · ' + g.v + '㎥</span></div><div class="yg-s">' + g.L.map(x => '<div><em>' + hm(x[4]) + '</em>' + esc(x[3]) + '</div>').join("") + '</div></li>'; }).join("") + '</ul>'; }
 document.addEventListener("click", e => { const p = e.target.closest("#yg-prev"), n = e.target.closest("#yg-next"); if (!p && !n) return; const ds = Object.keys(ygLog()).sort(), i = ds.indexOf(YG_D) + (p ? -1 : 1); if (ds[i]) { YG_D = ds[i]; yongDraw(); } });
 { const _sv = showView; showView = function (v) { _sv(v); if (v === "v-yong") yongDraw(); }; }   // 자료는 viewLoad의 yongLoad가 받음
+
+/* ===== 출하예정 집계표 인쇄 (엑셀 집계표 모양 그대로 · A4 세로) · 서버 adminTodayRows ===== */
+function tpHtml(R) {
+  const d = R.date, phone = {}; (R.reps || []).forEach(r => { if (r[0]) phone[String(r[0]).replace(/\s/g, "")] = r[1] || ""; });
+  const q3 = v => typeof v === "number" ? v.toLocaleString("en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : esc(v || "");
+  const tot = R.rows.reduce((a, r) => a + (typeof r[2] === "number" ? r[2] : 0), 0);
+  const km = v => { const t = String(v == null ? "" : v).trim(); return !t || t === "-" ? "" : esc(t.replace(/\s*km$/i, "")); };
+  const body = R.rows.map((r, i) => '<tr><td class="no">' + String(i + 1).padStart(4, "0") + '</td><td class="nm">' + esc(r[0]) + '</td><td class="pd">' + esc(r[1]) + '</td><td class="qt">' + q3(r[2]) + '</td><td class="km' + (km(r[5]).length > 3 ? ' sm' : '') + '">' + km(r[5]) + '</td><td class="rp">' + esc(r[4]) + '</td><td class="ph">' + esc(phone[String(r[4] || "").replace(/\s/g, "")] || "") + '</td></tr>').join("");
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>출하예정 집계표 ' + d + '</title><style>' +
+    '@page{size:A4 portrait;margin:8mm 8mm}html,body{margin:0;background:#fff;color:#000;font-family:"굴림",Gulim,"돋움",Dotum,"Malgun Gothic","맑은 고딕",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    '.pg{width:768px;margin:0 auto}table{border-collapse:collapse;width:100%;table-layout:fixed}' +
+    '.hd td{font-size:13px;height:26px;padding:0 6px;border:0}.hd .t{text-align:center;font-size:24px;letter-spacing:2px;border:1px solid #000;border-bottom:0}.hd .r{text-align:right}' +
+    '.lt th,.lt td{border:1px solid #000;font-size:12.5px;height:25px;padding:0 4px;line-height:1.15;overflow:hidden}' +
+    '.lt thead th{background:#d9d9d9;font-weight:700;font-size:14px;text-align:center;height:24px;border-top:2px solid #000}' +
+    '.lt td.no{text-align:left}.lt td.nm{word-break:break-all}.lt td.pd{white-space:nowrap}.lt td.qt{text-align:right}.lt td.km{text-align:center;font-size:19px;white-space:nowrap}.lt td.km.sm{font-size:12.5px}.lt td.rp{text-align:center}.lt td.ph{text-align:center;font-weight:700;font-size:14px;white-space:nowrap}' +
+    '.lt tr{page-break-inside:avoid}.lt thead{display:table-header-group}' +
+    '</style></head><body><div class="pg">' +
+    '<table class="hd"><colgroup><col style="width:90px"><col style="width:180px"><col><col style="width:250px"></colgroup>' +
+    '<tr><td>출하일자 :</td><td>' + d + '</td><td class="t" rowspan="2">출하예정 집계표</td><td></td></tr>' +
+    '<tr><td>공장구분 :</td><td>의왕공장 레미콘</td><td class="r">예정수량 : ' + q3(Math.round(tot * 1000) / 1000) + '</td></tr></table>' +
+    '<table class="lt"><colgroup><col style="width:42px"><col><col style="width:88px"><col style="width:74px"><col style="width:52px"><col style="width:64px"><col style="width:118px"></colgroup>' +
+    '<thead><tr><th>순번</th><th>거래처현장</th><th>제품명</th><th>수량</th><th>km</th><th>담당자</th><th>전화번호</th></tr></thead><tbody>' + body + '</tbody></table></div></body></html>'; }
+async function tpPrint() { const b = $("t-print"); if (b.disabled) return; b.disabled = true; const t0 = b.textContent; b.textContent = "준비 중…";
+  try { const r = await call("adminTodayRows", { date: tDate || TODAY });
+    if (!r || !r.ok) return toast(r && r.msg ? r.msg : "집계표를 불러오지 못했습니다.");
+    if (!r.rows.length) return toast("이 날 올린 출하예정 집계표가 없습니다.");
+    let f = $("tp-frame"); if (!f) { f = document.createElement("iframe"); f.id = "tp-frame"; f.title = "출하예정 집계표 인쇄"; f.style.cssText = "position:fixed;left:-10000px;top:0;width:820px;height:1160px;border:0"; document.body.appendChild(f); }
+    await new Promise(ok => { f.onload = ok; f.srcdoc = tpHtml(r); });
+    try { f.contentWindow.focus(); f.contentWindow.print(); } catch (x) { toast("인쇄 창을 열지 못했습니다."); }
+  } finally { b.disabled = false; b.textContent = t0; } }
+document.addEventListener("click", e => { if (e.target.closest("#t-print")) tpPrint(); });
 
 /* ===== 관리자 휴대폰 푸시 (원시그널 · 기사·사무실과 같은 앱 · 이름표 "admin") · 실제 사이트(https)에서만 ===== */
 const AP_APP_ID = "a7ff2a0f-eac2-4a43-9989-d0946e6ddbf4", AP_SAFARI_ID = "web.onesignal.auto.1f7edc6b-077e-4a04-b244-6d0a0c671761";
