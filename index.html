@@ -76,7 +76,7 @@
   .vc-note { background: var(--amber-bg, #fff4dc); border: 1px solid #f0d9a0; border-radius: 12px; padding: 12px 14px; }
   .vc-note b { display: block; font-size: 16px; margin-bottom: 4px; } .vc-note span { font-size: 14.5px; line-height: 1.55; color: var(--text); }
   body.vac-view .vac-right { display: none !important; }
-  body.vac-view #tabs, body.vac-view #list, body.vac-view #vac .legend { display: none !important; }   /* 신청만 막기: 다른 기사님 기록은 안 보이고 내 기록만 */
+  body.vac-view #tabs, body.vac-view #list, body.vac-view #vac .legend, body.vac-view #board, body.vac-view #grp-open { display: none !important; }   /* 신청만 막기: 다른 기사님 기록은 안 보이고 내 기록만 */
   .vcd { margin-top: 14px; } .vcd .label { margin-bottom: 8px; }
   .vcd-g { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } @media (min-width: 480px) { .vcd-g { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
   .vcd-c { display: grid; justify-items: center; gap: 1px; height: 84px; align-content: center; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); padding: 4px 2px; }
@@ -412,6 +412,34 @@
   .pill.zero { background: var(--red-bg); color: var(--red); }
   .pill.off { background: var(--card); color: var(--muted); border: 1px solid var(--line); }
 
+  /* 오늘~3일 뒤 휴가 현황 (휴가 탭) */
+  #board { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .bd-card { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 14px 16px; }
+  .bd-card.today { border: 2px solid var(--accent); }
+  .bd-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .bd-head b { font-size: 20px; } .bd-head b em { font-style: normal; color: var(--accent); margin-right: 6px; }
+  .bd-seat { font-size: 17px; font-weight: 800; } .bd-seat.full { color: var(--red); } .bd-seat.ok { color: var(--green, #188038); } .bd-seat.off { color: var(--muted); font-weight: 700; }
+  .bd-row { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 8px; align-items: start; margin-top: 10px; font-size: 17px; }
+  .bd-row > span { color: var(--muted); font-weight: 700; padding-top: 4px; }
+  .bd-chips { display: flex; flex-wrap: wrap; gap: 6px; } .bd-chips i { font-style: normal; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 3px 9px; font-weight: 800; }
+  .bd-chips i small { font-weight: 600; color: var(--muted); margin-left: 4px; font-size: 14px; } .bd-chips i.me { border-color: var(--accent); color: var(--accent); }
+  .bd-none { color: var(--muted); padding-top: 4px; }
+  .bd-head b em.pa { color: var(--muted); }
+  .bd-nav { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; align-items: stretch; }
+  .bd-nav button { height: 58px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--accent); font-size: 20px; font-weight: 800; cursor: pointer; }
+  .bd-nav button:disabled { opacity: .3; cursor: default; }
+  .bd-nav .bd-date { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: var(--text); font-size: 20px; border: 2px solid var(--accent); }
+  .bd-nav .bd-date small { font-size: 13px; color: var(--accent); font-weight: 700; }
+  .bd-back { width: 100%; height: 46px; border: 0; background: none; color: var(--accent); font-size: 16px; font-weight: 800; text-decoration: underline; cursor: pointer; }
+  .bc-nav { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; margin-bottom: 10px; } .bc-nav b { text-align: center; font-size: 20px; }
+  .bc-nav button { height: 48px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--accent); font-size: 18px; cursor: pointer; } .bc-nav button:disabled { opacity: .3; }
+  .bc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .bc-grid b { text-align: center; font-size: 14px; color: var(--muted); padding: 4px 0; } .bc-grid b.w0 { color: var(--red); } .bc-grid b.w6 { color: #1a56db; }
+  .bc-grid button { height: 50px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; }
+  .bc-grid button.w0 { color: var(--red); } .bc-grid button.w6 { color: #1a56db; } .bc-grid button.td { border: 2px solid var(--accent); } .bc-grid button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .bc-grid button:disabled { opacity: .25; cursor: default; }
+  .grp-open { margin-top: 14px; height: 54px; font-size: 18px; font-weight: 800; }
+  .grp-panel { min-height: 70vh; }
   .sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .25s, visibility 0s .34s; }
   .sheet.show { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .25s; }
   .panel { width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .34s cubic-bezier(.2,.9,.3,1); }
@@ -648,9 +676,8 @@
   <p class="date" id="checked">불러오는 중…</p>
   <p class="demo" id="demo" style="display:none">체험 모드입니다. 신청 내용은 이 폰에만 저장돼요.</p>
   <div id="mine"></div>
-  <div class="tabs" id="tabs"></div>
-  <div id="list"></div>
-  <div class="legend"><span class="l1">빨간 글씨 = 앞으로 쉬는 날</span><span class="l2">여름휴가</span></div>
+  <div id="board"></div>
+  <button type="button" class="btn wide grp-open" id="grp-open">호수별 연차 사용 보기</button>
  </div>
  <div class="vac-right" id="vac-right">
   <div class="form-empty" id="form-empty"></div>
@@ -673,6 +700,24 @@
     <p class="form-note" id="form-note"></p>
     <button class="btn primary wide" id="submit" disabled>신청하기</button>
     <p class="warn-red" id="form-warn"></p>
+  </div>
+</div>
+<!-- ───── 휴가 현황 날짜 고르기 달력 ───── -->
+<div class="sheet" id="bcsheet">
+  <div class="panel">
+    <div class="panel-head"><b>날짜 고르기</b><button class="link" id="bc-close">닫기</button></div>
+    <div class="bc-nav"><button type="button" id="bc-prev" aria-label="이전 달">◀</button><b id="bc-t"></b><button type="button" id="bc-next" aria-label="다음 달">▶</button></div>
+    <div class="bc-grid" id="bc-grid"></div>
+    <p class="sub center" style="margin-top:12px">지난 날짜와 오늘부터 3일 뒤까지 볼 수 있습니다</p>
+  </div>
+</div>
+<!-- ───── 호수별 연차 사용 (조별 목록 팝업) ───── -->
+<div class="sheet" id="grpsheet">
+  <div class="panel grp-panel">
+    <div class="panel-head"><b>호수별 연차 사용</b><button class="link" id="grp-close">닫기</button></div>
+    <div class="tabs" id="tabs"></div>
+    <div id="list"></div>
+    <div class="legend"><span class="l1">빨간 글씨 = 앞으로 쉬는 날</span><span class="l2">여름휴가</span></div>
   </div>
 </div>
 <!-- ───── 비밀번호 변경 ───── -->
@@ -1087,7 +1132,7 @@ document.getElementById("clear").addEventListener("click", () => { $q.value = ""
 // 구글 시트 Apps Script "웹 앱" 주소를 따옴표 안에 넣으세요.
 // 비워두면 체험 모드(이 폰에만 저장, 실제 신청 안 됨)로 동작합니다.
 const API_URL = (window.HC_CFG && HC_CFG.api) || "https://script.google.com/macros/s/AKfycbzZXwqIROtCoILMCVs2iYsMeL4b1FCZfeXOOL7uGOCILF2Pm5jAONXQBipatNRDR2ubwg/exec";   /* 서버 주소는 hc-config.js 에서 */
-const APP_VER = "20261105f";
+const APP_VER = "20261106b";
 
 const VAC_SEED = [["201", 0, "", ["1/5", "3/27", "6/5", "6/30", "10/8", "10/21"], ["8/26", "8/27", "8/28"]], ["202", 3, "", ["4/2", "9/11", "10/30"], ["8/5", "8/6", "8/7"]], ["203", 1, "", ["1/2", "2/13", "7/31", "9/17", "10/26"], ["7/15", "7/16", "7/20"]], ["204", 0, "", ["1/23", "2/24", "3/5", "4/24", "6/26", "8/18"], ["7/24", "7/27", "7/28"]], ["205", 0, "", ["7/3", "10/16", "10/28"], ["11/5", "11/6", "11/9"]], ["206", 0, "", ["3/13", "5/11", "5/22", "6/17", "6/18", "10/6"], ["8/12", "8/13", "8/14"]], ["207", 0, "", ["1/5", "3/27", "7/3", "8/24", "9/4", "10/28"], ["12/29", "12/30", "12/31"]], ["208", 3, "", ["2/4", "6/22", "8/18"], ["8/10", "8/11", "8/12"]], ["209", 1, "", ["2/20", "3/26", "4/21", "5/19", "6/2"], ["3/4", "3/5", "3/6"]], ["210", 3, "", ["6/23", "9/1", "11/3"], ["8/10", "8/11", "8/12"]], ["211", 1, "", ["4/30", "7/10", "8/6", "9/18", "10/19"], ["11/16", "11/17", "11/18"]], ["212", 0, "", ["4/15", "5/7", "5/8", "5/26", "8/14", "10/12"], []], ["213", 2, "", ["7/8", "8/21"], []], ["214", 2, "", ["3/10", "5/19", "8/31", "10/19"], ["8/7", "8/10", "8/11"]], ["215", 2, "", ["2/6", "3/31", "4/22", "9/1"], ["8/5", "8/6", "8/7"]], ["216", 2, "", ["4/3", "5/19", "6/19", "9/11"], ["8/4", "8/5", "8/6"]], ["217", 0, "", ["2/3", "3/23", "4/1", "8/25", "10/30", "11/3"], ["8/3", "8/4", "8/5"]], ["218", 0, "", ["8/18", "10/12", "10/16"], ["10/6", "10/7", "10/8"]], ["219", 2, "", ["5/15", "5/19", "9/4", "11/6"], ["8/7", "8/10", "8/11"]], ["220", 0, "", ["1/29", "2/5", "3/4", "3/9", "3/26", "6/17"], ["10/14", "10/15", "10/16"]], ["221", 2, "", ["4/16", "6/24", "8/21", "10/23"], ["9/9", "9/10", "9/11"]], ["222", 0, "", ["5/26", "5/27", "5/28", "7/3", "7/30", "10/29"], []], ["223", 2, "", ["4/10", "4/13", "9/21", "9/22"], ["10/30", "11/2", "11/3"]], ["224", 0, "", ["1/6", "2/4", "2/5", "2/6", "3/30", "3/31"], ["7/2", "7/3", "7/6"]], ["225", 2, "", ["5/6", "5/7", "5/8", "8/18"], ["8/19", "8/20", "8/21"]], ["226", 0, "", ["1/9", "1/27", "2/12", "2/13", "2/20", "5/12"], ["6/2", "8/4", "10/28"]], ["227", 0, "", ["1/26", "4/16", "6/2", "6/4", "7/27", "8/10"], ["9/16", "9/17", "9/18"]], ["228", 1, "", ["3/16", "3/17", "3/26", "4/13", "8/21"], ["9/21", "9/22", "9/23"]], ["229", 2, "", ["4/13", "7/16", "10/22", "10/23"], ["7/13", "7/14", "7/15"]], ["230", 0, "", ["3/11", "4/22", "6/24", "7/1", "10/15", "10/21"], []], ["231", 2, "", ["1/14", "11/16", "11/17", "11/18"], ["8/3", "8/4", "8/5"]], ["232", 5, "", ["5/12"], ["10/30", "11/2", "11/3"]], ["233", 2, "", ["3/5", "5/12", "8/27", "9/7"], []], ["234", 0, "", ["1/8", "2/27", "4/16", "5/13", "5/22", "10/12"], []], ["235", 4, "", ["4/17", "9/7"], ["7/29", "7/30", "7/31"]], ["236", 1, "", ["5/12", "6/2", "7/14", "8/13", "9/9"], ["9/4", "9/7", "9/8"]], ["237", 2, "", ["6/23", "7/23", "9/16", "9/17"], ["8/5", "8/6", "8/7"]], ["238", 0, "", ["1/12", "3/3", "3/4", "5/22", "5/26", "7/22"], ["8/3", "8/4", "8/5"]], ["239", 2, "", ["5/21", "5/22", "10/1"], ["7/20", "7/21", "7/22"]], ["240", 1, "", ["2/23", "4/10", "5/8", "6/5", "7/8"], ["6/1", "6/2", "6/4"]], ["241", 0, "", ["2/12", "3/16", "5/15", "6/26", "11/17", "11/18"], ["8/5", "8/6", "8/7"]], ["242", 3, "", ["3/24", "8/24", "10/23"], ["10/6", "10/7", "10/8"]], ["243", 0, "", ["4/10", "5/4", "5/27", "6/26", "10/8", "11/6"], ["5/6", "5/7", "5/8"]], ["244", 2, "", ["1/30", "3/18", "9/10", "9/11"], ["7/29", "7/30", "7/31"]], ["245", 2, "", ["2/3", "5/14", "7/23", "8/27"], ["10/6", "10/7", "10/8"]], ["246", 0, "", ["3/25", "4/16", "5/18", "5/19", "5/21", "9/22"], ["7/23", "7/24", "7/27"]], ["247", 2, "", ["3/12", "4/21", "10/2", "10/26"], ["8/12", "8/13", "8/14"]], ["248", 0, "", ["1/5", "5/21", "7/13", "8/13", "8/14", "9/21"], ["8/10", "8/11", "8/12"]], ["249", 0, "", ["1/29", "3/24", "4/3", "4/16", "9/15", "9/16"], ["8/5", "8/6", "8/7"]], ["250", 0, "", ["4/8", "7/10", "7/13", "8/13", "9/2", "10/21"], []], ["251", 2, "", ["2/19", "2/20", "7/9", "8/21"], ["6/5", "6/8", "6/9"]], ["252", 0, "", ["5/7", "5/18", "6/17", "6/26", "7/1", "10/23"], []], ["253", 2, "", ["1/29", "3/20", "6/30", "11/2"], ["2/11", "2/12", "2/13"]], ["254", 1, "", ["2/23", "6/22", "8/13", "8/18", "9/14"], ["7/2", "7/3", "7/6"]], ["255", 2, "", ["3/6", "5/26", "7/3", "11/9"], ["8/12", "8/13", "8/14"]], ["256", 4, "", ["7/10", "9/4"], []], ["257", 3, "", ["2/20", "5/11", "9/11"], ["8/5", "8/6", "8/7"]], ["258", 4, "", ["2/23", "6/18"], ["8/3", "8/4", "8/5"]], ["259", 3, "1", ["2/24", "4/23", "10/26"], ["7/29", "7/30", "7/31"]], ["260", 0, "", ["1/9", "3/17", "3/18", "4/17", "4/27", "4/28"], ["9/30", "10/1", "10/2"]]];
 // 시안 자료: 현장 목록(운행거리 목록) · 11/2 물량표(집계표) · 10월 일보의 조퇴·지각·결근·특별휴가
@@ -2822,7 +2867,52 @@ function renderList() {
       '</div></div>';
   }).join("");
 }
-function renderVac() { renderMine(); renderTabs(); renderList(); }
+function renderVac() { renderMine(); renderBoard(); renderTabs(); renderList(); }
+/* ---------- 오늘~3일 뒤 현황 (연차 인원·남은 자리 · 휴가·결근·조퇴·지각) ---------- */
+let BD_D = "", BD_X = {};   // 보고 있는 날짜 · 3일 전~3일 뒤 밖에서 따로 받아 둔 날짜
+const bdAdd = (d, n) => { const x = new Date(d + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+const bdMax = () => bdAdd(SUM.today, 3), bdMin = () => SUM.today.slice(0, 4) + "-01-01";
+const bdWk = d => "일월화수목금토"[new Date(d + "T00:00:00Z").getUTCDay()];
+const bdLab = d => (+d.slice(5, 7)) + "/" + (+d.slice(8)) + "(" + bdWk(d) + ")";
+function bdGet(d) { return ((SUM && SUM.board) || []).find(b => b.date === d) || BD_X[d] || null; }
+function renderBoard() { const el = document.getElementById("board"); if (!el) return; if (!SUM || !SUM.board) { el.innerHTML = ""; return; }
+  if (!BD_D || BD_D > bdMax()) BD_D = SUM.today; const d = BD_D, b = bdGet(d), today = d === SUM.today;
+  const chip = (no, t) => '<i' + (String(no) === String(myCar) ? ' class="me"' : '') + '>' + esc(no) + (t ? '<small>' + esc(t) + '</small>' : '') + '</i>';
+  const row = (k, L) => '<div class="bd-row"><span>' + k + '</span>' + (L.length ? '<div class="bd-chips">' + L.join("") + '</div>' : '<div class="bd-none">없음</div>') + '</div>';
+  let card;
+  if (!b) card = '<div class="bd-card"><div class="bd-none" style="padding:10px 0">불러오는 중…</div></div>';
+  else { const left = Math.max(0, b.limit - b.taken), past = d < SUM.today;
+    const seat = b.off ? '<span class="bd-seat off">쉬는 날</span>' : b.block ? '<span class="bd-seat full">' + esc(b.block) + '</span>' : '<span class="bd-seat ' + (past ? 'off' : left ? 'ok' : 'full') + '">연차 ' + b.taken + '/' + b.limit + '명' + (past ? '' : ' · ' + (left ? '남은 자리 ' + left : '자리 없음')) + '</span>';
+    card = '<div class="bd-card' + (today ? ' today' : '') + '"><div class="bd-head"><b>' + (today ? '<em>오늘</em>' : past ? '<em class="pa">지난 날</em>' : '') + esc(b.label) + '(' + esc(b.week) + ')</b>' + seat + '</div>' +
+      row("휴가", b.leave.map(x => chip(x[0], x[1]))) + row("결근", b.absent.map(no => chip(no, ""))) + row("조퇴·지각", b.part.map(x => chip(x[0], x[1] + (x[2] ? " " + x[2] : "")))) + '</div>'; }
+  el.innerHTML = card + '<div class="bd-nav"><button type="button" id="bd-prev" aria-label="이전 날"' + (d <= bdMin() ? ' disabled' : '') + '>◀</button>' +
+    '<button type="button" class="bd-date" id="bd-cal">' + (today ? '오늘 ' : '') + bdLab(d) + '<small>날짜 고르기</small></button>' +
+    '<button type="button" id="bd-next" aria-label="다음 날"' + (d >= bdMax() ? ' disabled' : '') + '>▶</button></div>' +
+    (today ? '' : '<button type="button" class="bd-back" id="bd-today">오늘로 돌아가기</button>'); }
+async function bdGo(d) { if (!SUM) return; if (d > bdMax()) d = bdMax(); if (d < bdMin()) d = bdMin(); BD_D = d; renderBoard();
+  if (bdGet(d)) return; const r = await api("board", { no: myCar, tok: myTok, date: d }).catch(() => null);
+  if (r && r.ok) { BD_X[d] = r.board; if (BD_D === d) renderBoard(); } else if (r && r.auth) logout(r.msg); else toast(r && r.msg ? r.msg : "현황을 불러오지 못했습니다."); }
+/* 날짜 고르기 달력: 지난 날짜 ~ 3일 뒤까지만 누를 수 있음 */
+let BC_M = "";
+function bcDraw() { const m = BC_M, y = +m.slice(0, 4), mo = +m.slice(5, 7), first = new Date(Date.UTC(y, mo - 1, 1)).getUTCDay(), last = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+  document.getElementById("bc-t").textContent = y + "년 " + mo + "월";
+  document.getElementById("bc-prev").disabled = m <= bdMin().slice(0, 7); document.getElementById("bc-next").disabled = m >= bdMax().slice(0, 7);
+  let h = "일월화수목금토".split("").map((w, i) => '<b class="w' + i + '">' + w + '</b>').join("") + '<span></span>'.repeat(first);
+  for (let i = 1; i <= last; i++) { const d = m + "-" + String(i).padStart(2, "0"), ok = d <= bdMax() && d >= bdMin(), wd = (first + i - 1) % 7;
+    h += '<button type="button" class="' + [d === SUM.today ? "td" : "", d === BD_D ? "on" : "", wd === 0 ? "w0" : wd === 6 ? "w6" : ""].join(" ").trim() + '"' + (ok ? ' data-bc="' + d + '"' : ' disabled') + '>' + i + '</button>'; }
+  document.getElementById("bc-grid").innerHTML = h; }
+document.addEventListener("click", e => { const t = e.target;
+  if (t.closest("#bd-prev")) return bdGo(bdAdd(BD_D, -1));
+  if (t.closest("#bd-next")) return bdGo(bdAdd(BD_D, 1));
+  if (t.closest("#bd-today")) return bdGo(SUM.today);
+  if (t.closest("#bd-cal")) { BC_M = BD_D.slice(0, 7); bcDraw(); document.getElementById("bcsheet").classList.add("show"); return; }
+  if (t.closest("#bc-prev") || t.closest("#bc-next")) { const y = +BC_M.slice(0, 4), mo = +BC_M.slice(5, 7) + (t.closest("#bc-prev") ? -1 : 1), x = new Date(Date.UTC(y, mo - 1, 1)); BC_M = x.toISOString().slice(0, 7); return bcDraw(); }
+  const c = t.closest("[data-bc]"); if (c) { document.getElementById("bcsheet").classList.remove("show"); return bdGo(c.dataset.bc); }
+  if (t.closest("#bc-close") || t.id === "bcsheet") return document.getElementById("bcsheet").classList.remove("show"); });
+document.getElementById("grp-open").addEventListener("click", () => { renderTabs(); renderList(); document.getElementById("grpsheet").classList.add("show"); });
+document.getElementById("grp-close").addEventListener("click", () => document.getElementById("grpsheet").classList.remove("show"));
+document.getElementById("grpsheet").addEventListener("click", e => { if (e.target.id === "grpsheet") e.currentTarget.classList.remove("show"); });
+
 
 /* ---------- 신청 화면 ---------- */
 function renderForm() {
