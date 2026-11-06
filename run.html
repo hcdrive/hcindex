@@ -19,7 +19,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   /* 당겨서 새로고침 (브라우저 기본 당김은 끄고 이 화면 것만 씀) */
-  html, body { overscroll-behavior-y: contain; }
+  html, body { overscroll-behavior: none; }   /* 끝까지 밀었을 때 화면이 튕기면서 위·아래 고정 막대가 같이 출렁이던 것 막음 (당겨서 새로고침은 이 화면 것만 씀) */
   .ptr { position: fixed; left: 0; right: 0; top: env(safe-area-inset-top); height: 0; z-index: 15; pointer-events: none; }
   .ptr-ball { position: absolute; left: 50%; top: 0; width: 44px; height: 44px; margin-left: -22px; border-radius: 50%; background: var(--bg); color: var(--accent);
               box-shadow: 0 3px 12px rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; transform: translateY(-60px); opacity: 0; }
