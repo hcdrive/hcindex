@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>관리자 · 현창레미콘</title>
@@ -19,7 +20,7 @@
     --red: #d93025; --red-bg: #fdecea; --green: #188038; --green-bg: #e6f4ea;
     --amber: #a15c00; --amber-bg: #fff3c4; --nav-h: 64px;
   }
-  @media (prefers-color-scheme: dark) {
+  @media (max-width: 0px) and (prefers-color-scheme: dark) {
     :root {
       --bg: #16181d; --text: #e8eaed; --muted: #9aa0a6; --line: #33373d;
       --accent: #8ab4f8; --m3: #fdba74; --accent-bg: #23314a; --card: #202329; --chip: #2a2e35;
@@ -56,7 +57,7 @@
   .btn.small { height: 34px; padding: 0 11px; font-size: 14px; }
   .btn.wide { width: 100%; }
   .btn:disabled { opacity: .45; cursor: default; }
-  @media (prefers-color-scheme: dark) { .btn.primary { color: #16181d; } }
+  @media (max-width: 0px) and (prefers-color-scheme: dark) { .btn.primary { color: #16181d; } }
 
   .view { display: none; padding-top: 14px; }
   .view.on { display: block; }
@@ -98,7 +99,7 @@
   .pill.wait { background: var(--amber-bg); color: var(--amber); }
   .pill.zero { background: var(--red-bg); color: var(--red); }
   .pill.sum { background: #fff3c4; color: #8a5a00; }
-  @media (prefers-color-scheme: dark) { .pill.sum { background: #3d3518; color: #fdd663; } }
+  @media (max-width: 0px) and (prefers-color-scheme: dark) { .pill.sum { background: #3d3518; color: #fdd663; } }
   .pill.perk { background: var(--accent-bg); color: var(--accent); }
   .pill.off { background: var(--card); color: var(--muted); border: 1px solid var(--line); }
 
@@ -144,7 +145,7 @@
   .tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 10px; }
   .tab { border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 10px; height: 40px; font-size: 15px; font-weight: 600; cursor: pointer; }
   .tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  @media (prefers-color-scheme: dark) { .tab.on { color: #16181d; } }
+  @media (max-width: 0px) and (prefers-color-scheme: dark) { .tab.on { color: #16181d; } }
   .car-row { width: 100%; text-align: left; border: 0; background: none; color: inherit; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
   .rows li.car { padding: 0; }
 
@@ -291,7 +292,7 @@
   .op-card .segs { grid-template-columns: 1fr 1fr; margin-top: 10px; background: var(--bg); }
   .op-card .seg.on.lk { color: var(--red); } .op-card .seg.on.op { color: var(--green); }
   .op-card .segs.seg3w { grid-template-columns: 1fr 1fr 1fr; } .op-card .seg.on.vw { color: var(--m3); }
-  .op-st.view { color: var(--m3); background: #fff3e6; } @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .op-st.view { background: #3a2a1a; } }
+  .op-st.view { color: var(--m3); background: #fff3e6; } @media (max-width: 0px) and (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .op-st.view { background: #3a2a1a; } }
   @media (max-width: 380px) { .op-card .segs.seg3w .seg { font-size: 14px; padding-left: 4px; padding-right: 4px; } }
   .op-lab { font-size: 13px; font-weight: 800; color: var(--muted); margin: 14px 0 6px; }
   .op-card textarea { width: 100%; box-sizing: border-box; min-height: 64px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 15px; background: var(--bg); color: inherit; resize: vertical; }
@@ -380,7 +381,7 @@
   .cell .ln { font-size: 10px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ln.l { color: var(--green); font-weight: 700; } .ln.l.full { color: var(--red); }
   .ln.s { color: #8a5a00; } .ln.e { color: #b06000; } .ln.t { color: #0b7285; } .ln.w { color: var(--amber); } .ln.a { color: var(--red); }
-  @media (prefers-color-scheme: dark) { .ln.s { color: #fdd663; } }
+  @media (max-width: 0px) and (prefers-color-scheme: dark) { .ln.s { color: #fdd663; } }
   .month-list { margin-top: 18px; }
   .month-list .rows li { display: block; font-size: 14px; line-height: 1.6; }
   .month-list .d { font-weight: 800; margin-right: 6px; }
@@ -450,7 +451,7 @@
   .reason-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
   .reason-chips .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .ln.x { color: #6d4bd0; font-weight: 700; }
-  @media (prefers-color-scheme: dark) { .ln.x { color: #b9a6ff; } }
+  @media (max-width: 0px) and (prefers-color-scheme: dark) { .ln.x { color: #b9a6ff; } }
   #add-type .seg, #ed-type .seg { font-size: 14px; padding: 0; letter-spacing: -.3px; }
   .copybar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .ln.lim { color: var(--red); font-weight: 800; }
@@ -517,7 +518,7 @@
     #v-month .pc2 { grid-template-columns: minmax(0, 1fr); }
     #v-month .pc-r { position: static; max-height: none; }
   }
-  @media (min-width: 1024px) and (prefers-color-scheme: dark) { .side button.on { color: #16181d; } }
+  @media (min-width: 1024px) and (max-width: 0px) and (prefers-color-scheme: dark) { .side button.on { color: #16181d; } }
   .page-title { display: none; }
   .cell i { font-style: normal; } .cell .lg { display: none; }
   /* 폰: 칸 높이를 고정하고 일일 사항을 두 줄(2열)로 → 많아도 달력 비율이 안 깨짐 */
