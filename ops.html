@@ -244,6 +244,8 @@
   }
   .dnav { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; text-align: center; }
   .dnav small { display: block; font-size: 12.5px; color: var(--muted); font-weight: 700; } .dnav b { font-size: 20px; font-weight: 900; }
+  .dnav .dpk { position: relative; display: block; cursor: pointer; border-radius: 10px; padding: 2px 0; } .dnav .dpk:active { background: var(--line, #e5e7eb); } .dnav .dpk b::after { content: ""; display: inline-block; width: 7px; height: 7px; margin: 0 0 4px 7px; border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: rotate(45deg); opacity: .55; }
+  .dnav .dpk input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; margin: 0; }
   .nb { width: 48px; height: 48px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); color: var(--accent); font-size: 28px; font-weight: 800; line-height: 1; cursor: pointer; } .nb:disabled { opacity: .3; cursor: default; }
   .lab2 { font-size: 12.5px; color: var(--muted); font-weight: 700; align-self: center; margin-right: 2px; }
   .sum4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
@@ -490,7 +492,7 @@
   <!-- ===================== 입력 현황 ===================== -->
   <div class="pg" data-pg="today">
     <section class="card">
-      <div class="dnav"><button type="button" class="nb" id="a-dprev" aria-label="이전 날">‹</button><div><small>운행 현황</small><b id="a-date"></b></div><button type="button" class="nb" id="a-dnext" aria-label="다음 날">›</button></div>
+      <div class="dnav"><button type="button" class="nb" id="a-dprev" aria-label="이전 날">‹</button><label class="dpk"><small>운행 현황</small><b id="a-date"></b><input type="date" id="a-din" data-raw enterkeyhint="done" aria-label="날짜 골라서 보기"></label><button type="button" class="nb" id="a-dnext" aria-label="다음 날">›</button></div>
       <div class="sum4" id="a-sum"></div>
       <div id="a-push"></div>
     </section>
@@ -1485,7 +1487,7 @@ const STL = { work: "작성", none: "미입력", leave: "휴가", absent: "결�
 function drawToday() {
   if (!AD) return; syncGa(AD);
   const S = dayStat(AD), past = AD < TODAY, wds = workDays(), i = wds.indexOf(AD);
-  $("a-date").textContent = md(AD); $("a-dprev").disabled = i <= 0; $("a-dnext").disabled = i >= wds.length - 1;
+  $("a-date").textContent = md(AD); { const di = $("a-din"); di.value = AD; di.min = wds[0] || ""; di.max = wds[wds.length - 1] || ""; } $("a-dprev").disabled = !wds.some(x => x < AD); $("a-dnext").disabled = !wds.some(x => x > AD);   // 보는 날이 근무일이 아니어도 앞뒤 근무일로
   const missLbl = AD === TODAY && nowH() < 17 ? "운행 중" : "미입력";
   const gaW = Object.keys(GA_WAIT[AD] || {}).filter(c => S.R[c].st === "work" && S.R[c].ga === null);
   const offN = CARS.filter(c => ["leave", "absent", "home"].includes(S.R[c].st)).length, goN = CARS.filter(c => S.R[c].go).length;
@@ -1511,8 +1513,10 @@ function drawToday() {
     const ext = r.st === "work" ? (r.yard ? '<i>영' + r.yard + '</i>' : '') + (r.ga === null ? '<i class="w">가탕대기</i>' : r.ga ? '<i class="r">가' + r.ga + '</i>' : '') : r.st === "absent" ? '<i class="r">가' + (r.ga && !r.gaAuto ? r.ga : S.gaAbs) + '</i>' : '';
     return gh + '<li data-car="' + c + '" class="st-' + st + (r.go ? ' go' : '') + '"><span class="no">' + c + '<small>' + groupOf(c) + '조</small></span><span class="chip2">' + (r.st === "leave" ? r.lv : r.st === "none" ? (missLbl) : r.st === "work" && ((GA_WAIT[AD] || {})[c] || (GA_WHY[AD] || {})[c]) ? '<em class="gw ' + ({ 조퇴: "jt", 지각: "jg", 외출: "jt", 총회지각: "jg", 정비: "jb" }[String((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]).split("·")[0]] || "jt") + '">' + ((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]) + '</em>' : r.st === "work" && shipAuto(AD, c) ? '<em class="sa">출하기록</em>' : STL[r.st]) + (r.go ? ' 퇴근' : '') + '</span><span class="vv">' + val + '</span><span class="ex">' + ext + '</span></li>'; }).join("") || '<li class="empty">해당 차량이 없습니다.</li>';
 }
+document.addEventListener("change", e => { if (e.target.id !== "a-din" || !e.target.value) return; const w = workDays(), v = e.target.value, k = w.filter(x => x <= v).pop() || w[0];   // 주말·공휴일을 고르면 그 앞 근무일
+  if (k) { AD = k; AF = "all"; drawToday(); } });
 document.addEventListener("click", e => { const t = e.target;
-  if (t.closest("#a-dprev") || t.closest("#a-dnext")) { const w = workDays(), i = w.indexOf(AD) + (t.closest("#a-dprev") ? -1 : 1); if (w[i]) { AD = w[i]; AF = "all"; drawToday(); } return; }
+  if (t.closest("#a-dprev") || t.closest("#a-dnext")) { const w = workDays(), nx = t.closest("#a-dprev") ? w.filter(x => x < AD).pop() : w.find(x => x > AD); if (nx) { AD = nx; AF = "all"; drawToday(); } return; }
   const fl = t.closest("[data-flt]"); if (fl) { AF = fl.dataset.flt; drawToday(); if (fl.closest(".alert")) $("a-list").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
   const gi = t.closest("[data-gain]"); if (gi) { gaFor(gi.dataset.gain); return; }
   const ps = t.closest("[data-push]"); if (ps) { (async () => { const S = dayStat(AD); if (!S.miss.length) return;   // 관리자 공지(알림함)로 보냄 · 휴대폰 푸시는 서버 미구현
@@ -2056,7 +2060,8 @@ function setData(D) {
   TSITES = (RATES.tunnel || []).map(x => { const o = { n: String(x[0]), p: +x[1] || 0, s: String(x[2] || x[0]) }; if (x[3]) o.vat = 1; return o; }); syncLifts();
   SITES = (D.siteNames || []).slice(); SPK_POOL = SITES; DAYT = D.dayTable || {}; SPK_ALIAS = {}; Object.keys(D.siteMeta || {}).forEach(k => { const s = (D.siteMeta[k] || {}).s; if (s) SPK_ALIAS[k] = s; });
   window.RUN_LOCK = D.runMode !== 1; window.VAC_LOCK = D.vacMode !== 1; window.RUN_MODE = D.runMode; window.VAC_MODE = D.vacMode;
-  if (!AD || AD > TODAY) AD = TODAY; if (!SPD) SPD = TODAY;
+  if (!AD || AD > TODAY) { const w = workDays(); AD = w.includes(TODAY) ? TODAY : (w[w.length - 1] || TODAY); }   // 주말·공휴일에 열면 가장 최근 근무일부터
+  if (!SPD) SPD = TODAY;
   if (!NX) { NX = nextWork(TODAY); DSD = NX; DCM = NX.slice(0, 7); }
   if (!$("wk-d").value) { let x = TODAY; while (!isOff(x)) x = addDay(x, 1); $("wk-d").value = x; }
   if (!$("lv-d").value) $("lv-d").value = TODAY; if (!$("st-from").value) $("st-from").value = TODAY;
@@ -2131,7 +2136,7 @@ drawNav();
     return (+v.slice(5, 7)) + "월 " + (+v.slice(8)) + "일 <i class=\"" + (w === 0 ? "sun" : w === 6 ? "sat" : "") + "\">(" + W[w] + ")</i>"; }
   function wrap(el) { if (el.parentNode.classList.contains("dk")) return; const w = document.createElement("label"); w.className = "dk"; const sp = document.createElement("span");
     el.parentNode.insertBefore(w, el); w.appendChild(sp); w.appendChild(el); el._dk = sp; sp.innerHTML = txt(el.value); el._dkv = el.value; }
-  function sync() { document.querySelectorAll("input[type=date]").forEach(el => { if (!el._dk) wrap(el); if (el._dkv !== el.value) { el._dkv = el.value; el._dk.innerHTML = txt(el.value); } }); }
+  function sync() { document.querySelectorAll("input[type=date]:not([data-raw])").forEach(el => { if (!el._dk) wrap(el); if (el._dkv !== el.value) { el._dkv = el.value; el._dk.innerHTML = txt(el.value); } }); }
   sync(); setInterval(sync, 250);
   document.addEventListener("input", sync); document.addEventListener("change", sync);
   document.addEventListener("click", e => { const l = e.target.closest(".dk"); if (!l) return; const i = l.querySelector("input"); try { i.showPicker(); } catch (x) {} });

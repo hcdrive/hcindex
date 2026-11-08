@@ -523,7 +523,7 @@ const lab = r => r.st === "rest" ? ["비번", "s-rest"] : r.st === "leave" ? (r.
 function draw() {
   const S = dayStat(D), R = S.R, i = NAV.indexOf(D), fut = D > TODAY;
   $("lv-h").innerHTML = '<span class="db' + (D === TODAY ? '' : fut ? ' fut' : ' past') + '">' + (D === TODAY ? "오늘" : fut ? "예정" : "지난 날") + '</span><span class="dt">' + mdL(D) + '</span><span class="dk">출근하지 않거나 늦는 차량</span>';
-  $("d-t").textContent = mdL(D); $("d-in").value = D; $("d-in").max = NAV[NAV.length - 1]; $("d-prev").disabled = i <= 0; $("d-next").disabled = i >= NAV.length - 1;
+  $("d-t").textContent = mdL(D); $("d-in").value = D; $("d-in").max = NAV[NAV.length - 1]; $("d-prev").disabled = !NAV.some(x => x < D); $("d-next").disabled = !NAV.some(x => x > D);
   document.body.classList.toggle("fut", fut);
   { const n = typeof changesOf === "function" ? changesOf(D).length : 0; $("chg-open").hidden = !n || D > TODAY; $("chg-open").textContent = "어제 예정에서 변동 " + n + "건"; }
   $("dbig-t").textContent = mdL(D); $("dbig-tag").textContent = (fut ? "운행 예정" : D === TODAY ? "오늘" : "지난 날짜") + (S.wk ? " · " + (HOLI[D] || W[wd(D)] + "요일") + " 근무" : ""); $("dbig-tag").className = fut ? "t-fut" : D === TODAY ? "t-today" : "t-past";
@@ -610,8 +610,8 @@ function draw() {
     '<div><small>조퇴 예정 <em class="nx-n"><b>' + pt("er").length + '</b>대</em> · 예상 퇴근 시간</small><b>' + (pt("er").map(c => c + ' <i class="tm">' + (P[c][2] || "시간 미정") + '</i>').join(", ") || "없음") + '</b></div>' +
     '<div><small>지각 예정 <em class="nx-n"><b>' + pt("la").length + '</b>대</em> · 예상 출근 시간</small><b>' + (pt("la").map(c => c + ' <i class="tm">' + (P[c][2] || "시간 미정") + '</i>').join(", ") || "없음") + '</b></div>';
 }
-$("d-prev").onclick = () => { const i = NAV.indexOf(D); if (i > 0) { D = NAV[i - 1]; draw(); } };
-$("d-next").onclick = () => { const i = NAV.indexOf(D); if (i < NAV.length - 1) { D = NAV[i + 1]; draw(); } };
+$("d-prev").onclick = () => { const p = NAV.filter(x => x < D).pop(); if (p) { D = p; draw(); } };   // 보는 날이 목록에 없어도(주말 등) 바로 앞 날로
+$("d-next").onclick = () => { const n = NAV.find(x => x > D); if (n) { D = n; draw(); } };
 $("d-today").onclick = () => { D = TODAY; draw(); };
 $("d-in").onchange = e => { const v = e.target.value; const k = NAV.filter(x => x <= v).pop(); if (k) { D = k; draw(); } };
 
