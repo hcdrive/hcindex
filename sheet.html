@@ -232,6 +232,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
 .boot-sp { width: 28px; height: 28px; border: 3px solid #d5dbe5; border-top-color: var(--accent); border-radius: 50%; animation: bootspin .8s linear infinite; } @keyframes bootspin { to { transform: rotate(360deg); } }
 .toast.bad { background: #b42318; }
 #kcard, #v-next, #dbig, #chg, #vtabs [data-v="log"], #v-log, #vtabs [data-v="site"], #v-site, .hdr-r, #edit-lock { display: none !important; }
+  .chip.s-fo { background: #fff1de; color: #b35c00; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <script src="hc-config.js"></script><script src="hc-live.js"></script>
@@ -424,7 +425,7 @@ function baseRec(c, d) {
   if (du === "home" && lv !== "여름휴가" && lv !== "특별휴가") return { st: "home", was: lv === "연차" || lv === "결근" ? lv : "" };
   if (lv === "연차" || lv === "여름휴가" || lv === "특별휴가") return { st: "leave", lv, why: lv === "특별휴가" ? ((SPECIAL_WHY[d] || {})[c] || "") : "" };
   if (lv === "결근") return { st: "absent", lv: "결근", ga: 0 };
-  return { st: "none", part: lv === "조퇴" || lv === "지각" ? lv : "", go: du === "go" };
+  return { st: "none", part: lv === "조퇴" || lv === "지각" || lv === "정비" ? lv : "", go: du === "go" };
 }
 function rec(c, d) { const r = baseRec(c, d); const e = (EDITS[d] || {})[c]; if (e && r.st === "work") r.edited = e;
   const k = (CHK[d] || {})[c]; if (k && r.st === "work") r.ok = { at: String(k).replace(/^관리팀\s*/, "") }; return r; }
@@ -479,9 +480,10 @@ let D = homeD(), V = "day", F = "all", ED = null;
 const toast = (m, bad) => { const t = $("toast"); t.textContent = m; t.classList.toggle("bad", !!bad); t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), bad ? 3600 : 2400); };
 const COLS = [["real", "회전수"], ["km", "운행거리(km)"], ["toll", "통행료"], ["fuel", "주유량"], ["wait", "2시간"], ["late", "17시 이후"], ["jan", "잔수"], ["early", "조출"], ["yard", "영내"], ["back19", "19시"], ["lift", "터널"]];
 // 관리팀 표시: 운행 · 결근(연차·여름휴가 등 안 나온 날 전부) · 조퇴 · 지각 · 집대기만
-const stLab = r => r.st === "leave" || r.st === "absent" ? '<span class="chip s-ab">결근</span>' : r.st === "home" ? '<span class="chip s-home">집대기</span>'
+const stLab = r => stLab0(r) + (r.fo && r.st !== "work" ? ' <span class="chip s-fo">주유 ' + (+r.fuel || 0) + 'L</span>' : '');   // 쉬는 날 주유량만
+const stLab0 = r => r.st === "leave" || r.st === "absent" ? '<span class="chip s-ab">결근</span>' : r.st === "home" ? '<span class="chip s-home">집대기</span>'
   : r.st === "rest" ? '<span class="chip s-rest">비번</span>' : r.st === "none" ? '<span class="chip s-pend">입력 전</span>'
-  : (r.part === "조퇴" ? '<span class="chip s-early">조퇴</span>' : r.part === "지각" ? '<span class="chip s-late">지각</span>' : '<span class="chip s-run">운행</span>');
+  : (r.part === "조퇴" ? '<span class="chip s-early">조퇴</span>' : r.part === "지각" ? '<span class="chip s-late">지각</span>' : r.part === "정비" ? '<span class="chip s-mnt">정비</span>' : '<span class="chip s-run">운행</span>');
 const kmOdd = r => r.st === "work" && (r.km > 300 || r.km < 10 || r.km / Math.max(1, r.real) > 90);
 const kmWarn = r => !r.ok && r.st === "work" && (r.km > 300 || r.km < 10 || r.km / Math.max(1, r.real) > 90);
 const hasExtra = r => r.st === "work" && (r.jan || r.yard || r.wait || r.late || r.early || r.lift || r.back19);
@@ -498,7 +500,7 @@ const absWhy = (c, d) => { const r = rec(c, d); return r.st === "leave" ? lvWhy(
 function kpHits(k, d) {   // [{c, n, sites, note}]
   const o = []; CARS.forEach(c => { const r = rec(c, d);
     if (k === "ab") { if (r.st === "absent" || r.st === "leave") o.push({ c, n: 1, sites: [], note: absWhy(c, d) }); return; }
-    if (k === "part") { if (r.part === "조퇴" || r.part === "지각") { const t = ltime(c, d); o.push({ c, n: 1, sites: [], note: r.part + (t ? " " + t : "") }); } return; }
+    if (k === "part") { if (r.part === "조퇴" || r.part === "지각" || r.part === "정비") { const t = ltime(c, d); o.push({ c, n: 1, sites: [], note: r.part + (t ? " " + t : "") }); } return; }
     if (r.st !== "work") return;
     const n = k === "back19" ? (r.back19 ? 1 : 0) : +r[k] || 0; if (!n) return;
     o.push({ c, n, sites: SITE_K.includes(k) ? sitesOf(c, d, k) : [] }); });
@@ -559,10 +561,10 @@ const countSites = a => { const m = {}; a.forEach(x => m[x] = (m[x] || 0) + 1); 
 // 어떤 날의 결근·조퇴·지각 예정 목록 { 호차: [종류, 사유, 시간] } · 집대기로 바뀐 차량은 제외
 function planOf(d) { const o = {}; if (isOff(d)) return o;
   CARS.forEach(c => { const lv = leaveOf(c, d), du = dutyOf(c, d); if (!lv) return;
-    if (lv === "조퇴") o[c] = ["er", "조퇴", ltime(c, d)]; else if (lv === "지각") o[c] = ["la", "지각", ltime(c, d)];
+    if (lv === "조퇴") o[c] = ["er", "조퇴", ltime(c, d)]; else if (lv === "지각") o[c] = ["la", "지각", ltime(c, d)]; else if (lv === "정비") o[c] = ["mn", "정비", ""];
     else if (["연차", "여름휴가", "특별휴가", "결근"].includes(lv)) { if (du === "home" && (lv === "연차" || lv === "결근")) return; o[c] = ["ab", lv === "특별휴가" ? ((SPECIAL_WHY[d] || {})[c] || lv) : lv]; } });
   return o; }
-const KN = { ab: "결근", er: "조퇴", la: "지각" };
+const KN = { ab: "결근", er: "조퇴", la: "지각", mn: "정비" };
 const planTxt = (x, c, d) => x[0] === "ab" ? (lvWhy(x[1], c, d) === "결근" ? "결근" : "결근 · " + lvWhy(x[1], c, d)) : KN[x[0]] + (x[2] ? " " + x[2] : "");
 // 변동: 전날 저녁에 본 예정과 오늘 실제 신청을 비교 (집대기 변동은 알리지 않음)
 function openChg() { const L = changesOf(D); if (!L.length) return;
@@ -596,13 +598,14 @@ const kstDay = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10
 const AUTO_DONE = {}; AUTO_AT.forEach(t => { if (nowHM() >= t) AUTO_DONE[kstDay() + t] = 1; });   // 이미 지난 시각은 열 때 넘김
 function drawNext() { let nx = addDay(D, 1); while (!isWork(nx)) nx = addDay(nx, 1);
   const live = D === TODAY, P = live ? nxPlan(nx).plan : planOf(nx), E = Object.keys(P).sort((a, b) => a - b);
-  const ab = E.filter(c => P[c][0] === "ab").map(c => [c, lvWhy(P[c][1], c, nx)]), er = E.filter(c => P[c][0] === "er"), la = E.filter(c => P[c][0] === "la");
+  const ab = E.filter(c => P[c][0] === "ab").map(c => [c, lvWhy(P[c][1], c, nx)]), er = E.filter(c => P[c][0] === "er"), la = E.filter(c => P[c][0] === "la"), mn = E.filter(c => P[c][0] === "mn");
   $("nx-sub").textContent = mdL(nx) + (live ? " · 신청된 내용" : "");
   $("nx-rf").hidden = !live; $("nx-at").textContent = live ? NXV.at + " 기준 · 매일 아침 7시 · 오후 4시 자동 업데이트" : "";
   const box = (t, L, f, sub) => '<div><small>' + t + ' <em class="nx-n"><b>' + L.length + '</b>대</em>' + (sub ? ' · ' + sub : '') + '</small><div class="nx-cars">' + (L.length ? L.map(f).join("") : '<span class="none">없음</span>') + '</div></div>';
   $("nx").innerHTML = box("결근 예정", ab, ([c, w]) => '<span class="nc">' + c + ' ' + whyChip(w) + '</span>') +
     box("조퇴 예정", er, c => '<span class="nc">' + c + (P[c][2] ? ' <i class="tm">' + P[c][2] + ' 퇴근</i>' : '') + '</span>', "예상 퇴근 시간") +
-    box("지각 예정", la, c => '<span class="nc">' + c + (P[c][2] ? ' <i class="tm">' + P[c][2] + ' 출근</i>' : '') + '</span>', "예상 출근 시간"); }
+    box("지각 예정", la, c => '<span class="nc">' + c + (P[c][2] ? ' <i class="tm">' + P[c][2] + ' 출근</i>' : '') + '</span>', "예상 출근 시간") +
+    (mn.length ? box("정비 예정", mn, c => '<span class="nc">' + c + '</span>', "출근은 하고 정비 시간만큼 빠짐") : ''); }
 // ===== 출하기록 (관리자가 올린 '차량별운반비현황' 엑셀 · 서버 ship) =====
 //  행: [차량번호, 운전자, 소속, 거래처 현장, 출하시간, 회전수, 운반량]
 const SHIPLOG = SHIP_D;   // 날짜 → { file, rows, by, at }
@@ -776,7 +779,8 @@ function sumMonth() { const T = { ab: 0, mh: 0, wait: 0, late: 0, jan: 0, yard: 
   CARS.forEach(c => P[c] = { work: 0, mh: 0, sum: 0, ab: 0, home: 0, real: 0, jan: 0, yard: 0, wait: 0, late: 0, early: 0, lift: 0, back19: 0, km: 0, toll: 0, fuel: 0, ga: 0, conv: 0 });
   MD().forEach(d => CARS.forEach(c => { const r = rec(c, d), p = P[c];
     if (r.st === "work") { p.work++; ["real", "jan", "yard", "wait", "late", "early", "lift", "km", "toll", "fuel", "ga"].forEach(k => p[k] += +r[k] || 0); p.back19 += r.back19 ? 1 : 0; p.conv += conv(r); }
-    else if (r.st === "leave") p.ab++; else if (r.st === "absent") { p.ab++; p.ga += r.ga; } else if (r.st === "home") p.home++; }));
+    else if (r.st === "leave") p.ab++; else if (r.st === "absent") { p.ab++; p.ga += r.ga; } else if (r.st === "home") p.home++;
+    if (r.st !== "work" && r.fo) p.fuel += +r.fuel || 0; }));   // 쉬는 날 주유량만
   CARS.forEach(c => { const p = P[c]; T.ab += p.ab; T.mh += p.mh; ["wait", "late", "jan", "yard", "early", "lift", "back19"].forEach(k => T[k] += p[k]); });
   T.P = P; return T; }
 const MCOLS = [["real", "회전수"], ["km", "운행거리(km)"], ["toll", "통행료"], ["fuel", "주유량"], ["wait", "2시간"], ["late", "17시 이후"], ["jan", "잔수"], ["early", "조출"], ["yard", "영내"], ["back19", "19시"], ["lift", "터널"]];

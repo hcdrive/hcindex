@@ -380,7 +380,7 @@
   .cell .sp { font-size: 9px; color: var(--amber); }
   .cell .ln { font-size: 10px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ln.l { color: var(--green); font-weight: 700; } .ln.l.full { color: var(--red); }
-  .ln.s { color: #8a5a00; } .ln.e { color: #b06000; } .ln.t { color: #0b7285; } .ln.w { color: var(--amber); } .ln.a { color: var(--red); }
+  .ln.s { color: #8a5a00; } .ln.e { color: #b06000; } .ln.t { color: #0b7285; } .ln.m { color: #3c4553; } .ln.w { color: var(--amber); } .ln.a { color: var(--red); }
   @media (max-width: 0px) and (prefers-color-scheme: dark) { .ln.s { color: #fdd663; } }
   .month-list { margin-top: 18px; }
   .month-list .rows li { display: block; font-size: 14px; line-height: 1.6; }
@@ -447,7 +447,7 @@
   .rv-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .rv-pick button { height: 40px; border-radius: 9px; border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   .rv-pick button.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-  #add-type, #ed-type { grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  #add-type, #ed-type { grid-template-columns: repeat(4, 1fr); gap: 2px; }   /* 7가지: 연차·여름·특별·결근 / 조퇴·지각·정비 */
   .reason-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
   .reason-chips .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .ln.x { color: #6d4bd0; font-weight: 700; }
@@ -1464,7 +1464,7 @@ function engineCancel(st, p) {
   if (RULES.VAC_OPEN !== 1) return result(false, VAC_CLOSED_MSG);
   var req = st.reqs.filter(function (r) { return r.id === p.id && r.no === no; })[0];
   if (!req || !ACTIVE[req.status]) return result(false, "이미 취소됐거나 취소할 수 없는 신청입니다. 아래 '내 신청'에서 확인해 주세요.");
-  if (req.type === "여름휴가" || req.type === "특별휴가") return result(false, req.type + "는 관리자에게 문의해 주세요.");
+  if (req.type === "여름휴가" || req.type === "특별휴가" || req.type === "정비") return result(false, req.type + "는 관리자에게 문의해 주세요.");
   if (dDiff(req.date, st.today) <= RULES.LOCK_DAYS) {
     var r0 = result(false, RULES.LOCK_DAYS + "일 이내 날짜는 관리자에게 직접 취소를 요청해 주세요.");
     r0.logs.push({ no: no, type: req.type, date: req.date, action: "취소", result: "실패", detail: RULES.LOCK_DAYS + "일 이내", by: "기사" });
@@ -1591,7 +1591,7 @@ function engineMine(st, p) {
              createdAt: r.by === "기사" ? r.createdAt : "", order: r.type === "연차" && (r.status === "확정" || PENDING[r.status]) && left >= 0,
              reason: r.type === "특별휴가" ? String(r.note || "").split(" · ")[0] : "",
              rank: r.type === "연차" && WAIT[r.status] ? waitRank(st, r) : 0, wait: r.type === "연차" && WAIT[r.status] ? waitName(waitKind(r)) : "", label: r.type === "연차" && WAIT[r.status] ? waitLabel(st, r) : "",
-             left: left, canCancel: !!ACTIVE[r.status] && r.type !== "여름휴가" && r.type !== "특별휴가" && left > RULES.LOCK_DAYS };
+             left: left, canCancel: !!ACTIVE[r.status] && r.type !== "여름휴가" && r.type !== "특별휴가" && r.type !== "정비" && left > RULES.LOCK_DAYS };
   });
   var nextYear = String(+year + 1);
   return { ok: true, no: no, total: st.cars[no].total, remain: st.cars[no].total - leaveUsed(st, no, year, true),
@@ -1689,7 +1689,7 @@ function engineLogout(st, p) {
 /* =========================================================
    관리자 기능 (규칙을 거치지 않고 바로 처리 — 모든 처리는 기록에 남김)
    ========================================================= */
-var ADMIN_TYPES = ["연차", "여름휴가", "조퇴", "지각", "결근", "특별휴가"];
+var ADMIN_TYPES = ["연차", "여름휴가", "특별휴가", "결근", "조퇴", "지각", "정비"];   // 정비: 조퇴·지각처럼 표시만 (가탕은 [가탕] 메뉴)
 // 특별휴가: 경조사·공무 등. 관리자만 입력, 연차·여름휴가에서 빠지지 않고 하루 인원에도 들어가지 않음. 사유는 메모 앞에 적음
 var EXTRA_REASONS = ["부친상", "모친상", "빙부상", "빙모상", "본인 결혼", "자녀 결혼", "공무", "기타"];
 var ADMIN_STATUS = { "확정": 1, "취소": 1, "반려": 1 };
@@ -1713,7 +1713,7 @@ function adminDay(st, p) {
            perkHolders: special ? perkHolders(st, d) : null, lowOpen: special ? lowOpenOn(st, d) : null,
            leave: pick(function (r) { return r.type === "연차" && r.status === "확정"; }),
            summer: pick(function (r) { return r.type === "여름휴가" && r.status === "확정"; }),
-           early: pick(function (r) { return (r.type === "조퇴" || r.type === "지각") && r.status === "확정"; }),
+           early: pick(function (r) { return (r.type === "조퇴" || r.type === "지각" || r.type === "정비") && r.status === "확정"; }),
            absent: pick(function (r) { return r.type === "결근" && r.status === "확정"; }),
            extra: pick(function (r) { return r.type === "특별휴가" && r.status === "확정"; }),
            queue: queue, suggest: taken < limitOn(st, d) && firstRejected ? firstRejected.id : "" };
@@ -1783,7 +1783,7 @@ function adminAdd(st, p) {
     if (type === "연차" && !outside && confirmedOn(st, d) > limitOn(st, d)) over.push(dShort(d) + "(" + limitOn(st, d) + "명)");
   });
   var summerOver = type === "여름휴가" && dates.some(function (d) { return summerRemain(st, no, dYear(d)) < 0; });
-  var obj = { "연차": "연차를", "여름휴가": "여름휴가를", "조퇴": "조퇴를", "지각": "지각을", "결근": "결근을", "특별휴가": "특별휴가를" }[type];
+  var obj = { "연차": "연차를", "여름휴가": "여름휴가를", "조퇴": "조퇴를", "지각": "지각을", "정비": "정비를", "결근": "결근을", "특별휴가": "특별휴가를" }[type];
   r.msg = no + "호 " + dates.map(function (d) { return dLong(st, d); }).join(", ") + " " + obj + " 입력했습니다." +
           (outside ? " 기사님 정원과 따로 세므로 기다리는 분들 자리는 그대로입니다." : "") +
           (over.length ? " ※ " + over.join(", ") + "은 그날 최대 인원을 넘었습니다." : "") +
@@ -1931,7 +1931,7 @@ function adminMonth(st, p) {
                 special: specialKind(st, d), today: d === st.today, block: !!blockOn(st, d),
                 leave: nos(function (r) { return r.type === "연차" && r.status === "확정"; }),
                 summer: nos(function (r) { return r.type === "여름휴가" && r.status === "확정"; }),
-                early: on.filter(function (r) { return (r.type === "조퇴" || r.type === "지각") && r.status === "확정"; })
+                early: on.filter(function (r) { return (r.type === "조퇴" || r.type === "지각" || r.type === "정비") && r.status === "확정"; })
                          .map(function (r) { return { no: r.no, type: r.type, time: r.time || "", note: r.note || "" }; }),
                 absent: nos(function (r) { return r.type === "결근" && r.status === "확정"; }),
                 extra: nos(function (r) { return r.type === "특별휴가" && r.status === "확정"; }),
@@ -2113,7 +2113,7 @@ function newId() { return Math.random().toString(36).slice(2, 10); }
    알림 = ① 내 휴가 변경(관리자 입력·수정, 자동 확정·반려)  ② 물량표 올라옴  ③ 관리자 공지
    기록 줄 = [시각, 호수, 종류, 날짜, 처리, 결과, 처리자, 내용]
    공지 줄 = [ID, 보낸 시각, 대상, 제목, 내용, 끝날짜]   대상: "전체" · "3조" · "201,214" */
-var BELL_DAYS = 30, BELL_TYPES = { "연차": 1, "여름휴가": 1, "조퇴": 1, "지각": 1, "결근": 1, "특별휴가": 1 };
+var BELL_DAYS = 30, BELL_TYPES = { "연차": 1, "여름휴가": 1, "조퇴": 1, "지각": 1, "정비": 1, "결근": 1, "특별휴가": 1 };
 function noGroup(no) { return Math.min(6, Math.max(1, Math.ceil((Number(no) - 200) / 10))); }
 function noticeTargets(target) {
   var t = String(target || "").replace(/\s/g, "");
@@ -2887,6 +2887,7 @@ async function loadMonth(m) {
       (d.summer.length ? '<span class="ln s">' + LB("여", "여름휴가") + ' ' + d.summer.length + '</span>' : '') +
       (d.early.filter(x => x.type === "조퇴").length ? '<span class="ln e">' + LB("조", "조퇴") + ' ' + d.early.filter(x => x.type === "조퇴").length + '</span>' : '') +
       (d.early.filter(x => x.type === "지각").length ? '<span class="ln t">' + LB("지", "지각") + ' ' + d.early.filter(x => x.type === "지각").length + '</span>' : '') +
+      (d.early.filter(x => x.type === "정비").length ? '<span class="ln m">' + LB("정", "정비") + ' ' + d.early.filter(x => x.type === "정비").length + '</span>' : '') +
       (d.absent && d.absent.length ? '<span class="ln a">' + LB("결", "결근") + ' ' + d.absent.length + '</span>' : '') +
       (d.extra && d.extra.length ? '<span class="ln x">' + LB("특", "특별휴가") + ' ' + d.extra.length + '</span>' : '') +
       (d.waiting ? '<span class="ln w">' + LB("대", "대기") + ' ' + d.waiting + '</span>' : '') + '</button>';
@@ -2897,6 +2898,7 @@ async function loadMonth(m) {
     [d.leave.length ? '<b>연차</b> ' + d.leave.join(" ") : "", d.summer.length ? '<b>여름</b> ' + d.summer.join(" ") : "",
      d.early.filter(x => x.type === "조퇴").length ? '<b>조퇴</b> ' + d.early.filter(x => x.type === "조퇴").map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(" ") : "",
      d.early.filter(x => x.type === "지각").length ? '<b>지각</b> ' + d.early.filter(x => x.type === "지각").map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(" ") : "",
+     d.early.filter(x => x.type === "정비").length ? '<b>정비</b> ' + d.early.filter(x => x.type === "정비").map(x => x.no).join(" ") : "",
      d.absent.length ? '<b>결근</b> ' + d.absent.join(" ") : "",
      (d.extra || []).length ? '<b>특별</b> ' + d.extra.join(" ") : "",
      d.waiting ? '<span class="muted">대기 ' + d.waiting + '명</span>' : ""].filter(Boolean).join(" · ") + '</li>').join("")
@@ -2923,7 +2925,8 @@ function absentText(d) {
   const off = Array.from(new Set(d.leave.concat(d.summer, d.absent, d.extra || []).map(x => x.no))).sort();
   const lines = [line("결근", off.map(no => ({ no })), x => x.no),
                  line("조퇴", by("조퇴"), x => x.no + (x.time ? "(" + hourLabel(x.time) + ")" : "")),
-                 line("지각", by("지각"), x => x.no + (x.time ? "(" + hourLabel(x.time) + ")" : ""))].filter(Boolean);
+                 line("지각", by("지각"), x => x.no + (x.time ? "(" + hourLabel(x.time) + ")" : "")),
+                 line("정비", by("정비"), x => x.no)].filter(Boolean);
   return head + "\n\n" + (lines.length ? lines.join("\n\n") : "결근·조퇴·지각 없음");
 }
 let DAYDATA = null, COPYDAY = {};
@@ -2941,7 +2944,7 @@ async function copyMonth() {
   if (!MONTH) return;
   const text = MONTH.days.filter(d => d.leave.length || d.summer.length || d.early.length || d.absent.length || (d.extra || []).length).map(d => md(d.date) + " " +
     [d.leave.length ? "연차 " + d.leave.join(",") : "", d.summer.length ? "여름 " + d.summer.join(",") : "",
-     d.early.length ? "조퇴·지각 " + d.early.map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(",") : "",
+     d.early.length ? "조퇴·지각·정비 " + d.early.map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(",") : "",
      d.absent.length ? "결근 " + d.absent.join(",") : "", (d.extra || []).length ? "특별휴가 " + d.extra.join(",") : ""].filter(Boolean).join(" / ")).join("\n");
   try { await navigator.clipboard.writeText(text); toast("이 달 휴가표를 복사했습니다. 카톡이나 엑셀에 붙여넣으세요.", true); }
   catch (e) { await copyText(text || "이 달에는 휴가가 없습니다", "이 달 휴가표를 복사했습니다. 카톡이나 엑셀에 붙여넣으세요."); }
@@ -3014,8 +3017,8 @@ function renderDay(d) {
     '<div class="main"><span class="no">' + esc(x.no) + '호</span> ' + pillHtml(x) + (x.note ? '<div class="meta">' + esc(x.note) + '</div>' : '') + '</div>' +
     '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>');
 
-  ["조퇴", "지각"].forEach(k => { const L = d.early.filter(x => x.type === k);
-    html += '<h2>' + k + ' (' + L.length + '명) <span class="muted" style="font-weight:400">· ' + (k === "조퇴" ? '몇 시에 퇴근하는지' : '몇 시에 출근하는지') + '</span></h2>' + rows(L.map(withDate), x =>
+  ["조퇴", "지각", "정비"].forEach(k => { const L = d.early.filter(x => x.type === k); if (k === "정비" && !L.length) return;   // 정비는 있는 날만
+    html += '<h2>' + k + ' (' + L.length + '명) <span class="muted" style="font-weight:400">· ' + (k === "조퇴" ? '몇 시에 퇴근하는지' : k === "지각" ? '몇 시에 출근하는지' : '가탕은 [가탕] 메뉴 정비①②③') + '</span></h2>' + rows(L.map(withDate), x =>
       '<div class="main"><span class="no">' + esc(x.no) + '호</span> <b class="tm-big' + (x.time ? '' : ' none') + '">' + esc(earlyTxt(x)) + '</b> ' + pillHtml(x) + '<div class="meta">' + esc(x.by) + ' 입력' + (x.note ? ' · ' + esc(x.note) : '') + '</div></div>' +
       '<div class="acts">' + editBtn(x) + '<button class="btn small danger" data-st="취소" data-id="' + esc(x.id) + '">취소</button></div>'); });
 
@@ -3084,6 +3087,7 @@ function renderAdd() {
       (addForm.type === "연차" ? '<br><span class="muted">연차 ' + addForm.dates.length + '일이 빠집니다. (지금 남은 연차 ' + car.remain + '일)</span>' +
         '<br><span class="muted">' + (addForm.outside ? '정원 밖: 기사님 정원(하루 최대 인원)에 들어가지 않아, 기다리는 분들 자리를 차지하지 않습니다.' : '정원 안: 기사님 정원에 1자리로 들어갑니다.') + '</span>' : '') +
       (addForm.type === "결근" ? '<br><span class="muted">결근은 연차가 줄지 않고 인원 제한도 없습니다.</span>' : '') +
+      (addForm.type === "정비" ? '<br><span class="muted">정비는 연차가 줄지 않고 인원 제한도 없습니다. 그날 일은 하고 운행기록도 기사님이 씁니다. 출하실·기사 현황판에 정비로 보이고, 가탕은 [가탕] 메뉴에서 정비①②③으로 넣습니다.</span>' : '') +
       (extra ? '<br>사유: <b>' + esc(addForm.reason) + '</b><br><span class="muted">특별휴가는 연차·여름휴가가 줄지 않고 하루 인원에도 들어가지 않습니다.</span>' : '') +
       (addForm.type === "여름휴가" ? '<br><span class="muted">여름휴가 ' + addForm.dates.length + '일이 빠집니다. (연차는 줄지 않음 · 지금 남은 여름휴가 ' + car.summerRemain + '일)</span>' : '')
     : '<span class="muted">' + (extra && addForm.no && addForm.dates.length && !addForm.reason ? '특별휴가 사유를 적어 주세요.' : '호수, 구분, 날짜를 고르면 여기에 입력할 내용이 보입니다.') + '</span>';
@@ -3732,13 +3736,13 @@ $("cal").addEventListener("click", e => { const b = e.target.closest("[data-go]"
 // 달력 날짜 → 그날 누구누구인지 팝업 · [날짜별 관리로 가기]를 누르면 날짜별 메뉴의 그 날짜로
 // 조퇴·지각 시간: "10:00" → "10시 조퇴" / "10시 출근" · 없으면 '시간 기록 없음'
 const hhTxt = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? (+m[1]) + "시" + (m[2] !== "00" ? " " + (+m[2]) + "분" : "") : ""; };
-const earlyTxt = x => { const h = hhTxt(x.time); return h ? (x.type === "지각" ? h + " 출근" : h + " 퇴근") : "시간 기록 없음"; };
+const earlyTxt = x => { if (x.type === "정비") return "정비"; const h = hhTxt(x.time); return h ? (x.type === "지각" ? h + " 출근" : h + " 퇴근") : "시간 기록 없음"; };
 function openDayPop(date) {
   const d = (MONTH && MONTH.days || []).find(x => x.date === date); if (!d) { showView("v-day"); loadDay(date); return; }
   const tm = x => '<small>' + esc(earlyTxt(x)) + (x.note ? ' · ' + esc(x.note) : '') + '</small>';
   const why = x => x.why ? '<small>' + esc(x.why) + '</small>' : '<small>사유 없음</small>';
   const rows = [["연차", d.leave.map(n => esc(n))], ["여름휴가", d.summer.map(n => esc(n))],
-    ["조퇴", d.early.filter(x => x.type === "조퇴").map(x => esc(x.no) + tm(x))], ["지각", d.early.filter(x => x.type === "지각").map(x => esc(x.no) + tm(x))],
+    ["조퇴", d.early.filter(x => x.type === "조퇴").map(x => esc(x.no) + tm(x))], ["지각", d.early.filter(x => x.type === "지각").map(x => esc(x.no) + tm(x))], ["정비", d.early.filter(x => x.type === "정비").map(x => esc(x.no) + (x.note ? '<small>' + esc(x.note) + '</small>' : ''))],
     ["결근", (d.absentInfo || (d.absent || []).map(no => ({ no }))).map(x => esc(x.no) + (x.why ? '<small>' + esc(x.why) + '</small>' : ''))],
     ["특별휴가", (d.extraInfo || (d.extra || []).map(no => ({ no }))).map(x => esc(x.no) + why(x))]].filter(r => r[1].length);
   $("dp-title").textContent = md(date) + (d.holiday ? " · " + d.holiday : "") + (d.off && !d.holiday ? " · 쉬는 날" : "");

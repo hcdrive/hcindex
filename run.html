@@ -469,6 +469,7 @@
   .yw-ok div span, .yw-no div span { display: block; font-size: 13px; color: var(--muted); }
   .yw-ok div b, .yw-no div b { font-size: 28px; font-weight: 900; line-height: 1.2; }
   .yw-foot { text-align: center; font-size: 14.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.5; }
+  #ow-foot:empty { display: none; }
   .cf-sum { text-align: center; font-size: 16px; background: color-mix(in srgb, #e5484d 8%, var(--card)); border-radius: 12px; padding: 9px; margin: -6px 0 14px; }
   .cf-sum b { font-size: 18px; white-space: nowrap; }
   .cf-btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
@@ -509,6 +510,7 @@
   .d .dots .o { background: #1f9d55; } .d .dots .x { background: #f5b800; } .d .dots .l { background: #7c4ddb; } .d .dots .m { background: #9aa0a6; }
   .d.has { background: var(--accent-bg); }
   /* 휴가 탭 연동 */
+  .d .fo-t { display: block; max-width: 100%; box-sizing: border-box; overflow: hidden; font-size: 10.5px; font-weight: 900; color: #fff; background: #e8590c; border-radius: 6px; padding: 1px 2px; line-height: 1.25; margin: 2px auto 0; white-space: nowrap; letter-spacing: -.3px; }   /* 쉬는 날 주유량만 */
   .d .wk-t { display: block; font-size: 10.5px; font-weight: 800; color: #8a6500; opacity: .85; line-height: 1.1; margin-top: 1px; white-space: nowrap; }
   .d .lv-big { font-size: 14px; font-weight: 800; line-height: 1.3; margin-top: 3px; }
   .d { position: relative; }
@@ -1039,7 +1041,16 @@
   .rp-tb th, .rp-tb td { border: 1px solid var(--line); padding: 5px 4px; text-align: center; white-space: nowrap; }
   .rp-tb th { background: var(--card); font-weight: 800; color: var(--muted); } .rp-tb td:first-child { font-weight: 800; background: var(--card); }
   .rp-tb tr.me td { background: var(--accent-bg); font-weight: 800; }
-  .ow-btns:has(#ow-ok[hidden]) { grid-template-columns: 1fr; } .ow-btns:has(#ow-ok[hidden]) #ow-no { height: 54px; }
+  .ow-work { display: block; width: 100%; height: 56px; margin: 4px 0 10px !important; } .ow-work[hidden] { display: none !important; }
+  .fo-btn { display: block; width: 100%; height: 100%; min-height: 54px; margin: 0; border: 2px solid #e8590c; background: #fff4e6; color: #c2410c; border-radius: 14px; font-size: 17px; font-weight: 900; font-family: inherit; cursor: pointer; } .fo-btn[hidden] { display: none; }
+  .lp-ask { margin: 14px 0 10px; font-size: 17px; font-weight: 800; line-height: 1.5; text-align: center; }
+  .off-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; } .off-btns.one { grid-template-columns: 1fr; }
+  .off-btns button { height: 56px; border-radius: 14px; font-size: 16.5px; font-weight: 900; font-family: inherit; cursor: pointer; border: 0; }
+  .off-btns .ob-w { background: var(--accent, #1d4ed8); color: #fff; } .off-btns .ob-f { background: #fff4e6; color: #c2410c; border: 2px solid #e8590c; }
+  .fo-info { margin: 12px auto 0; background: #fff1de; color: #8a4200; border-radius: 12px; padding: 10px 14px; font-size: 15px; font-weight: 700; text-align: center; } .fo-info b { font-size: 19px; color: #c2410c; }
+  .fo-in { display: flex; align-items: center; gap: 8px; margin: 14px auto 10px; max-width: 240px; } .fo-in input { flex: 1; min-width: 0; height: 58px; font-size: 28px; font-weight: 900; text-align: center; border: 2px solid var(--line); border-radius: 14px; font-family: inherit; color: var(--text); background: var(--bg, #fff); } .fo-in span { font-size: 22px; font-weight: 900; }
+  .fo-del { display: block; margin: 0 auto 10px; background: none; border: 0; color: var(--red, #d00); font-size: 14.5px; font-weight: 700; text-decoration: underline; font-family: inherit; cursor: pointer; } .fo-del[hidden] { display: none; }
+  .ow-btns:has(#ow-ok[hidden]):has(#ow-fuel[hidden]) { grid-template-columns: 1fr; } .ow-btns:has(#ow-ok[hidden]):has(#ow-fuel[hidden]) #ow-no { height: 54px; }
   .demo-lv { display: none !important; }
   /* 운행기록 탭: 위 고정 줄(종 · 호수 · 로그아웃) · 아래 메뉴 — 운행거리·휴가 탭과 같은 규격 (위 줄 56px · 아래 메뉴 64px) */
   .nav span { cursor: pointer; }
@@ -1160,7 +1171,16 @@
   <div class="yw-t" id="ow-t">오늘은 토요일입니다</div>
   <p class="yw-lead" id="ow-lead">쉬는 날에는 관리자가 <b>출근 차량으로 지정한 차량</b>만<br>운행기록을 쓸 수 있습니다.</p>
   <p class="yw-foot" id="ow-foot">오늘 출근했다면 관리자에게 출근 지정을 요청해 주세요.</p>
-  <div class="cf-btns ow-btns"><button class="x-btn" id="ow-no">확인</button><button class="save" id="ow-ok" style="margin:0;display:none" hidden>출근했어요</button></div>
+  <button type="button" class="save ow-work" id="ow-work" hidden>일보 적기</button>
+  <div class="cf-btns ow-btns"><button class="x-btn" id="ow-no">확인</button><button class="save" id="ow-ok" style="margin:0;display:none" hidden>출근했어요</button><button type="button" class="fo-btn" id="ow-fuel" hidden>주유량만 적기</button></div>
+</div></div>
+<div class="sheet confirm" id="fx-pop"><div class="panel cf-panel">
+  <div class="yw-t" id="fx-t">주유량만 적기</div>
+  <p class="yw-lead" id="fx-lead"></p>
+  <label class="fo-in"><input id="fx-v" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="0"><span>L</span></label>
+  <p class="yw-foot">이달 넣은 기름에 더해져 유류비 계산에 들어갑니다.<br>그날 연차·결근·휴일은 그대로입니다.</p>
+  <button type="button" class="fo-del" id="fx-del" hidden>주유 기록 지우기</button>
+  <div class="cf-btns"><button class="x-btn" id="fx-no">취소</button><button class="save" id="fx-ok" style="margin:0">저장하기</button></div>
 </div></div>
 <div class="sheet confirm" id="leave-pop"><div class="panel cf-panel mp">
   <div id="lp-body"></div>
@@ -1375,10 +1395,10 @@ const LIFT_SITES = ((D.rates || {}).tunnel || []).map(t => [String(t[0]), +t[1] 
 const HOLI = (D.holidays || []).map(String);   // 공휴일
 
 /* ---------- 내 기록 (서버 real[d][ME] · sites 에서 매번 만듦 · 저장은 host 에 부탁) ---------- */
-let DB = {};
+let DB = {}, FO = {};   // FO: 쉬는 날(연차·결근·휴일)에 주유량만 적은 날 {날짜: L}
 seed();
 function seed() {   // 전 차량 기록에서 내 차 기록만
-  Object.keys(REAL).forEach(d => { const x = REAL[d][ME]; if (!x || x.st !== "work") return; const S = (REAL_SITES[d] || {})[ME] || {};
+  Object.keys(REAL).forEach(d => { const x = REAL[d][ME]; if (x && x.fo && x.st !== "work") FO[d] = +x.fuel || 0; if (!x || x.st !== "work") return; const S = (REAL_SITES[d] || {})[ME] || {};
     const LF = {}; (S.lift || []).forEach(n => LF[n] = (LF[n] || 0) + 1);
     DB[d] = { real: x.real, km: x.km, toll: x.toll, jan: x.jan, wait: x.wait, early: +x.early || 0, late: x.late, yard: x.yard || 0, fuel: +x.fuel || 0, back19: !!x.back19, lifts: Object.keys(LF).map(n => ({ site: n, n: LF[n] })), ga: x.ga, gaRaw: x.ga, gaWhy: x.part || "",
       ws: { wait: (S.wait || []).slice(), early: (S.early || []).slice(), late: (S.late || []).slice() } }; });
@@ -1400,8 +1420,9 @@ function remoteSave(date, del) {
   try { parent.postMessage({ save: { date, rec, sites, del: del ? 1 : 0 } }, "*"); } catch (e) { onSaved({ ok: false, msg: "저장을 보내지 못했습니다." }); }
 }
 function onSaved(m) {
-  const S = SAVING; SAVING = null; clearTimeout(SAVE_T); setSaveBusy(false);
+  const S = SAVING; SAVING = null; clearTimeout(SAVE_T); setSaveBusy(false); $("fx-ok").disabled = false;
   if (!S) return; m = m || {};
+  if (S.fo) { if (m.ok) { toast(m.msg || "저장"); return; } if (S.prev === undefined) delete FO[S.date]; else FO[S.date] = S.prev; render(); toast(m.msg || "저장하지 못했습니다.", true); return; }   // 주유량만
   if (m.ok) { toast(m.msg || "저장"); return; }
   // 실패: 저장 전 상태로 되돌림
   if (S.prev === undefined) delete DB[S.date]; else DB[S.date] = S.prev;
@@ -1442,6 +1463,7 @@ function render() {
     S.tun += (r.lifts || []).reduce((a, x) => a + (+x.n || 0), 0);
     (r.lifts || []).forEach(x => { L[x.site] = (L[x.site] || 0) + (+x.n || 0); }); });
   absentGa(month).forEach(x => { S.ga += x[1]; });   // 결근 날 자동 가탕도 포함
+  Object.keys(FO).forEach(d => { if (d.slice(0, 7) === month && !DB[d]) S.fuel += FO[d]; });   // 쉬는 날 주유량도 이달 넣은 기름에
   $("s-real").textContent = fmt(S.real);
   MINI = [["ga", "가탕", S.ga], ["wait", "2시간", S.wait], ["late", "17시", S.late], ["jan", "잔수", S.jan], ["yard", "영내", S.yard], ["early", "조출", S.early], ["tun", "터널", S.tun], ["back19", "식권", S.back19]].filter(x => x[2] > 0);
   if (!MINI.some(x => x[0] === miniOpen)) miniOpen = "";
@@ -1779,6 +1801,7 @@ function openDay(d) {
   if (((lk === "off" || lk === "ab") && !DB[d]) || dutyMe(ME, d) === "home") return view(d);        // 휴가·결근 날도 같은 창에서 (화살표로 넘겨 볼 수 있게)
   if (DB[d]) return view(d);                       // 지난 날짜는 보기만, 오늘만 수정·삭제 버튼
   if (d === TODAY) return writeToday();
+  if (FO[d]) { $("lp-body").innerHTML = '<div class="cf-date">' + md(d) + '</div><div class="lp-big lv-none">' + esc(HOLI_NAME[d] || (isOff(d) ? "휴일" : "쉬는 날")) + '</div>' + foInfo(d) + '<p class="lp-note">운행은 하지 않고 주유량만 적은 날입니다.</p>'; $("leave-pop").classList.add("show"); return; }
   openPast(d);                                     // 지난 날짜 + 기록 없음: 기사는 쓸 수 없음
 }
 // 기사는 오늘 일지만 쓰기·고치기·지우기 가능 (지난 날짜 회전수를 줄여 우선배차를 노리는 일 방지)
@@ -1786,6 +1809,7 @@ function openDay(d) {
 // 서버 설정 runOpen: 1 열림 · 2 입력만 막기 (0 잠금은 host 가 이 프레임을 띄우지 않음)
 const RUN_IN_LOCK = D.runOpen !== 1;
 function inLockPop() {
+  $("ow-fuel").hidden = true; $("ow-work").hidden = true;
   $("ow-t").textContent = "지금은 관리자가 대신 입력합니다";
   $("ow-lead").innerHTML = '운행기록 탭이 <b>입력만 막기</b> 상태입니다.<br>내 기록·평균·선배차는 그대로 볼 수 있습니다.';
   $("ow-foot").innerHTML = '오늘 기록이 틀리거나 빠졌으면<br><b>관리자에게 말씀해 주세요.</b> 관리자가 입력 현황에서 대신 넣습니다.';
@@ -1811,7 +1835,7 @@ function openPast(d) {
 const HOLI_NAME = D.holidayNames || {};
 const OW_LEAD = '쉬는 날에는 관리자가 <b>출근 차량으로 지정한 차량</b>만<br>운행기록을 쓸 수 있습니다.', OW_FOOT = '오늘 출근했다면 관리자에게 출근 지정을 요청해 주세요.';
 function writeToday() {
-  month = TODAY.slice(0, 7); render();
+  month = TODAY.slice(0, 7); render(); $("ow-fuel").hidden = true; $("ow-work").hidden = true;
   if (DB[TODAY]) return view(TODAY);
   if (RUN_IN_LOCK) return inLockPop();   // 입력만 막기: 쓰기 화면 대신 안내   // 이미 쓴 날: 확인 창 먼저 (아래 [수정] [삭제] 버튼으로 고치기·지우기)
   // 집대기로 지정된 날: 한 번 확인 (교대·호출로 실제 출근했다면 작성 가능, 관리자에게 표시됨)
@@ -1822,13 +1846,46 @@ function writeToday() {
     $("ow-no").textContent = "닫기"; $("ow-ok").hidden = false; $("ow-ok").style.display = ""; $("ow-ok").textContent = "출근했어요";
     $("off-warn").classList.add("show"); return;
   }
+  { const lv = LEAVE[TODAY], lk = lvKind(lv);   // 연차·결근 날: 쉬는 날이라고 한 번 묻고 [일보 적기] [주유량만 적기]
+    if (!RUN_IN_LOCK && (lk === "off" || lk === "ab")) {
+      $("ow-t").textContent = "오늘은 " + lv + "입니다";
+      $("ow-lead").innerHTML = '오늘 <b>' + esc(lv) + '</b>로 등록되어 있습니다.<br>그래도 입력하시겠습니까?';
+      $("ow-foot").innerHTML = FO[TODAY] ? '오늘 주유량 <b>' + fmt2(FO[TODAY]) + 'L</b>를 적어 두었습니다.' : '';
+      $("ow-work").hidden = false; $("ow-fuel").hidden = false; $("ow-fuel").textContent = FO[TODAY] ? "주유량 고치기" : "주유량만 적기";
+      $("ow-no").textContent = "닫기"; $("ow-ok").hidden = true; $("ow-ok").style.display = "none";
+      $("off-warn").classList.add("show"); return; } }
   if (!isOff(TODAY)) return open(TODAY);
   // 토·일·공휴일: 관리자가 출근 차량으로 지정한 차량만 쓸 수 있음 (그 외는 막음)
   if ((WEEKEND_WORK[TODAY] || []).includes(ME)) return open(TODAY);
   const w = wd(TODAY), name = HOLI_NAME[TODAY] ? HOLI_NAME[TODAY] + "(공휴일)" : W[w] + "요일";
   $("ow-t").textContent = "오늘은 " + name + "입니다";
-  $("ow-lead").innerHTML = OW_LEAD; $("ow-foot").innerHTML = OW_FOOT; $("ow-no").textContent = "확인"; $("ow-ok").hidden = true; $("ow-ok").style.display = "none";
+  $("ow-lead").innerHTML = OW_LEAD; $("ow-foot").innerHTML = FO[TODAY] ? '오늘 주유량 <b>' + fmt2(FO[TODAY]) + 'L</b>를 적어 두었습니다.' : OW_FOOT; $("ow-no").textContent = "닫기"; $("ow-ok").hidden = true; $("ow-ok").style.display = "none";
+  $("ow-fuel").hidden = false; $("ow-fuel").textContent = FO[TODAY] ? "주유량 고치기" : "주유량만 적기";   // 휴일: 주유량만
   $("off-warn").classList.add("show");
+}
+// 쉬는 날 주유량만 적기 (연차·결근·휴일) · 서버엔 그날 상태는 두고 주유량만 저장
+function foInfo(d) { return FO[d] ? '<div class="fo-info">이날 넣은 기름 <b>' + fmt2(FO[d]) + 'L</b></div>' : ''; }
+function offBtns(work, d) { return '<div class="off-btns' + (work ? '' : ' one') + '">' + (work ? '<button type="button" class="ob-w" id="lv-write">일보 적기</button>' : '') +
+  '<button type="button" class="ob-f" id="lv-fuel">' + (FO[d] ? '주유량 고치기' : '주유량만 적기') + '</button></div>'; }
+function fuelOpen() {
+  if (RUN_IN_LOCK) return inLockPop();
+  const lv = LEAVE[TODAY], had = !!FO[TODAY];
+  $("fx-t").textContent = had ? "주유량 고치기" : "주유량만 적기";
+  $("fx-lead").innerHTML = md(TODAY) + ' · <b>' + esc(lv && lvKind(lv) !== "part" ? lv : isOff(TODAY) ? (HOLI_NAME[TODAY] || "휴일") : "쉬는 날") + '</b><br>오늘 넣은 기름 양을 적어 주세요.';
+  $("fx-v").value = had ? String(FO[TODAY]) : ""; $("fx-del").hidden = !had;
+  $("leave-pop").classList.remove("show"); if ($("sheet").classList.contains("show")) hide();
+  $("fx-pop").classList.add("show"); setTimeout(() => { try { $("fx-v").focus(); } catch (e) {} }, 250);
+}
+function fuelSend(del) {
+  const v = Math.round((+String($("fx-v").value).replace(/[^0-9.]/g, "") || 0) * 100) / 100;
+  if (!del && !(v > 0 && v <= 999)) { toast("주유량을 0보다 크고 999L 이하로 적어 주세요.", true); return; }
+  if (SAVING) return;
+  SAVING = { fo: 1, date: TODAY, prev: FO[TODAY] };
+  if (del) delete FO[TODAY]; else FO[TODAY] = v;
+  $("fx-pop").classList.remove("show"); render();
+  $("fx-ok").disabled = true;
+  clearTimeout(SAVE_T); SAVE_T = setTimeout(() => onSaved({ ok: false, msg: "저장 응답이 없습니다. 다시 시도해 주세요." }), 20000);
+  try { parent.postMessage({ save: { date: TODAY, rec: del ? null : { fo: 1, fuel: v }, sites: {}, del: del ? 1 : 0 } }, "*"); } catch (e) { onSaved({ ok: false, msg: "저장을 보내지 못했습니다." }); }
 }
 function openLeave(d) {
   const t = LEAVE[d], ab = t === "결근";
@@ -1889,8 +1946,10 @@ function view(d) {
     const why = LEAVE_REASON[d];
     $("form").innerHTML = '<div class="dv-leave"><div class="lp-big lv-' + lvKind(t) + '">' + esc(t || "기록 없음") + '</div>' +
       (why ? '<div class="lp-why"><small>사유 (관리자 입력)</small><b>' + esc(why) + '</b></div>' : '') +
-      '<p class="lp-txt">' + (ab ? '휴가 탭에 결근으로 등록된 날입니다.<br>운반비는 없고, 평균에는 아래 가탕이 들어갑니다.' : '휴가 탭에 ' + esc(t) + '로 등록된 날입니다.<br>운행기록을 쓰지 않아도 됩니다.') + '</p>' + extra +
-      '<p class="lp-note">실제로 출근했다면 관리자에게 ' + (ab ? '결근' : '휴가') + ' 취소를 요청해 주세요.</p></div>' + ilboBtn(d);
+      '<p class="lp-txt">' + (ab ? '휴가 탭에 결근으로 등록된 날입니다.<br>운반비는 없고, 평균에는 아래 가탕이 들어갑니다.' : canEdit(d) ? '쉬는 날입니다.' : '휴가 탭에 ' + esc(t) + '로 등록된 날입니다.<br>운행기록을 쓰지 않아도 됩니다.') + '</p>' + extra +
+      foInfo(d) +
+      (canEdit(d) ? '<p class="lp-ask">오늘 ' + esc(t) + '로 등록되어 있습니다.<br>그래도 입력하시겠습니까?</p>' + offBtns(true, d) + '</div>'
+        : '<p class="lp-note">실제로 출근했다면 관리자에게 ' + (ab ? '결근' : '휴가') + ' 취소를 요청해 주세요.</p></div>') + ilboBtn(d);   // 당일 한 탕 하고 빠진 기사도 직접 입력
     $("form").scrollTop = 0; show(); return;
   }
   $("edit").style.display = canEdit(d) ? "" : "none"; $("del-day").style.display = canEdit(d) ? "" : "none"; $("save").style.display = "none"; $("clear-day").style.display = "none";
@@ -2010,6 +2069,7 @@ function cmpData(M) {
   const T = {}; CARS_ALL.forEach(c => { T[c] = {}; K.forEach(k => { T[c][k] = 0; }); });
   days.forEach(x => { const FL = fleetUpTo(x); CARS_ALL.forEach(c => { const r = FL.day[c] || recOf(c, x), e = extraOf(c, x, r), t = T[c];
     if (r.st === "absent") t.ga += r.ga || 0;
+    { const z = (REAL[x] || {})[c]; if (z && z.fo && z.st !== "work") t.fuel += +z.fuel || 0; }   // 쉬는 날 주유량
     if (r.st !== "work") return; t.days++; t.real += r.real || 0; t.ga += r.ga || 0; t.yard += r.yard || 0; ["km", "toll", "jan", "svc", "wait", "late", "back19", "fuel", "lift"].forEach(k => { t[k] += e[k] || 0; });
     t.pay += ((r.real || 0) + (e.jan || 0) * 0.5 + (r.yard || 0) * 0.5 + (e.svc || 0)) * rateOn(x); }); });   // 운반 금액은 그날 단가로
   return { T, days, last };
@@ -2437,6 +2497,8 @@ function ilboGo(k) { const ds = ilboDays(), i = ds.indexOf(ibDay), t = ds[i + k]
   const p = $("ib-paper"); p.style.animation = "none"; void p.offsetWidth; p.style.animation = (k > 0 ? "dayNext" : "dayPrev") + " .3s ease both"; }
 document.addEventListener("click", e => {
   const t = e.target;
+  if (t.closest("#lv-write")) { open(TODAY); return; }
+  if (t.closest("#lv-fuel")) { fuelOpen(); return; }
   if (t.closest("#ilbo-btn")) openIlbo();
   else if (t.closest("[data-ilbo]")) openIlbo(t.closest("[data-ilbo]").dataset.ilbo);
   else if (t.closest("#ib-close") && $("ilbo").classList.contains("full")) ilboFull(false);   // 전체화면에서는 '전체화면 나가기'
@@ -2624,6 +2686,7 @@ function open(d) {
   yardWarned = false;   // 기록 쓰기 화면을 열 때마다 다시 안내
   F = { real: 0, jan: 0, wait: 0, early: 0, late: 0, yard: 0, ga: 0, km: "", toll: "", fuel: "", back19: false, lifts: [] };
   Object.assign(F, JSON.parse(JSON.stringify(r)));
+  if (!DB[d] && FO[d]) F.fuel = FO[d];   // 주유량만 적어 둔 날에 일보를 쓰면 그 주유량을 그대로
   F.ws = F.ws || {}; SITE_KEYS.forEach(k => { F.ws[k] = F.ws[k] || []; while (F.ws[k].length < (+F[k] || 0)) F.ws[k].push(""); });
   $("p-title").textContent = md(d) + " 운행기록";
   $("clear-day").style.display = DB[d] ? "block" : "none";
@@ -2826,6 +2889,12 @@ $("sheet").addEventListener("click", e => { if (e.target.id === "sheet") hide();
 $("grid").addEventListener("click", e => { const b = e.target.closest("[data-d]"); if (b && !b.disabled) openDay(b.dataset.d); });
 $("write-today").onclick = writeToday;
 $("ow-no").onclick = () => $("off-warn").classList.remove("show");
+$("ow-fuel").onclick = () => { $("off-warn").classList.remove("show"); fuelOpen(); };
+$("ow-work").onclick = () => { $("off-warn").classList.remove("show"); open(TODAY); };
+$("fx-no").onclick = () => $("fx-pop").classList.remove("show");
+$("fx-ok").onclick = () => fuelSend(false);
+$("fx-del").onclick = () => fuelSend(true);
+$("fx-v").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); fuelSend(false); } });
 $("ow-ok").onclick = () => { $("off-warn").classList.remove("show"); open(TODAY); };
 function toggleMore(on) {
   $("more").classList.toggle("show", on);

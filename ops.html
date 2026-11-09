@@ -1449,7 +1449,7 @@ const gaHas = (d, c) => (window.gaList ? window.gaList() : []).some(g => g.d ===
 function syncGa(d) { GA_WAIT[d] = {}; GA_WHY[d] = {}; Object.keys(REAL[d] || {}).forEach(c => { const x = REAL[d][c]; if (!x || x.st !== "work") return;
   const w = String(x.gaWhy || "").split(",").filter(y => y && y !== "연차"); if (w.length) { GA_WHY[d][c] = w.join("·"); return; }
   if (!x.part) return; (gaHas(d, c) ? GA_WHY : GA_WAIT)[d][c] = x.part; }); }
-function rec(c, d) { return rec0(c, d); }
+function rec(c, d) { const r = rec0(c, d), x = (REAL[d] || {})[c]; if (x && x.fo && r.st !== "work") { r.fo = 1; r.fuel = +x.fuel || 0; } return r; }   // 쉬는 날 주유량만
 function rec0(c, d) {
   const x = (REAL[d] || {})[c];
   if (x) {   // 서버 기록 (work · leave · absent · home · rest)
@@ -1511,7 +1511,7 @@ function drawToday() {
     // 칸 크기를 모두 같게: 호수 · 상태 · 회수 · 덧붙임(영내·가탕) 네 줄을 항상 같은 자리에
     const val = r.st === "work" ? '<b>' + r.real + '<small>회</small></b>' : '';
     const ext = r.st === "work" ? (r.yard ? '<i>영' + r.yard + '</i>' : '') + (r.ga === null ? '<i class="w">가탕대기</i>' : r.ga ? '<i class="r">가' + r.ga + '</i>' : '') : r.st === "absent" ? '<i class="r">가' + (r.ga && !r.gaAuto ? r.ga : S.gaAbs) + '</i>' : '';
-    return gh + '<li data-car="' + c + '" class="st-' + st + (r.go ? ' go' : '') + '"><span class="no">' + c + '<small>' + groupOf(c) + '조</small></span><span class="chip2">' + (r.st === "leave" ? r.lv : r.st === "none" ? (missLbl) : r.st === "work" && ((GA_WAIT[AD] || {})[c] || (GA_WHY[AD] || {})[c]) ? '<em class="gw ' + ({ 조퇴: "jt", 지각: "jg", 외출: "jt", 총회지각: "jg", 정비: "jb" }[String((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]).split("·")[0]] || "jt") + '">' + ((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]) + '</em>' : r.st === "work" && shipAuto(AD, c) ? '<em class="sa">출하기록</em>' : STL[r.st]) + (r.go ? ' 퇴근' : '') + '</span><span class="vv">' + val + '</span><span class="ex">' + ext + '</span></li>'; }).join("") || '<li class="empty">해당 차량이 없습니다.</li>';
+    return gh + '<li data-car="' + c + '" class="st-' + st + (r.go ? ' go' : '') + '"><span class="no">' + c + '<small>' + groupOf(c) + '조</small></span><span class="chip2">' + (r.st === "leave" ? r.lv : r.st === "none" ? (missLbl) : r.st === "work" && ((GA_WAIT[AD] || {})[c] || (GA_WHY[AD] || {})[c]) ? '<em class="gw ' + ({ 조퇴: "jt", 지각: "jg", 외출: "jt", 총회지각: "jg", 정비: "jb" }[String((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]).split("·")[0]] || "jt") + '">' + ((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]) + '</em>' : r.st === "work" && shipAuto(AD, c) ? '<em class="sa">출하기록</em>' : STL[r.st]) + (r.go ? ' 퇴근' : '') + '</span><span class="vv">' + val + '</span><span class="ex">' + (r.fo ? '주유 ' + r.fuel + 'L' : ext) + '</span></li>'; }).join("") || '<li class="empty">해당 차량이 없습니다.</li>';
 }
 document.addEventListener("change", e => { if (e.target.id !== "a-din" || !e.target.value) return; const w = workDays(), v = e.target.value, k = w.filter(x => x <= v).pop() || w[0];   // 주말·공휴일을 고르면 그 앞 근무일
   if (k) { AD = k; AF = "all"; drawToday(); } });
@@ -1946,7 +1946,7 @@ function drawIlbo() { $("il-m").textContent = TODAY ? (+TODAY.slice(5, 7)) + "�
 function ilboCsv(days, name) { const H = ["날짜", "호수", "조", "상태", "실 회전", "가탕", "영내작업", "잔수", "2시간 대기", "조출", "17시 상차", "터널", "운행거리", "통행료", "주유량", "19시 복귀", "현장"], rows = [H];
   days.forEach(d => CARS.forEach(c => { const r = rec(c, d), st = r.st === "work" ? "작성" : r.st === "none" ? "미입력" : r.st === "leave" ? r.lv : STL[r.st] || r.st;
     const sites = r.st === "work" ? ["wait", "late", "early", "lift"].map(k => (r.ws[k] || []).filter(Boolean).map(x => SPK_NAME[k] + ":" + x).join(" / ")).filter(Boolean).join(" / ") : "";
-    rows.push([d, c, groupOf(c), st].concat(r.st === "work" ? [r.real, r.ga === null ? "대기" : r.ga, r.yard, r.jan, r.wait, r.early, r.late, r.lift, r.km, r.toll, r.fuel, r.back19 ? 1 : 0, sites] : ["", "", "", "", "", "", "", "", "", "", "", "", ""])); }));
+    rows.push([d, c, groupOf(c), st].concat(r.st === "work" ? [r.real, r.ga === null ? "대기" : r.ga, r.yard, r.jan, r.wait, r.early, r.late, r.lift, r.km, r.toll, r.fuel, r.back19 ? 1 : 0, sites] : ["", "", "", "", "", "", "", "", "", "", r.fo ? r.fuel : "", "", ""])); }));
   const csv = "\ufeff" + rows.map(r => r.map(x => '"' + String(x == null ? "" : x).replace(/"/g, '""') + '"').join(",")).join("\r\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
 document.addEventListener("click", e => { const t = e.target;

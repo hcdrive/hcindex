@@ -444,7 +444,7 @@ function baseRec(c, d) {
   if (du === "home" && lv !== "여름휴가" && lv !== "특별휴가") return { st: "home", was: lv === "연차" || lv === "결근" ? lv : "" };
   if (lv === "연차" || lv === "여름휴가" || lv === "특별휴가") return { st: "leave", lv, why: lv === "특별휴가" ? ((SPECIAL_WHY[d] || {})[c] || "") : "" };
   if (lv === "결근") return { st: "absent", lv: "결근", ga: 0 };
-  return { st: "none", part: lv === "조퇴" || lv === "지각" ? lv : "", go: du === "go" };
+  return { st: "none", part: lv === "조퇴" || lv === "지각" || lv === "정비" ? lv : "", go: du === "go" };
 }
 function rec(c, d) { const r = baseRec(c, d); const e = (EDITS[d] || {})[c]; if (e && r.st === "work") r.edited = e;
   const k = (CHK[d] || {})[c]; if (k && r.st === "work") r.ok = { at: String(k).replace(/^관리팀\s*/, "") }; return r; }
@@ -608,7 +608,8 @@ function draw() {
   const offTag = c => P[c][1] === "연차" ? "정비휴무" : P[c][1];
   $("nx").innerHTML = '<div class="nx-off"><small>결근 신청 예정차량 <em class="nx-n"><b>' + offL.length + '</b>대</em></small><b>' + (offL.map(c => '<span class="nxc">' + c + ' <i class="nxt">' + esc(offTag(c)) + '</i></span>').join("") || "없음") + '</b></div>' +
     '<div><small>조퇴 예정 <em class="nx-n"><b>' + pt("er").length + '</b>대</em> · 예상 퇴근 시간</small><b>' + (pt("er").map(c => c + ' <i class="tm">' + (P[c][2] || "시간 미정") + '</i>').join(", ") || "없음") + '</b></div>' +
-    '<div><small>지각 예정 <em class="nx-n"><b>' + pt("la").length + '</b>대</em> · 예상 출근 시간</small><b>' + (pt("la").map(c => c + ' <i class="tm">' + (P[c][2] || "시간 미정") + '</i>').join(", ") || "없음") + '</b></div>';
+    '<div><small>지각 예정 <em class="nx-n"><b>' + pt("la").length + '</b>대</em> · 예상 출근 시간</small><b>' + (pt("la").map(c => c + ' <i class="tm">' + (P[c][2] || "시간 미정") + '</i>').join(", ") || "없음") + '</b></div>' +
+    (pt("mn").length ? '<div><small>정비 예정 <em class="nx-n"><b>' + pt("mn").length + '</b>대</em> · 출근은 하고 정비 시간만큼 빠짐</small><b>' + pt("mn").join(", ") + '</b></div>' : '');
 }
 $("d-prev").onclick = () => { const p = NAV.filter(x => x < D).pop(); if (p) { D = p; draw(); } };   // 보는 날이 목록에 없어도(주말 등) 바로 앞 날로
 $("d-next").onclick = () => { const n = NAV.find(x => x > D); if (n) { D = n; draw(); } };
@@ -624,7 +625,7 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-tn]"
 // ===== 변동 알림: 어제 본 '다음 근무일' 결근·조퇴·지각과 오늘 실제 신청 비교 (집대기 제외) =====
 function planOf(d) { const o = {}; if (isOff(d)) return o;
   CARS.forEach(c => { const lv = leaveOf(c, d), du = dutyOf(c, d); if (!lv) return;
-    if (lv === "조퇴") o[c] = ["er", "조퇴", ltime(c, d)]; else if (lv === "지각") o[c] = ["la", "지각", ltime(c, d)];
+    if (lv === "조퇴") o[c] = ["er", "조퇴", ltime(c, d)]; else if (lv === "지각") o[c] = ["la", "지각", ltime(c, d)]; else if (lv === "정비") o[c] = ["mn", "정비", ""];
     else if (["연차", "여름휴가", "특별휴가", "결근"].includes(lv)) { if (du === "home" && (lv === "연차" || lv === "결근")) return; o[c] = ["ab", lv === "특별휴가" ? ((SPECIAL_WHY[d] || {})[c] || lv) : lv]; } });
   return o; }
 const planTxt = x => x[0] === "ab" ? SHOW_LV(x[1]) : x[1] + (x[2] ? " " + x[2] : "");
