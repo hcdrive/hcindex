@@ -117,6 +117,11 @@ table.t th.g { text-align: center; background: #eef2fb; color: var(--accent); }
 .kfx-st.ok { background: #e6f4ea; color: #188038; } .kfx-st.same { background: #eef0f3; color: var(--muted); } .kfx-st.bad { background: #fdecea; color: var(--red); }
 .kfx-skip { background: #fff3c4; color: #7a5a00; border-radius: 10px; padding: 8px 12px; margin: 8px 0; font-size: 14.5px; line-height: 1.6; } .kfx-nt { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; margin: 10px 0 0; }
 .kfx-nt input { width: 20px; height: 20px; }
+.fux-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 12px 0 4px; } .fux-lb { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 800; color: var(--muted); } .fux-lb input { height: 44px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 10px; font: inherit; font-size: 16px; color: var(--text); background: var(--card, #fff); }
+.fux-file { height: 44px; display: inline-flex; align-items: center; cursor: pointer; }
+.fux-t td.ck { width: 34px; } .fux-t td.ck input { width: 20px; height: 20px; } .fux-t tr.dis { opacity: .55; } .fux-t td.v { font-weight: 800; } .fux-t td.v.x { color: var(--red); }
+.kfx-st.add { background: #fff1de; color: #b35c00; } .kfx-st.zero { background: #eef0f3; color: #3c4553; }
+.fux-ok-list { background: #e6f4ea; color: #145c2b; border-radius: 10px; padding: 8px 12px; margin: 8px 0; font-size: 14px; line-height: 1.6; }
 .sheet h3 { margin: 0 0 4px; font-size: 20px; } .sheet .sub { color: var(--muted); font-size: 13.5px; margin-bottom: 12px; }
 .fg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; } .fg label { display: grid; gap: 4px; font-size: 13px; font-weight: 800; color: var(--muted); }
 .fg input { width: 100%; min-width: 0; height: 44px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 10px; font: inherit; font-size: 17px; font-weight: 800; text-align: right; color: var(--fg); }
@@ -252,7 +257,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
   <section class="card" id="v-next"><h2>다음 근무일 예정 <small id="nx-sub"></small><span class="r nx-rf"><span id="nx-at"></span><button type="button" class="btn rf-btn" id="nx-rf">새로고침</button></span></h2><div class="nx" id="nx"></div></section>
   <section class="card" id="v-day">
     <h2>차량별 기록 <small id="live"></small><small>차량을 누르면 일일기록 · 수정은 일일기록에서 · 노란 칸 = 관리팀이 고친 값 · 빨간 칸 = 확인 필요</small></h2>
-    <div class="flt"><input type="search" id="q" placeholder="호차 찾기 (예: 214)" enterkeyhint="search"><button type="button" class="btn" id="kfx-open" style="margin-left:auto">카톡 정정 붙여넣기</button><button class="btn pri xls">엑셀로 받기</button></div>
+    <div class="flt"><input type="search" id="q" placeholder="호차 찾기 (예: 214)" enterkeyhint="search"><button type="button" class="btn" id="kfx-open" style="margin-left:auto">카톡 정정 붙여넣기</button><button type="button" class="btn" id="fux-open">주유 엑셀 맞춰보기</button><button class="btn pri xls">엑셀로 받기</button></div>
     <div id="warn"></div>
     <div class="tw"><table class="t" id="dt"></table></div>
     <p class="note">수정하면 기사님께 수정 알림이 가고, 고친 값은 기사님 화면·평균·운반비에 바로 반영되며 '수정 기록'에 남습니다.</p>
@@ -316,6 +321,14 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
   <ul class="chg-l" id="chg-l"></ul>
   <div class="acts" style="grid-template-columns:1fr"><button class="btn pri" id="chg-ok">확인</button></div>
 </div></div>
+
+<div class="sheet" id="fux"><div class="box kfx-box"><h3>주유 엑셀 맞춰보기</h3>
+  <div id="fux-in"><p class="note">관리팀이 보내준 <b>R/T차량 주유내역</b> 엑셀(호수 × 날짜)을 올리면, 기사님이 일보에 적은 주유량과 날짜별로 맞춰 봅니다. 맞는 것은 그대로 두고, 틀리거나 안 적힌 것만 골라서 고칠 수 있습니다.</p>
+  <div class="fux-row"><label class="fux-lb">몇 월 표인가요<input type="month" id="fux-m" enterkeyhint="done"></label><label class="btn pri fux-file">엑셀 파일 고르기<input type="file" id="fux-f" accept=".xlsx,.xls" hidden></label></div>
+  <p class="shp-msg" id="fux-msg"></p>
+  <div class="acts"><button type="button" class="btn" data-close="fux">닫기</button></div></div>
+  <div id="fux-pv" hidden><div id="fux-b"></div><label class="kfx-nt"><input type="checkbox" id="fux-ntf">고친 차량 기사님께 알림 보내기</label>
+  <div class="acts"><button type="button" class="btn" id="fux-back">다른 파일 올리기</button><button type="button" class="btn pri" id="fux-ok">반영하기</button></div></div></div></div>
 
 <div class="sheet" id="kfx"><div class="box kfx-box"><h3>카톡 정정 붙여넣기</h3>
   <div id="kfx-in"><p class="note">관리팀이 카톡으로 보낸 내용을 그대로 붙여넣고 [내용 확인]을 누르세요. 날짜 줄(예: 10월 21일) 아래 '호수 : 이전-정정(사유)' 또는 '호수 : 통행료 금액' 줄을 읽습니다. 바로 저장하지 않고 먼저 보여 드립니다.</p>
@@ -678,7 +691,7 @@ function shipApply(A, name) { const by = {}, K = shipCols(A), g = (r, i) => i >=
 async function shipPut(d, v, label, detail) { const r = await api("adminKvSet", { kind: "ship", key: d, value: v, label, detail }); if (!r.ok) { toast(r.msg || "저장하지 못했습니다.", true); return false; } if (v) SHIPLOG[d] = v; else delete SHIPLOG[d]; return true; }
 document.addEventListener("click", async e => { const t = e.target;
   const c = t.closest("[data-close]"); if (c) return hideSheet(c.dataset.close);
-  if (t.classList && t.classList.contains("sheet") && ["shc", "shp", "kfx"].includes(t.id)) return hideSheet(t.id);
+  if (t.classList && t.classList.contains("sheet") && ["shc", "shp", "kfx", "fux"].includes(t.id)) return hideSheet(t.id);
   if (t.closest("#shc-ok") && SHC) { const { by, name, ds } = SHC, at = nowAt(), b = $("shc-ok"); if (b.disabled) return; b.disabled = true; b.textContent = "저장 중…";
     let done = 0; for (const d of ds) { const prev = SHIPLOG[d] || null; if (await shipPut(d, { file: name, rows: by[d], by: "관리자", at }, md(d) + " 출하기록 올림", name + " · " + by[d].length + "건")) { SHIP_PREV[d] = { v: prev, at }; done++; } }
     b.disabled = false; b.textContent = "적용하기"; SHC = null; hideSheet("shc"); if (ALLD.includes(ds[0])) D = ds[0]; DIST_M = null; draw();
@@ -702,6 +715,52 @@ document.addEventListener("click", e => { const t = e.target;
 //  관리팀 카톡: '10월 21일' 날짜 줄 아래 '207 : 135-140(계산실수)' = 운행거리 135 → 140 · '209 : 통행료 7,800원' = 통행료를 7,800원으로
 //  미리보기에서 지금 값과 맞춰 보고 → [반영하기] → 서버 adminFixPaste (지금 값이 카톡 '이전' 값과 다르면 서버도 건너뜀)
 let KFX = null;
+// 관리팀 주유 엑셀: 3행쯤에 1~31 날짜 머리줄, A열 호수, 칸마다 주유량(L)
+let FUX = null;
+function fuxParse(A) { let hr = -1, cols = {};
+  for (let i = 0; i < Math.min(A.length, 15) && hr < 0; i++) { const c = {}; (A[i] || []).forEach((v, j) => { const t = String(v == null ? "" : v).trim(); if (/^\d{1,2}$/.test(t) && +t >= 1 && +t <= 31) c[j] = +t; }); if (Object.keys(c).length >= 28) { hr = i; cols = c; } }
+  if (hr < 0) return null;
+  const rows = {}, other = []; for (let i = hr + 1; i < A.length; i++) { const r = A[i] || [], no = String(r[0] == null ? "" : r[0]).replace(/\D/g, ""); if (!/^\d{3}$/.test(no)) continue;
+    const v = {}; Object.keys(cols).forEach(j => { const x = String(r[j] == null ? "" : r[j]).replace(/[,\s]/g, ""); const n = parseFloat(x); if (x !== "" && isFinite(n) && n > 0) v[cols[j]] = Math.round(n * 100) / 100; });
+    if (!CARS.includes(no)) { if (Object.keys(v).length) other.push(no); continue; } rows[no] = v; }
+  return { rows, other };
+}
+function fuxBuild() { const P = FUX.P, M = $("fux-m").value; if (!/^\d{4}-\d{2}$/.test(M)) return null;
+  const last = new Date(+M.slice(0, 4), +M.slice(5, 7), 0).getDate(); let E = FUX.endDay && FUX.endM === M ? FUX.endDay : 0;
+  if (!E) Object.values(P.rows).forEach(v => Object.keys(v).forEach(k => { if (+k > E) E = +k; }));
+  E = Math.min(E || last, last); const items = [], okL = [];
+  for (let k = 1; k <= E; k++) { const d = M + "-" + String(k).padStart(2, "0"); if (d > TODAY || d < REC_START) continue;
+    CARS.forEach(c => { const a = (P.rows[c] || {})[k] || 0, x = (REAL[d] || {})[c], b = x && (x.st === "work" || x.fo) ? Math.round((+x.fuel || 0) * 100) / 100 : 0;
+      if (!a && !b) return; if (P.rows[c] === undefined && !a) return;
+      if (a === b) { okL.push([d, c, a]); return; }
+      const r = rec(c, d), kind = r.st === "work" ? "fix" : (r.st === "none" || r.st === "pending") ? "norec" : "add";
+      items.push({ d, no: c, a, b, kind, on: kind !== "norec" && a > 0 }); }); }
+  return { items, okL, E, M };
+}
+function fuxDraw() { const B = FUX.B = fuxBuild(); if (!B) return; const { items, okL } = B, can = items.filter(x => x.kind !== "norec"), on = items.filter(x => x.on).length;
+  const lab = x => x.kind === "norec" ? '<span class="kfx-st bad">일보 미입력</span>' : !x.a ? '<span class="kfx-st zero">엑셀에 없음 → 0으로</span>' : x.kind === "add" ? '<span class="kfx-st add">' + (x.b ? '주유량만 고침' : '주유량만 넣음') + ' · ' + esc(stLab0(rec(x.no, x.d)).replace(/<[^>]+>/g, "")) + '</span>' : '<span class="kfx-st ok">' + (x.b ? '일보 주유량 고침' : '일보에 주유량 넣음') + '</span>';
+  $("fux-b").innerHTML = '<p class="note" style="margin:0 0 6px">' + esc(B.M.replace("-", "년 ")) + '월 1일 ~ ' + B.E + '일 · 파일: ' + esc(FUX.name) + '</p>' +
+    '<div class="sh-sum"><div class="ok"><small>맞음</small><b>' + okL.length + '</b>건</div><div class="bad"><small>틀림·안 적힘</small><b>' + items.length + '</b>건</div><div><small>고를 것</small><b id="fux-n">' + on + '</b>건</div></div>' +
+    (items.length ? '<div class="tw"><table class="t kfx-t fux-t"><tr><th><input type="checkbox" id="fux-all"' + (on && on === can.length ? ' checked' : '') + ' aria-label="모두 고르기"></th><th class="l">날짜</th><th>호차</th><th>일보</th><th>관리팀</th><th class="l">고치면</th></tr>' +
+      items.map((x, i) => '<tr class="' + (x.kind === "norec" ? 'dis' : '') + '"><td class="ck"><input type="checkbox" data-fux="' + i + '"' + (x.on ? ' checked' : '') + (x.kind === "norec" ? ' disabled' : '') + '></td><td class="l">' + md(x.d) + '</td><td>' + x.no + '</td><td class="v' + (x.b ? '' : ' x') + '">' + (x.b ? x.b + 'L' : '안 적음') + '</td><td class="v">' + (x.a ? x.a + 'L' : '없음') + '</td><td class="l">' + lab(x) + '</td></tr>').join("") + '</table></div>'
+      : '<div class="fux-ok-list">모든 차량의 주유량이 관리팀 엑셀과 맞습니다.</div>') +
+    (items.some(x => x.kind === "norec") ? '<div class="kfx-skip">일보 미입력: 기사님이 그날 일보를 아직 안 써서 고칠 수 없습니다. 일보가 들어온 뒤 다시 올려 주세요.</div>' : '') +
+    (items.some(x => !x.a) ? '<div class="kfx-skip">엑셀에 없음: 기사님은 적었는데 관리팀 표에는 없는 것입니다. 관리팀 표가 맞을 때만 골라 주세요 (주유량이 0으로 바뀝니다).</div>' : '') +
+    (FUX.P.other.length ? '<div class="kfx-skip">우리 차량 목록에 없는 호수 (건너뜀): ' + FUX.P.other.map(esc).join(", ") + '</div>' : '');
+  fuxCount(); }
+function fuxCount() { const n = FUX.B.items.filter(x => x.on).length; if ($("fux-n")) $("fux-n").textContent = n; $("fux-ok").textContent = n ? n + "건 반영하기" : "고른 것 없음"; $("fux-ok").disabled = !n; }
+function fuxRead(f) { if (!window.XLSX) return toast("엑셀 읽기 도구를 불러오는 중입니다. 잠시 뒤 다시 올려 주세요.", true);
+  const fr = new FileReader(); fr.onload = () => { try { const wb = XLSX.read(new Uint8Array(fr.result), { type: "array" }), ws = wb.Sheets[wb.SheetNames[0]], A = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+      const P = fuxParse(A); if (!P || !Object.keys(P.rows).length) { $("fux-msg").textContent = "1~31 날짜 줄과 호수 줄을 찾지 못했습니다. 관리팀 주유 엑셀이 맞는지 확인해 주세요."; return; }
+      const m = String(f.name).match(/(\d{2})(\d{2})(\d{2})(?!\d)/); FUX = { P, name: f.name, endM: "", endDay: 0 };
+      if (m && +m[2] >= 1 && +m[2] <= 12) { FUX.endM = "20" + m[1] + "-" + m[2]; FUX.endDay = +m[3]; $("fux-m").value = FUX.endM; }   // 파일 이름의 261109 → 2026년 11월 9일까지
+      $("fux-in").hidden = true; $("fux-pv").hidden = false; fuxDraw(); $("fux").querySelector(".box").scrollTop = 0;
+    } catch (e) { $("fux-msg").textContent = "엑셀을 읽지 못했습니다. 파일이 맞는지 확인해 주세요."; } };
+  fr.readAsArrayBuffer(f); }
+document.addEventListener("change", e => { const t = e.target;
+  if (t.id === "fux-f" && t.files && t.files[0]) { fuxRead(t.files[0]); t.value = ""; return; }
+  if (t.dataset && t.dataset.fux !== undefined && FUX && FUX.B) { FUX.B.items[+t.dataset.fux].on = t.checked; fuxCount(); return; }
+  if (t.id === "fux-all" && FUX && FUX.B) { FUX.B.items.forEach(x => { if (x.kind !== "norec") x.on = t.checked; }); document.querySelectorAll("[data-fux]").forEach(i => { if (!i.disabled) i.checked = t.checked; }); fuxCount(); } });
 function kfxYear(m, d) { const y = +TODAY.slice(0, 4); let k = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"); if (k > TODAY) k = (y - 1) + k.slice(4); return k; }
 function kfxParse(txt) { const items = [], skip = []; let day = "";
   String(txt || "").replace(/\r/g, "").split("\n").forEach(raw => { const l = raw.trim(); if (!l) return;
@@ -726,6 +785,17 @@ function kfxDraw() { const { items, skip } = KFX; items.forEach(it => { [it.st, 
     (skip.length ? '<div class="kfx-skip"><b>읽지 못한 줄 ' + skip.length + '개 (반영 안 함 · 필요하면 일일기록에서 직접 고쳐 주세요)</b><br>' + skip.map(esc).join("<br>") + '</div>' : '');
   $("kfx-ok").textContent = n ? n + "건 반영하기" : "반영할 것 없음"; $("kfx-ok").disabled = !n; }
 document.addEventListener("click", async e => { const t = e.target;
+  if (t.closest("#fux-open")) { $("fux-msg").textContent = ""; $("fux-in").hidden = false; $("fux-pv").hidden = true; FUX = null; if (!$("fux-m").value) $("fux-m").value = TODAY.slice(0, 7); showSheet("fux"); return; }
+  if (t.closest("#fux-back")) { $("fux-in").hidden = false; $("fux-pv").hidden = true; return; }
+  if (t.closest("#fux-ok") && FUX && FUX.B) { const b = $("fux-ok"); if (b.disabled) return; const go = FUX.B.items.filter(x => x.on && x.kind !== "norec"); if (!go.length) return;
+    b.disabled = true; b.textContent = "반영 중…";
+    const r = await api("adminFuelFix", { items: go.map(x => ({ d: x.d, no: x.no, from: x.b, to: x.a })), notify: $("fux-ntf").checked });
+    if (!r || !r.ok) { b.disabled = false; fuxCount(); return toast(r && r.msg ? r.msg : "반영하지 못했습니다. 잠시 후 다시 시도해 주세요.", true); }
+    let ok = 0; (r.items || []).forEach(x => { if (x.st !== "ok") return; ok++; const R = REAL[x.d] = REAL[x.d] || {}; if (x.rec) R[x.no] = x.rec; else delete R[x.no];
+      if (x.edits) { const E = convEdits({ [x.d]: { [x.no]: x.edits } }); (EDITS[x.d] = EDITS[x.d] || {})[x.no] = E[x.d][x.no]; } if (CHK[x.d]) delete CHK[x.d][x.no]; });
+    const miss = (r.items || []).filter(x => x.st !== "ok" && x.st !== "same");
+    hideSheet("fux"); FUX = null; draw(); syncNow();
+    return toast(ok + "건 반영했습니다." + (miss.length ? " " + miss.length + "건은 건너뛰었습니다 (" + esc(miss[0].msg || "") + ")." : ""), !!miss.length); }
   if (t.closest("#kfx-open")) { $("kfx-t").value = ""; $("kfx-msg").textContent = ""; $("kfx-in").hidden = false; $("kfx-pv").hidden = true; KFX = null; showSheet("kfx"); setTimeout(() => $("kfx-t").focus(), 60); return; }
   if (t.closest("#kfx-back")) { $("kfx-in").hidden = false; $("kfx-pv").hidden = true; return; }
   if (t.closest("#kfx-chk")) { const v = $("kfx-t").value; if (!v.trim()) { $("kfx-msg").textContent = "붙여넣은 내용이 없습니다."; return; }

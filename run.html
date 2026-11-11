@@ -331,6 +331,9 @@
   .ilbo-btn { display: block; width: 100%; height: 50px; margin-top: 8px; border: 1.5px solid var(--accent); border-radius: 14px; background: var(--bg); color: var(--accent); font: inherit; font-size: 16.5px; font-weight: 800; cursor: pointer; }
   .ilbo-btn small { font-size: 13px; font-weight: 700; opacity: .8; }
   .ilbo-sheet { padding: 10px; }
+  html.ilbo-only body > :not(#ilbo):not(#toast):not(.toast):not(script):not(style) { display: none !important; }
+  html.ilbo-only #ilbo { padding: 0; background: transparent !important; transition: none !important; } html.ilbo-only #ilbo .ilbo-panel { max-width: none !important; width: 100%; height: 100vh; height: 100dvh; border-radius: 0; transform: none !important; transition: none !important; }
+  html.ilbo-only #ib-close, html.ilbo-only #ib-full { display: none !important; }
   .ilbo-panel { max-width: 980px !important; height: calc(100vh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); max-height: none !important; padding: 0 !important; display: flex; flex-direction: column; overflow: hidden !important; }
   .ib-head { flex: none; display: grid; grid-template-columns: 44px 1fr 44px; gap: 6px; align-items: center; padding: 12px 12px 10px; border-bottom: 1px solid var(--line); }
   .ib-head .ib-nav { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); color: var(--accent); cursor: pointer; padding: 0; }
@@ -1295,9 +1298,13 @@
 //  frame → host: { ready: 1 } · { save: { date, rec, sites, del } } · { refresh: 1 } · { pong: 1, busy } · { popPush } · { popBack }
 //  host → frame: { boot: D } · { saved: { ok, msg, rec, sites } } · { ping: 1 } · { popClose: 1 }
 let HOST_ON_SAVED = null, HOST_BUSY = () => false, BOOTED = false;
+// run.html?ilbo=1 : 관리자 화면 안에서 운행일보(엑셀 양식)만 보여 줌 (닫기 없음 · 다른 화면 숨김)
+const ILBO_ONLY = /[?&]ilbo=1/.test(location.search); if (ILBO_ONLY) document.documentElement.classList.add("ilbo-only");
 addEventListener("message", e => {
   const m = e.data || {};
-  if (m.boot) { if (BOOTED) { location.reload(); return; } BOOTED = true; try { boot(m.boot); } catch (err) { console.error(err); bootFail(); } return; }
+  if (m.boot) { if (BOOTED) { location.reload(); return; } BOOTED = true; try { boot(m.boot); } catch (err) { console.error(err); bootFail(); }
+    if (ILBO_ONLY) setTimeout(() => { try { window.openIlbo(); const sh = document.getElementById("ilbo"); new MutationObserver(() => { if (!sh.classList.contains("show")) sh.classList.add("show"); }).observe(sh, { attributes: true, attributeFilter: ["class"] }); } catch (err) { console.error(err); } }, 0);
+    return; }
   if (m.saved) { if (HOST_ON_SAVED) HOST_ON_SAVED(m.saved); return; }
   if (m.who) { try { if (typeof applyWho === "function") applyWho(m.who); } catch (err) {} return; }
   if (m.ping) { let busy = false; try { busy = !!HOST_BUSY(); } catch (err) {} try { parent.postMessage({ pong: 1, busy }, "*"); } catch (err) {} }
@@ -1356,6 +1363,9 @@ const SPECIAL = D.special || {}, EDITS = D.edits || {};   // 특별휴가 사유
 const LEAVE = (() => { const o = {}; Object.keys(REAL).forEach(d => { const x = REAL[d][ME]; if (!x) return; if (x.st === "leave") o[d] = x.lv || "연차"; else if (x.st === "absent") o[d] = "결근"; else if (x.st === "work" && x.part && x.part !== "외출") o[d] = x.part; }); return o; })();
 const LV_OFF = ["연차", "여름휴가", "특별휴가"], LV_PART = ["조퇴", "지각", "정비"];
 // 회사 사사오입: 0.5 이상 올림, 단 0보다 크면 최소 1 (0.3 → 1, 1.49 → 1, 1.5 → 2)
+// 결근 가탕 기준 상차: 실 회전 − 17시 상차 + 영내작업 (17시 이후 상차는 결근 가탕 평균에서 뺌 · 그러고 0이면 평균 내는 차 수에서도 뺌)
+const AB_LATE_FROM = "2026-11-10";   // 이날부터 17시 상차를 뺌 (그 전 날짜는 예전 방식 그대로 · 지난 평균이 바뀌지 않게)
+const abTrips = (r, d) => Math.max(0, (+r.real || 0) - (d >= AB_LATE_FROM ? (+r.late || 0) : 0)) + (+r.yard || 0);
 const roundGa = x => x > 0 ? Math.max(1, Math.floor(Math.round(x * 10 + 1e-9) / 10 + 0.5 + 1e-9)) : 0;   // 엑셀과 같게: 소수 첫째 자리 반올림 → 사사오입 (3.45 → 3.5 → 4)
 // 조퇴·지각: 올림 (2.01 → 3)
 const ceilGa = x => x > 0 ? Math.ceil(x - 1e-9) : 0;
@@ -1644,21 +1654,21 @@ function recOf(no, d) {
   if (no !== ME && REAL[d] && (REAL[d][no] || d <= TODAY)) { const x = REAL[d][no] || (d === TODAY ? { st: "pending" } : { st: "rest" });   // 서버 기록 · 오늘 아직 안 쓴 차량은 '작성 전' · 앞날짜는 휴가 줄만 있으므로 없는 차량은 아래 규칙으로
     if (x.st === "pending") return { st: "pending" }; if (x.st === "rest") return { st: "off0" }; if (x.st === "home") return { st: "home" }; if (x.st === "absent") return { st: "absent", gaSet: x.ga && !x.gaAuto ? +x.ga : 0 };
     if (x.st === "leave") { const why = x.why || (SPECIAL[d] || {})[no]; return { st: "leave", lv: x.lv === "특별휴가" && why ? why : x.lv === "연차" ? "정비휴무" : x.lv }; }
-    const o = { real: x.real, yard: x.yard || 0, ga: x.ga, st: "work" }; if (x.who) o.who = true; if (x.go) o.go = true; if (x.part || x.note) o.lv = x.part || x.note; return o; }   // who: 입력했다는 표시만 (값은 아직) → 평균 확정에는 안 들어감
+    const o = { real: x.real, yard: x.yard || 0, late: +x.late || 0, ga: x.ga, st: "work" }; if (x.who) o.who = true; if (x.go) o.go = true; if (x.part || x.note) o.lv = x.part || x.note; return o; }   // who: 입력했다는 표시만 (값은 아직) → 평균 확정에는 안 들어감
   const du = dutyMe(no, d);
   if (du === "home") return { st: "home", lvSaved: no === ME && LEAVE[d] && LEAVE[d] !== "결근" ? LEAVE[d] : "" };                              // 집대기: 0회 — 결근·연차 예정이었어도 집대기가 우선 (가탕 없음)
   // 결근 > 퇴근조: 퇴근조 날 결근이면 그대로 결근 (집대기 날 결근은 위에서 집대기로 처리)
   if (du === "go" && no !== ME) return { st: "none", go: true };   // 퇴근조 (기록 없음)
   if (isOff(d)) {   // 쉬는 날에 나온 차량만 기록, 나머지는 0회
-    if (no === ME) { const r = (WEEKEND_WORK[d] || []).includes(ME) && DB[d]; return r ? { real: realOf(r), yard: +r.yard || 0, ga: 0, st: "work" } : { st: "off0" }; }
+    if (no === ME) { const r = (WEEKEND_WORK[d] || []).includes(ME) && DB[d]; return r ? { real: realOf(r), yard: +r.yard || 0, late: +r.late || 0, ga: 0, st: "work" } : { st: "off0" }; }
     if ((WEEKEND_WORK[d] || []).includes(no)) return { st: "none" };
     return { st: "off0" };
   }
   if (no === ME && LEAVE[d] && lvKind(LEAVE[d]) === "off") {   // 휴가 탭: 연차(정비휴무)·휴가
     const r = DB[d];   // 상차한 뒤 조퇴·정비 대신 연차를 쓴 날: 실탕은 그대로, 가탕 없음
-    return r ? { real: realOf(r), yard: +r.yard || 0, ga: 0, st: "work", lv: LEAVE[d] } : { st: "leave", lv: LEAVE[d] }; }
+    return r ? { real: realOf(r), yard: +r.yard || 0, late: +r.late || 0, ga: 0, st: "work", lv: LEAVE[d] } : { st: "leave", lv: LEAVE[d] }; }
   if (no === ME && LEAVE[d] === "결근") { const x = (REAL[d] || {})[ME]; return { st: "absent", gaSet: x && x.st === "absent" && x.ga && !x.gaAuto ? +x.ga : 0 }; }                          // 휴가 탭: 결근 → 가탕 자동
-  if (no === ME) { const r = DB[d]; return r ? { real: realOf(r), yard: +r.yard || 0, ga: +r.ga || 0, st: r.absent ? "absent" : "work" } : { st: "none" }; }
+  if (no === ME) { const r = DB[d]; return r ? { real: realOf(r), yard: +r.yard || 0, late: +r.late || 0, ga: +r.ga || 0, st: r.absent ? "absent" : "work" } : { st: "none" }; }
   return { st: "none" };
 }
 // 평균은 매달·매년 초기화하지 않음: 기록을 처음 시작한 날부터 오늘까지 전부 누적
@@ -1682,7 +1692,7 @@ function fleetUpTo(d) {
   const mon = {}, M = d.slice(0, 7); let monDays = 0, monTot = 0; CARS_ALL.forEach(c => { mon[c] = 0; });
   days.forEach(x => {
     const R = {}; let sum = 0, n = 0;
-    CARS_ALL.forEach(c => { const r = R[c] = recOf(c, x); if (r.st === "work" && r.real + r.yard > 0) { sum += r.real + r.yard; n++; } });
+    CARS_ALL.forEach(c => { const r = R[c] = recOf(c, x); if (r.st === "work" && abTrips(r, x) > 0) { sum += abTrips(r, x); n++; } });
     const base = n ? sum / n : 0, gaAbs = roundGa(base);   // 엑셀과 같게: 소수 첫째 자리 반올림 → 사사오입 (3.4545 → 3.5 → 4 · 0.3 → 1)
     let tot = 0, m = 0, nAb = 0;
     CARS_ALL.forEach(c => {
@@ -1733,7 +1743,7 @@ function holdDay() { const ds = workDays(); for (const d of ds) { if (d >= TODAY
 function pendGaRun(upTo) { const N = CARS_ALL.length || 1, up = {}, down = {}; let n = 0; CARS_ALL.forEach(c => { up[c] = 0; down[c] = 0; });
   workDays().filter(x => x <= upTo).forEach(x => { const D = REAL[x] || {};
     const P = CARS_ALL.filter(c => { const r = D[c]; return r && r.st === "work" && /^(조퇴|지각|정비|외출)$/.test(r.part || "") && !r.gaWhy && !(+r.ga); }); if (!P.length) return;
-    const L = CARS_ALL.filter(c => { const r = D[c]; return r && r.st === "work" && (+r.real || 0) + (+r.yard || 0) > 0; }), av = L.length ? L.reduce((a, c) => a + (+D[c].real || 0) + (+D[c].yard || 0), 0) / L.length : 0, gmax = roundGa(av); if (!gmax) return;
+    const L = CARS_ALL.filter(c => { const r = D[c]; return r && r.st === "work" && abTrips(r, x) > 0; }), av = L.length ? L.reduce((a, c) => a + abTrips(D[c], x), 0) / L.length : 0, gmax = roundGa(av); if (!gmax) return;
     n += P.length; P.forEach(c => up[c] += gmax * (1 - 1 / N)); CARS_ALL.forEach(c => down[c] += gmax * P.length / N); });
   return { n, up, down }; }
 function forecast() {
@@ -1890,7 +1900,7 @@ function fuelSend(del) {
 function openLeave(d) {
   const t = LEAVE[d], ab = t === "결근";
   let extra = '';
-  if (ab) { const F = fleetUpTo(d), r = F.day[ME] || {}; extra = '<div class="lp-ga">가탕 <b>' + (r.ga || 0) + '회</b> 자동 반영<small>그날 상차한 ' + F.nW + '대 상차 평균 ' + fmt2(F.base) + '회 → 사사오입 (영내작업도 1상차)</small></div>'; }
+  if (ab) { const F = fleetUpTo(d), r = F.day[ME] || {}; extra = '<div class="lp-ga">가탕 <b>' + (r.ga || 0) + '회</b> 자동 반영<small>그날 상차한 ' + F.nW + '대 상차 평균 ' + fmt2(F.base) + '회 → 사사오입 (영내작업도 1상차 · 17시 이후 상차는 뺌)</small></div>'; }
   $("lp-body").innerHTML = '<div class="cf-date">' + md(d) + '</div>' +
     '<div class="lp-big lv-' + lvKind(t) + '">' + t + '</div>' +
     '<p class="lp-txt">' + (ab ? '휴가 탭에 결근으로 등록된 날입니다.<br>운반비는 없고, 평균에는 아래 가탕이 들어갑니다.' : '휴가 탭에 ' + t + '로 등록된 날입니다.<br>운행기록을 쓰지 않아도 됩니다.') + '</p>' + extra +
@@ -1941,7 +1951,7 @@ function view(d) {
   }
   if (!r) {   // 휴가 탭에 등록된 결근·연차·휴가 날
     const t = LEAVE[d], ab = t === "결근"; let extra = "";
-    if (ab) { const F = fleetUpTo(d), rr = F.day[ME] || {}; extra = '<div class="lp-ga">가탕 <b>' + (rr.ga || 0) + '회</b> 자동 반영<small>그날 상차한 ' + F.nW + '대 상차 평균 ' + fmt2(F.base) + '회 → 사사오입 (영내작업도 1상차)</small></div>'; }
+    if (ab) { const F = fleetUpTo(d), rr = F.day[ME] || {}; extra = '<div class="lp-ga">가탕 <b>' + (rr.ga || 0) + '회</b> 자동 반영<small>그날 상차한 ' + F.nW + '대 상차 평균 ' + fmt2(F.base) + '회 → 사사오입 (영내작업도 1상차 · 17시 이후 상차는 뺌)</small></div>'; }
     $("edit").style.display = "none"; $("del-day").style.display = "none"; $("save").style.display = "none"; $("clear-day").style.display = "none"; $("calc").style.display = "none";
     const why = LEAVE_REASON[d];
     $("form").innerHTML = '<div class="dv-leave"><div class="lp-big lv-' + lvKind(t) + '">' + esc(t || "기록 없음") + '</div>' +
@@ -2493,6 +2503,7 @@ function openIlbo(d) {
   ilboDraw(); $("ilbo").classList.add("show");
   requestAnimationFrame(() => { ilboFit(); ibZoom = 0; ilboZoom(ibFit); $("ib-scroll").scrollTop = 0; $("ib-scroll").scrollLeft = 0; });
 }
+window.openIlbo = openIlbo;   // 관리자 화면(run.html?ilbo=1)에서 부름
 function ilboGo(k) { const ds = ilboDays(), i = ds.indexOf(ibDay), t = ds[i + k]; if (!t) return; ibDay = t; const sc = $("ib-scroll"), l = sc.scrollLeft, tp = sc.scrollTop; ilboDraw(); sc.scrollLeft = l; sc.scrollTop = tp;
   const p = $("ib-paper"); p.style.animation = "none"; void p.offsetWidth; p.style.animation = (k > 0 ? "dayNext" : "dayPrev") + " .3s ease both"; }
 document.addEventListener("click", e => {

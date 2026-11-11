@@ -685,7 +685,7 @@
     <div class="row"><span>그날 상차 차량</span><input enterkeyhint="done" type="number" id="n" inputmode="numeric" value="55"></div>
     <p class="hint">기사님 입력으로 자동으로 채워집니다 (1회라도 상차한 차량 · 영내작업만 한 차량도 포함).</p>
     <div class="row" id="tot-row"><span>그날 상차 합계</span><input enterkeyhint="done" type="number" id="tot" inputmode="numeric" value="261"></div>
-    <p class="hint" id="tot-hint">자동으로 채워집니다 (영내작업도 1상차). 현행 규칙의 상한(결근 가탕)을 계산하는 데 씁니다.</p>
+    <p class="hint" id="tot-hint">자동으로 채워집니다 (영내작업도 1상차 · 17시 이후 상차는 뺌). 현행 규칙의 상한(결근 가탕)을 계산하는 데 씁니다.</p>
     <div class="row" id="own-row"><span>이 차량 상차</span><input enterkeyhint="done" type="number" id="own" inputmode="numeric" value="" min="0"></div>
     <p class="hint" id="own-hint">그날 이 차량이 상차한 횟수 (영내작업도 1상차). 자동으로 채워집니다.</p>
     <div class="row" id="cnt-row"><span id="cnt-l">구간 출하 대수</span><input enterkeyhint="done" type="number" id="cnt" inputmode="numeric" value=""></div>
@@ -903,7 +903,7 @@ const SPAN = {
   "정비2": "고장 난 시점 ~ 그날 마지막 출하까지 (조퇴와 같은 구간 · 영내작업도 1상차)",
   "정비3": "정비 시작 ~ 정비 끝까지 나간 출하 대수 (영내작업도 1상차로 셈)",
   "외출": "나간 시각 ~ 들어온 시각까지 나간 출하 대수 (조퇴·지각처럼 올림 · 영내작업도 1상차로 셈)",
-  "결근": "그날 상차한 차량들의 상차 합계 (영내작업도 1상차)",
+  "결근": "그날 상차한 차량들의 상차 합계 (영내작업도 1상차 · 17시 이후 상차는 뺌)",
   "연차": "조퇴·정비 대신 연차를 쓴 날. 그날 실탕은 그대로, 가탕은 넣지 않습니다",
 };
 // 현행 규칙 상한 (추천 방식에는 상한 없음)
@@ -1470,10 +1470,12 @@ let TSITES = [];   // [{ n: 정식 이름, p: 단가, s: 짧은 이름, vat? }]
 const LIFTS = TSITES.map(x => x.n);
 const syncLifts = () => { LIFTS.length = 0; TSITES.forEach(x => LIFTS.push(x.n)); };
 const SITEK = { wait: "SITES", early: "SITES", late: "SITES", lift: "LIFTS" };
+const AB_LATE_FROM = "2026-11-10";   // 이날부터 17시 상차를 뺌 (그 전 날짜는 예전 방식 그대로)
+const abTrips = (r, d) => Math.max(0, (+r.real || 0) - (d >= AB_LATE_FROM ? (+r.late || 0) : 0)) + (+r.yard || 0);   // 결근 가탕 기준: 실 회전 − 17시 상차 + 영내작업 (0이면 평균 차 수에서도 뺌)
 function dayStat(d) {
   const R = {}; CARS.forEach(c => { R[c] = rec(c, d); });
   const need = CARS.filter(c => R[c].st === "work" || R[c].st === "none"), miss = need.filter(c => R[c].st === "none");
-  const loaded = CARS.filter(c => R[c].st === "work" && R[c].real + R[c].yard > 0), base = loaded.length ? loaded.reduce((a, c) => a + R[c].real + R[c].yard, 0) / loaded.length : 0;
+  const loaded = CARS.filter(c => R[c].st === "work" && abTrips(R[c], d) > 0), base = loaded.length ? loaded.reduce((a, c) => a + abTrips(R[c], d), 0) / loaded.length : 0;
   const gaAbs = base > 0 ? Math.max(1, Math.floor(Math.round(base * 10 + 1e-9) / 10 + 0.5 + 1e-9)) : 0;   // 엑셀과 같게 (소수 첫째 자리 반올림 → 사사오입)
   const tot = CARS.reduce((a, c) => { const r = R[c]; return a + (r.st === "work" ? r.real + r.yard * 0.5 + (r.ga || 0) : r.st === "absent" ? (r.ga && !r.gaAuto ? r.ga : gaAbs) : 0); }, 0);
   return { R, need: need.length, done: need.length - miss.length, miss, avg: CARS.length ? tot / CARS.length : 0, gaAbs, nW: loaded.length };
@@ -1534,11 +1536,11 @@ window.opsGaChanged = (d, c) => { const L = (window.gaList ? window.gaList() : [
   else if (!x && v && why.includes("결근")) (REAL[d] = REAL[d] || {})[c] = { st: "absent", lv: "결근", ga: v, gaWhy: why.join(",") };
   if (PG === "today") drawToday(); else if (PG === "ilbo") drawIlbo(); };
 // 가탕 계산기 차량 고르기용: 그날 차량별 상태 · 상차 수
-window.gaDay = d => { const S = dayStat(d), o = {}, loaded = CARS.filter(x => S.R[x].st === "work" && S.R[x].real + S.R[x].yard > 0);
+window.gaDay = d => { const S = dayStat(d), o = {}, loaded = CARS.filter(x => S.R[x].st === "work" && abTrips(S.R[x], d) > 0);
   CARS.forEach(c => { const r = S.R[c], lv = (LV[d] || {})[c];
     const lab = r.st === "work" ? (r.part || (r.gaWhy === "총회지각" ? "총회지각" : "") || (lv ? lv[0] : "")) : r.st === "absent" ? "결근" : r.st === "leave" ? (r.lv === "연차" ? "정비휴무" : r.lv || "휴가") : r.st === "home" ? "집대기" : r.st === "off" ? "비번" : r.st === "none" ? "미입력" : "";
     o[c] = { lab, st: r.st, own: r.st === "work" ? (r.real || 0) + (r.yard || 0) : 0, ga: r.ga || 0 }; });
-  return { n: loaded.length, tot: loaded.reduce((a, x) => a + S.R[x].real + S.R[x].yard, 0), cars: o }; };
+  return { n: loaded.length, tot: loaded.reduce((a, x) => a + abTrips(S.R[x], d), 0), cars: o }; };
 // 가탕 입력: 가탕 탭으로 가면서 그 차량·날짜·사유·그날 상차 수를 미리 채움
 function gaFor(c) { syncGa(AD); const S = dayStat(AD), r = S.R[c], why = (GA_WAIT[AD] || {})[c] || "조퇴";
   const loaded = CARS.filter(x => S.R[x].st === "work" && S.R[x].real + S.R[x].yard > 0), tot = loaded.reduce((a, x) => a + S.R[x].real + S.R[x].yard, 0);

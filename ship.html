@@ -462,7 +462,8 @@ function dayStat(d) {
 function pendGa(upTo) { const up = {}, down = {}, N = CARS.length || 1; let n = 0; CARS.forEach(c => { up[c] = 0; down[c] = 0; });
   const H = holdOf(upTo); DAYS.filter(x => x <= upTo && (!H || x < H.d)).forEach(x => { const S = dayStat(x), R = S.R;
     const P = CARS.filter(c => R[c].st === "work" && /^(조퇴|지각|정비|외출)$/.test(R[c].part || "") && !R[c].gaWhy && !(+R[c].ga)); if (!P.length) return;
-    const L = CARS.filter(c => R[c].st === "work" && (+R[c].real || 0) + (+R[c].yard || 0) > 0), av = L.length ? L.reduce((a, c) => a + (+R[c].real || 0) + (+R[c].yard || 0), 0) / L.length : 0;
+    const abT = r => Math.max(0, (+r.real || 0) - (x >= "2026-11-10" ? (+r.late || 0) : 0)) + (+r.yard || 0);   // 11/10부터   // 결근 가탕 기준: 17시 이후 상차는 뺌
+    const L = CARS.filter(c => R[c].st === "work" && abT(R[c]) > 0), av = L.length ? L.reduce((a, c) => a + abT(R[c]), 0) / L.length : 0;
     const gmax = av > 0 ? Math.max(1, Math.floor(Math.round(av * 10 + 1e-9) / 10 + 0.5 + 1e-9)) : 0; if (!gmax) return;   // 그날 결근 가탕 (조퇴·지각 가탕은 이보다 클 수 없음)
     n += P.length; P.forEach(c => up[c] += gmax * (1 - 1 / N)); CARS.forEach(c => down[c] += gmax * P.length / N); });
   return { n, up, down }; }
