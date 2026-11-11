@@ -619,9 +619,10 @@ $("chg").onclick = e => { if (e.target.id === "chg" || e.target.closest("#chg-ok
 document.addEventListener("click", e => { const b = e.target.closest("[data-cgm]"); if (!b) return; document.querySelectorAll("[data-cgm]").forEach(x => x.classList.toggle("on", x === b)); const g = document.getElementById("cg"); g.classList.remove("m5", "m10"); g.classList.add(b.dataset.cgm); g.scrollLeft = 0; });
 // ===== 조별 차량 호수를 누르면 주식 차트처럼 평균 차이 흐름 (재미 요소) =====
 let STK_C = "", STK_R = 10;
-function stkSeries(c) { const upto = D > TODAY ? TODAY : D, out = []; let a = 0; DAYS.filter(x => x <= upto).forEach(x => { const S = dayStat(x); a += avgVal(S.R[c]) - S.avg; out.push([x, a]); }); return out; }
+function stkSeries(c) { const upto = D > TODAY ? TODAY : D, out = [], H = holdOf(upto); let a = CARRY[c] || 0;   // 목록의 평균과 똑같이: 처음 이월값에서 시작 · 가탕 대기로 멈춘 날부터는 넣지 않음
+  DAYS.filter(x => x <= upto && (!H || x < H.d)).forEach(x => { const S = dayStat(x); a += avgVal(S.R[c]) - S.avg; out.push([x, a]); }); return out; }
 function stkDraw() { const all = stkSeries(STK_C), L = STK_R ? all.slice(-STK_R) : all; if (!L.length) return;
-  const sg = v => (v > 0.005 ? "+" : v < -0.005 ? "−" : "") + Math.abs(v).toFixed(2), last = L[L.length - 1][1], prev = all.length > 1 ? all[all.length - 2][1] : 0, ch = last - prev;
+  const sg = v => (v > 0.005 ? "+" : v < -0.005 ? "−" : "") + Math.abs(v).toFixed(2), last = L[L.length - 1][1], prev = all.length > 1 ? all[all.length - 2][1] : (CARRY[STK_C] || 0), ch = last - prev;
   $("stk-t").textContent = STK_C + "호 · " + groupOf(STK_C) + "조";
   $("stk-v").textContent = sg(last) + "회"; $("stk-v").className = last > 0.005 ? "up" : last < -0.005 ? "dn" : "eq";
   $("stk-d").innerHTML = '<span class="' + (ch > 0.005 ? 'up' : ch < -0.005 ? 'dn' : 'eq') + '">' + (ch > 0.005 ? '▲ ' : ch < -0.005 ? '▼ ' : '') + Math.abs(ch).toFixed(2) + '</span> <span style="color:var(--muted);font-weight:700">전날 대비 (' + md(L[L.length - 1][0]) + ')</span>';
@@ -631,7 +632,7 @@ function stkDraw() { const all = stkSeries(STK_C), L = STK_R ? all.slice(-STK_R)
   const cU = "#4ade80", cD = "#f87171", col = last >= 0 ? cU : cD, step = Math.max(1, Math.ceil(L.length / 6));
   const grid = [top - pad, (top + bot) / 2, bot + pad].map(v => '<line x1="' + pl + '" x2="' + (W0 - pr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="#1e293b"/><text x="' + (pl - 6) + '" y="' + (Y(v) + 4) + '" fill="#64748b" font-size="11" text-anchor="end">' + sg(v) + '</text>').join("");
   const xl = L.map((x, i) => (i % step || L.length - 1 - i < step * .6) && i !== L.length - 1 ? "" : '<text x="' + X(i) + '" y="' + (H0 - 8) + '" fill="#64748b" font-size="11" text-anchor="middle">' + (+x[0].slice(5, 7)) + "/" + (+x[0].slice(8)) + '</text>').join("");
-  const bars = L.map((x, i) => { const d = i ? x[1] - L[i - 1][1] : x[1] - (all[all.length - L.length - 1] || [0, 0])[1]; return '<rect x="' + (X(i) - 3) + '" y="' + (H0 - pb - Math.min(18, Math.abs(d) * 6)) + '" width="6" height="' + Math.min(18, Math.abs(d) * 6) + '" fill="' + (d >= 0 ? '#22c55e' : '#ef4444') + '" opacity=".45"/>'; }).join("");
+  const bars = L.map((x, i) => { const d = i ? x[1] - L[i - 1][1] : x[1] - (all[all.length - L.length - 1] || [0, CARRY[STK_C] || 0])[1]; return '<rect x="' + (X(i) - 3) + '" y="' + (H0 - pb - Math.min(18, Math.abs(d) * 6)) + '" width="6" height="' + Math.min(18, Math.abs(d) * 6) + '" fill="' + (d >= 0 ? '#22c55e' : '#ef4444') + '" opacity=".45"/>'; }).join("");
   const lp = pts[pts.length - 1];
   $("stk-ch").innerHTML = '<svg viewBox="0 0 ' + W0 + ' ' + H0 + '" role="img" aria-label="' + STK_C + '호 평균 차이 차트"><defs><linearGradient id="stkg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + col + '" stop-opacity=".35"/><stop offset="1" stop-color="' + col + '" stop-opacity="0"/></linearGradient><clipPath id="stk-up"><rect x="0" y="0" width="' + W0 + '" height="' + y0 + '"/></clipPath><clipPath id="stk-dn"><rect x="0" y="' + y0 + '" width="' + W0 + '" height="' + H0 + '"/></clipPath></defs>' + grid +
     (z0 ? '<line x1="' + pl + '" x2="' + (W0 - pr) + '" y1="' + y0 + '" y2="' + y0 + '" stroke="#94a3b8" stroke-dasharray="4 4"/><text x="' + (W0 - pr) + '" y="' + (y0 - 5) + '" fill="#94a3b8" font-size="11" text-anchor="end">평균 0</text>' : '') + bars +
