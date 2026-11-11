@@ -4591,9 +4591,12 @@ async function imgCopy(btn, make, name, okMsg) { if (btn.disabled) return; btn.d
   if (copied) toast(okMsg, true);
   else { try { const blob = await p, a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name + ".png"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000); toast("이 기기는 복사가 안 돼서 그림 파일로 저장했습니다."); } catch (x) { toast("그림을 만들지 못했습니다. 잠시 후 다시 해 주세요."); } }
   btn.disabled = false; btn.textContent = t0; }
-// 출하예정 집계표 → 그림
+// 출하예정 집계표 → 그림 (인쇄 화면 모양 그대로). 숫자 간격이 벌어지지 않게: 그림을 만드는 사본에서만
+//  글자 간격(letter-spacing)을 0으로, 숫자·영문도 한글과 같은 글꼴을 쓰도록 글꼴 이름을 분명히 지정
+const TQ_IMG_CSS = '.pg,.pg *{letter-spacing:0 !important;font-kerning:none !important;font-family:"굴림",Gulim,"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR",sans-serif !important}.hd .t{letter-spacing:2px !important}';
 document.addEventListener("click", e => { if (!e.target.closest("#tq-img")) return; if (!TQ) return toast("이 날 집계표가 없습니다.");
-  imgCopy($("tq-img"), h2c => { const doc = $("tq-frame").contentDocument, el = doc && doc.querySelector(".pg"); if (!el) throw new Error("no page"); return h2c(el, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false, windowWidth: 794 }); }, "출하예정집계표_" + TQ_D, "출하예정 집계표를 그림으로 복사했습니다. 카톡에 붙여넣기 하세요."); });
+  imgCopy($("tq-img"), h2c => { const doc = $("tq-frame").contentDocument, el = doc && doc.querySelector(".pg"); if (!el) throw new Error("no page");
+    return h2c(el, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false, windowWidth: 794, onclone: d => { const st = d.createElement("style"); st.textContent = TQ_IMG_CSS; d.head.appendChild(st); } }); }, "출하예정집계표_" + TQ_D, "출하예정 집계표를 그림으로 복사했습니다. 카톡에 붙여넣기 하세요."); });
 /* ===== 평균 합 영점 맞추기: 처음 이월값 60대 합이 0이 아니면, 그 차이를 60대에 똑같이 나눠 빼서 합을 0으로 (모든 날짜의 평균이 같은 만큼 함께 움직임 · 순번 차이는 그대로) ===== */
 async function ilZero() { const b = $("av-zero"); if (b.disabled) return; await admRefresh(); const D = await admData(); if (!D || !D.ok) return toast("자료를 불러오지 못했습니다.");
   const cars = (D.cars || []).filter(c => c && c.no && !c.off).map(c => String(c.no)), C0 = D.carry || {}, sum = cars.reduce((a, c) => a + (+C0[c] || 0), 0), n = cars.length;
