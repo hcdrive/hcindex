@@ -482,14 +482,14 @@ applySync(S0);
 // 관리팀은 평균을 안 보므로 기사님이 입력하는 대로 바로 반영 (오늘은 아직 입력 안 한 차량 = 입력 전) · '이상 없음 확인'은 서버 chk
 // 달 이동 (월 합계 · 호수별) · 기록은 서버가 보내 준 시작일(from)부터
 let ALLD = [], MONTHS = [];
-function calcAll() { ALLD = DAYS.slice(); Object.keys(REAL).forEach(x => { if (x >= REC_START && x <= TODAY && !ALLD.includes(x) && Object.values(REAL[x] || {}).some(v => v && (v.st === "work" || v.fo))) ALLD.push(x); }); ALLD.sort();   // 주말·휴무일도 기록(일보·주유량만)이 있으면 날짜 이동에 넣음 (평균은 DAYS 그대로)
+function calcAll() { ALLD = DAYS.slice(); for (let x = REC_START; x <= TODAY; x = addDay(x, 1)) if (!ALLD.includes(x)) ALLD.push(x); ALLD.sort();   // 관리자: 주말·휴무일까지 모든 날 보기 (평균은 DAYS 그대로)
   MONTHS = [...new Set(ALLD.map(d => d.slice(0, 7)))]; if (!MONTHS.includes(TODAY.slice(0, 7))) MONTHS.push(TODAY.slice(0, 7)); }
 calcAll();
 let MON = TODAY.slice(0, 7);
 const MD = () => ALLD.filter(d => d.slice(0, 7) === MON);
 const ML = () => (+MON.slice(5)) + "월";
 const mRange = () => { const d = MD(); return d.length ? md(d[0]) + " ~ " + md(d[d.length - 1]) + (MON === TODAY.slice(0, 7) ? " (진행 중)" : "") : ""; };
-const homeD = () => ALLD.includes(TODAY) ? TODAY : (ALLD.filter(x => x <= TODAY).pop() || TODAY);   // 주말·공휴일엔 가장 최근 근무일
+const homeD = () => DAYS.includes(TODAY) ? TODAY : (DAYS.filter(x => x <= TODAY).pop() || TODAY);   // 주말·공휴일엔 가장 최근 근무일
 let D = homeD(), V = "day", F = "all", ED = null;
 const toast = (m, bad) => { const t = $("toast"); t.textContent = m; t.classList.toggle("bad", !!bad); t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), bad ? 3600 : 2400); };
 const COLS = [["real", "회전수"], ["km", "운행거리(km)"], ["toll", "통행료"], ["fuel", "주유량"], ["wait", "2시간"], ["late", "17시 이후"], ["jan", "잔수"], ["early", "조출"], ["yard", "영내"], ["back19", "19시"], ["lift", "터널"]];
