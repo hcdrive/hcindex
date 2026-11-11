@@ -824,7 +824,7 @@
     <section class="view" id="v-ilbo">
       <button class="back" data-sub="v-more">← 전체 메뉴</button>
       <p class="info" style="margin-top:6px">기사 화면의 운행일보(엑셀 양식)와 똑같은 표입니다. 날짜를 고르고 [이미지로 복사하기]를 누르면 그림으로 복사돼 카톡 채팅방에 붙여넣을 수 있습니다. 모든 차량이 일보를 쓴 날까지 볼 수 있습니다.</p>
-      <div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap"><button type="button" class="btn" id="il-re">새로고침</button><button type="button" class="btn primary wide" id="il-img" style="flex:1">이미지로 복사하기</button></div>
+      <div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap"><button type="button" class="btn" id="il-re">새로고침</button><button type="button" class="btn" id="il-zero">평균 합 영점 맞추기</button><button type="button" class="btn primary wide" id="il-img" style="flex:1">이미지로 복사하기</button></div>
       <div class="il-wrap"><iframe id="il-frame" title="운행일보 (엑셀 양식)"></iframe></div>
     </section>
 
@@ -4582,6 +4582,17 @@ async function imgCopy(btn, make, name, okMsg) { if (btn.disabled) return; btn.d
 // 출하예정 집계표 → 그림
 document.addEventListener("click", e => { if (!e.target.closest("#tq-img")) return; if (!TQ) return toast("이 날 집계표가 없습니다.");
   imgCopy($("tq-img"), h2c => { const doc = $("tq-frame").contentDocument, el = doc && doc.querySelector(".pg"); if (!el) throw new Error("no page"); return h2c(el, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false, windowWidth: 794 }); }, "출하예정집계표_" + TQ_D, "출하예정 집계표를 그림으로 복사했습니다. 카톡에 붙여넣기 하세요."); });
+/* ===== 평균 합 영점 맞추기: 처음 이월값 60대 합이 0이 아니면, 그 차이를 60대에 똑같이 나눠 빼서 합을 0으로 (모든 날짜의 평균이 같은 만큼 함께 움직임 · 순번 차이는 그대로) ===== */
+async function ilZero() { const b = $("il-zero"); if (b.disabled) return; await admRefresh(); const D = await admData(); if (!D || !D.ok) return toast("자료를 불러오지 못했습니다.");
+  const cars = (D.cars || []).filter(c => c && c.no && !c.off).map(c => String(c.no)), C0 = D.carry || {}, sum = cars.reduce((a, c) => a + (+C0[c] || 0), 0), n = cars.length;
+  if (!n) return toast("차량 목록이 없습니다."); if (Math.abs(sum) < 0.0005) return toast("이미 영점입니다. 처음 이월값 합이 " + sum.toFixed(4) + "입니다.");
+  const per = sum / n, f4 = v => (v > 0 ? "+" : "") + v.toFixed(4);
+  if (!await ask("평균 합 영점 맞추기\n\n지금 처음 이월값 " + n + "대 합: " + f4(sum) + "\n→ " + n + "대 모두 " + f4(-per) + "씩 고쳐서 합을 0으로 맞춥니다.\n\n· 모든 차량 평균이 똑같이 " + Math.abs(per).toFixed(3) + "씩 " + (per > 0 ? "내려갑니다" : "올라갑니다") + ".\n· 차량끼리의 차이(순번)는 그대로입니다.\n· 작업 기록에서 되돌릴 수 있습니다.", "영점 맞추기", "그대로 두기")) return;
+  const C1 = Object.assign({}, C0); cars.forEach(c => { C1[c] = Math.round(((+C0[c] || 0) - per) * 1e6) / 1e6; });
+  const rest = cars.reduce((a, c) => a + C1[c], 0); C1[cars[0]] = Math.round((C1[cars[0]] - rest) * 1e6) / 1e6;   // 끝자리 남은 것까지 0으로
+  b.disabled = true; const r = await api("adminKvSet", { kind: "carry", key: "all", value: C1, label: "평균 합 영점 맞추기", detail: n + "대 이월값 합 " + f4(sum) + " → 0 (" + f4(-per) + "씩)" }); b.disabled = false;
+  if (!r || !r.ok) return toast(r && r.msg ? r.msg : "저장하지 못했습니다.");
+  toast("영점을 맞췄습니다. 모든 차량 평균이 " + Math.abs(per).toFixed(3) + "씩 " + (per > 0 ? "내려갔습니다." : "올라갔습니다."), true); await ilLoad(true); }
 /* ===== 운행일보 (엑셀 양식): 기사 화면의 운행일보를 그대로 띄우고(run.html?ilbo=1) 그림으로 복사 ===== */
 let IL_SIG = "";
 async function ilLoad(force) { const f = $("il-frame"); if (force) await admRefresh(); const D = await admData(); if (!D || !D.ok) return toast("운행일보 자료를 불러오지 못했습니다.");
@@ -4590,6 +4601,7 @@ async function ilLoad(force) { const f = $("il-frame"); if (force) await admRefr
   f.src = "run.html?ilbo=1&v=" + APP_VER + "&t=" + Date.now(); }
 document.addEventListener("click", e => { const t = e.target;
   if (t.closest("#il-re")) return ilLoad(true);
+  if (t.closest("#il-zero")) return ilZero();
   if (t.closest("#il-img")) { const doc = $("il-frame").contentDocument, src = doc && doc.getElementById("ib-paper"); if (!src || !src.innerHTML.trim()) return toast("운행일보가 아직 없습니다.");
     const dt = ((doc.getElementById("ib-date") || {}).textContent || "").trim();
     // 운행일보 표만 따로 깨끗한 화면(숨은 틀)에 옮겨 그린 뒤 그림으로 (기사 화면 글꼴·칸 모양 그대로)
