@@ -769,7 +769,10 @@ function kfxParse(txt) { const items = [], skip = []; let day = "";
     if (m) { day = kfxYear(+m[1], +m[2]); return; }
     m = l.match(/^(\d{3})\s*(?:호)?\s*[:：]?\s*(.+)$/); if (!m || !day) return skip.push(l);
     const no = m[1], rest = m[2].trim();
-    if (/통행료/.test(rest)) { const t = rest.match(/통행료\s*([\d,]+)\s*원?/); if (!t) return skip.push(l); return items.push({ d: day, no, k: "toll", from: null, to: +t[1].replace(/,/g, ""), why: "통행료 정정", line: l }); }
+    if (/통행료/.test(rest)) { const t = rest.match(/통행료\s*([\d,]+)\s*원?/);
+      if (t) return items.push({ d: day, no, k: "toll", from: null, to: +t[1].replace(/,/g, ""), why: "통행료 정정", line: l });
+      if (/없음|없다|미제출|안\s*냄|빼|삭제|0\s*원/.test(rest)) return items.push({ d: day, no, k: "toll", from: null, to: 0, why: rest.replace(/\s+/g, " "), line: l });   // 통행료 영수증 없음 → 통행료 0원
+      return skip.push(l); }
     const k = rest.match(/^(\d+)\s*[-–~→>]\s*(\d+)\s*(?:\((.*)\))?\s*$/); if (!k) return skip.push(l);
     const why = (k[3] || "").trim().replace(/(\d+)\s*[-–~]\s*(\d+)/g, "$1→$2") || "관리팀 정정";
     items.push({ d: day, no, k: "km", from: +k[1], to: +k[2], why, line: l }); });
