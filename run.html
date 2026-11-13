@@ -731,6 +731,7 @@
   .mp-row.mid { grid-template-columns: auto 1fr auto; }
   .mp-row:last-child { border-bottom: 0; }
   .mp-row .why { color: var(--text); font-weight: 600; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mq-on { text-overflow: clip !important; } .mq-in { display: inline-block; white-space: nowrap; will-change: transform; }   /* 잘린 현장명을 누르면 좌우로 천천히 오가며 끝까지 보임 */
   .mp-row b { font-size: 18px; }
   .mp-row b.ga { color: #e5484d; } .mp-row b.g { color: #0f8a3c; } .mp-row b.y { color: #b07800; } .mp-row b.p { color: #6a3fc8; }
   .mp-note { text-align: center; font-size: 13.5px; color: var(--muted); margin: 10px 0 0; }
@@ -3259,6 +3260,27 @@ addEventListener("message", e => { const m = e.data || {}; if (m.bellN !== undef
   document.addEventListener("touchstart", function (e) { var t = e.touches && e.touches[0]; if (t) { sx = t.clientX; sy = t.clientY; }
     if (!isField(document.activeElement)) return; var g = e.target; if (isField(g) || (g.closest && g.closest("label") && g.closest("label").control)) return; down(); }, { passive: true, capture: true });
   document.addEventListener("touchmove", function (e) { if (!isField(document.activeElement)) return; var t = e.touches && e.touches[0]; if (t && (Math.abs(t.clientY - sy) > 12 || Math.abs(t.clientX - sx) > 12)) down(); }, { passive: true, capture: true });
+})();
+</script>
+<script>
+// ===== 칸보다 긴 글자(현장명 등)는 눌렀을 때 좌우로 천천히 오가며 끝까지 보여 줌 =====
+//  내역 창의 줄: 눌러서 고른 동안([이날 기록 보기]가 떠 있는 동안) 계속 · 다른 곳: 누르면 두 번 오간 뒤 멈춤 · 칸에 다 들어가는 글자는 그대로
+(function () {
+  var TAP = ".dv2-sites li span, .p-row > b, .dv2-c span small, .pb-tx small";
+  function stop(el) { if (!el.classList.contains("mq-on")) return; var inn = el.querySelector(":scope > .mq-in");
+    if (inn) { try { inn.getAnimations().forEach(function (a) { a.cancel(); }); } catch (e) {} while (inn.firstChild) el.insertBefore(inn.firstChild, inn); inn.remove(); } el.classList.remove("mq-on"); }
+  function start(el, times) {
+    if (el.classList.contains("mq-on") || !el.offsetParent) return;
+    if (el.scrollWidth - el.clientWidth < 3) return;
+    var inn = document.createElement("span"); inn.className = "mq-in"; while (el.firstChild) inn.appendChild(el.firstChild); el.appendChild(inn); el.classList.add("mq-on");
+    var dist = inn.offsetWidth - el.clientWidth + 6; if (dist < 3 || !inn.animate) { stop(el); return; }
+    var hold = 700, dur = Math.max(1200, dist / 38 * 1000) + hold * 2, h = hold / dur, to = "translateX(" + (-dist) + "px)";
+    var an = inn.animate([{ transform: "none", offset: 0 }, { transform: "none", offset: h }, { transform: to, offset: 1 - h }, { transform: to, offset: 1 }], { duration: dur, iterations: times || Infinity, direction: "alternate", easing: "linear" });
+    if (times) an.onfinish = function () { stop(el); };
+  }
+  var t = 0; function scan() { clearTimeout(t); t = setTimeout(function () { var L = document.querySelectorAll(".mp-row .why"); for (var i = 0; i < L.length; i++) { var r = L[i].closest(".mp-row"); if (r && r.classList.contains("sel")) start(L[i]); else stop(L[i]); } }, 40); }
+  try { new MutationObserver(scan).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] }); } catch (e) {}
+  document.addEventListener("click", function (e) { var el = e.target.closest && e.target.closest(TAP); if (!el) return; if (el.classList.contains("mq-on")) stop(el); else start(el, 4); });
 })();
 </script>
 </body>
