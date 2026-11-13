@@ -2651,7 +2651,7 @@ const store = {
 };
 let PW = store.get("adminPw");
 let TODAY = "", curDate = "", curMonth = "", CARS = [], carGroup = 1, logOffset = 0, listOffset = 0, RV = null;
-let addForm = { no: "", type: "연차", dates: [], reason: "", outside: true };
+let addForm = { no: "", type: "연차", dates: [], reason: "", outside: false };   // 기본: 정원 안 (대신 신청)
 const ITEMS = {};            // 화면에 나온 신청 (수정 창에서 씀)
 let editing = null;
 
@@ -3095,7 +3095,7 @@ function renderAdd() {
   const timed = addForm.type === "조퇴" || addForm.type === "지각", extra = addForm.type === "특별휴가";
   $("add-reason-row").classList.toggle("hidden", !extra);
   $("add-out-row").classList.toggle("hidden", addForm.type !== "연차");
-  $("add-out").innerHTML = '<button class="seg' + (addForm.outside ? ' on' : '') + '" data-out="1">정원 밖 (개인 사유)</button><button class="seg' + (!addForm.outside ? ' on' : '') + '" data-out="0">정원 안 (대신 신청)</button>';
+  $("add-out").innerHTML = '<button class="seg' + (!addForm.outside ? ' on' : '') + '" data-out="0">정원 안 (대신 신청)</button><button class="seg' + (addForm.outside ? ' on' : '') + '" data-out="1">정원 밖 (개인 사유)</button>';
   addForm.reason = $("add-reason-in").value.trim();
   $("add-reason").innerHTML = EXTRA_REASONS.filter(t => t !== "기타").map(t => '<button type="button" class="chip' + (addForm.reason === t ? ' on' : '') + '" data-reason="' + t + '">' + t + '</button>').join("");
   $("add-time-row").classList.toggle("hidden", !timed);
