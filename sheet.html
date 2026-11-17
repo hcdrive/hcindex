@@ -257,7 +257,7 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
   <section class="card" id="v-next"><h2>다음 근무일 예정 <small id="nx-sub"></small><span class="r nx-rf"><span id="nx-at"></span><button type="button" class="btn rf-btn" id="nx-rf">새로고침</button></span></h2><div class="nx" id="nx"></div></section>
   <section class="card" id="v-day">
     <h2>차량별 기록 <small id="live"></small><small>차량을 누르면 일일기록 · 수정은 일일기록에서 · 노란 칸 = 관리팀이 고친 값 · 빨간 칸 = 확인 필요</small></h2>
-    <div class="flt"><input type="search" id="q" placeholder="호차 찾기 (예: 214)" enterkeyhint="search"><button type="button" class="btn" id="kfx-open" style="margin-left:auto">카톡 정정 붙여넣기</button><button type="button" class="btn" id="fux-open">주유 엑셀 맞춰보기</button><button class="btn pri xls">엑셀로 받기</button></div>
+    <div class="flt"><input type="search" id="q" placeholder="호차 찾기 (예: 214)" enterkeyhint="search"><button type="button" class="btn" id="kfx-open" style="margin-left:auto">카톡 정정 붙여넣기</button><button class="btn pri xls">엑셀로 받기</button></div>
     <div id="warn"></div>
     <div class="tw"><table class="t" id="dt"></table></div>
     <p class="note">수정하면 기사님께 수정 알림이 가고, 고친 값은 기사님 화면·평균·운반비에 바로 반영되며 '수정 기록'에 남습니다.</p>
@@ -330,6 +330,13 @@ i.why.w-mh { background: #e8eaf6; color: #3949ab; } i.why.w-sum { background: #f
   <div id="fux-pv" hidden><div id="fux-b"></div><label class="kfx-nt"><input type="checkbox" id="fux-ntf">고친 차량 기사님께 알림 보내기</label>
   <div class="acts"><button type="button" class="btn" id="fux-back">다른 파일 올리기</button><button type="button" class="btn pri" id="fux-ok">반영하기</button></div></div></div></div>
 
+<div class="sheet" id="tux"><div class="box kfx-box"><h3>터널 엑셀 맞춰보기</h3>
+  <div id="tux-in"><p class="note">관리팀이 보내준 <b>터널 기록</b> 엑셀을 올리면, 기사님이 일보에 적은 터널 횟수와 날짜·호차별로 맞춰 봅니다. <b>월판선 카리프트 표</b>(호수 × 날짜)와 <b>두산 차량별운반비현황</b>(출하 목록) 모두 읽습니다. 맞는 것은 그대로 두고, 틀리거나 안 적힌 것만 골라서 고칠 수 있습니다.</p>
+  <div class="fux-row"><label class="fux-lb">어느 터널 표인가요<select id="tux-s"><option value="">파일에서 찾기</option></select></label><label class="btn pri fux-file">엑셀 파일 고르기<input type="file" id="tux-f" accept=".xlsx,.xls" hidden></label></div>
+  <p class="shp-msg" id="tux-msg"></p>
+  <div class="acts"><button type="button" class="btn" data-close="tux">닫기</button></div></div>
+  <div id="tux-pv" hidden><div id="tux-b"></div><label class="kfx-nt"><input type="checkbox" id="tux-ntf">고친 차량 기사님께 알림 보내기</label>
+  <div class="acts"><button type="button" class="btn" id="tux-back">다른 파일 올리기</button><button type="button" class="btn pri" id="tux-ok">반영하기</button></div></div></div></div>
 <div class="sheet" id="kfx"><div class="box kfx-box"><h3>카톡 정정 붙여넣기</h3>
   <div id="kfx-in"><p class="note">관리팀이 카톡으로 보낸 내용을 그대로 붙여넣고 [내용 확인]을 누르세요. 날짜 줄(예: 10월 21일) 아래 '호수 : 이전-정정(사유)' 또는 '호수 : 통행료 금액' 줄을 읽습니다. 바로 저장하지 않고 먼저 보여 드립니다.</p>
   <textarea id="kfx-t" placeholder="10월 21일&#10;207 : 135-140(계산실수)&#10;209 : 통행료 7,800원" enterkeyhint="done"></textarea><p class="shp-msg" id="kfx-msg"></p>
@@ -692,7 +699,7 @@ function shipApply(A, name) { const by = {}, K = shipCols(A), g = (r, i) => i >=
 async function shipPut(d, v, label, detail) { const r = await api("adminKvSet", { kind: "ship", key: d, value: v, label, detail }); if (!r.ok) { toast(r.msg || "저장하지 못했습니다.", true); return false; } if (v) SHIPLOG[d] = v; else delete SHIPLOG[d]; return true; }
 document.addEventListener("click", async e => { const t = e.target;
   const c = t.closest("[data-close]"); if (c) return hideSheet(c.dataset.close);
-  if (t.classList && t.classList.contains("sheet") && ["shc", "shp", "kfx", "fux"].includes(t.id)) return hideSheet(t.id);
+  if (t.classList && t.classList.contains("sheet") && ["shc", "shp", "kfx", "fux", "tux"].includes(t.id)) return hideSheet(t.id);
   if (t.closest("#shc-ok") && SHC) { const { by, name, ds } = SHC, at = nowAt(), b = $("shc-ok"); if (b.disabled) return; b.disabled = true; b.textContent = "저장 중…";
     let done = 0; for (const d of ds) { const prev = SHIPLOG[d] || null; if (await shipPut(d, { file: name, rows: by[d], by: "관리자", at }, md(d) + " 출하기록 올림", name + " · " + by[d].length + "건")) { SHIP_PREV[d] = { v: prev, at }; done++; } }
     b.disabled = false; b.textContent = "적용하기"; SHC = null; hideSheet("shc"); if (ALLD.includes(ds[0])) D = ds[0]; DIST_M = null; draw();
@@ -762,6 +769,91 @@ document.addEventListener("change", e => { const t = e.target;
   if (t.id === "fux-f" && t.files && t.files[0]) { fuxRead(t.files[0]); t.value = ""; return; }
   if (t.dataset && t.dataset.fux !== undefined && FUX && FUX.B) { FUX.B.items[+t.dataset.fux].on = t.checked; fuxCount(); return; }
   if (t.id === "fux-all" && FUX && FUX.B) { FUX.B.items.forEach(x => { if (x.kind !== "norec") x.on = t.checked; }); document.querySelectorAll("[data-fux]").forEach(i => { if (!i.disabled) i.checked = t.checked; }); fuxCount(); } });
+// ===== 터널 엑셀 맞춰보기 (관리자 · 교차 검증) =====
+//  ① 월판선 카리프트 표: 제목 줄에 현장 이름, 날짜 머리줄(10월 15일 · 엑셀 날짜), A열 '201호', 칸마다 횟수 ('계' 열은 안 봄)
+//  ② 두산 차량별운반비현황: '출하일자 · 차량번호 · 거래처 현장 · 회전수' 출하 목록 → 터널 현장만 날짜·호차별로 셈
+//  비교 기간: ② 둘째 줄 '출하일자 : 시작 ~ 끝' · ① 머리줄 날짜의 처음 ~ 끝 · 그 안에서 엑셀에 없는 날은 0회로 봄
+let TUX = null;
+const tuxYmd = (y, m, d) => y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+function tuxDate(v) {
+  if (v instanceof Date && !isNaN(v)) return tuxYmd(v.getFullYear(), v.getMonth() + 1, v.getDate());
+  if (typeof v === "number" && v > 20000 && v < 80000) { const t = new Date(Math.round((v - 25569) * 86400000)); return tuxYmd(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()); }   // 엑셀 날짜 숫자
+  const x = String(v == null ? "" : v).trim(); let m;
+  if ((m = x.match(/^(\d{4})[-./]\s*(\d{1,2})[-./]\s*(\d{1,2})/))) return tuxYmd(+m[1], +m[2], +m[3]);
+  if ((m = x.match(/^(\d{1,2})\s*월\s*(\d{1,2})\s*일?$/)) || (m = x.match(/^(\d{1,2})[./](\d{1,2})$/))) return +m[1] >= 1 && +m[1] <= 12 && +m[2] >= 1 && +m[2] <= 31 ? kfxYear(+m[1], +m[2]) : "";
+  return "";
+}
+function tuxParse(A, name, force) {
+  const T = r => (A[r] || []).map(v => String(v == null ? "" : v).trim()), cnt = {}, other = new Set(), sites = new Set(); let from = "", to = "", form = "";
+  const add = (d, c, st, n) => { if (!CARS.includes(c)) { other.add(c); return; } const k = d + "|" + c + "|" + st; cnt[k] = (cnt[k] || 0) + n; sites.add(st); };
+  // ② 출하 목록
+  let hr = -1; for (let i = 0; i < Math.min(A.length, 15) && hr < 0; i++) { const r = T(i); if (r.some(x => /출하일자/.test(x)) && r.some(x => /차량번호|호차/.test(x))) hr = i; }
+  if (hr >= 0) { form = "list"; const H = T(hr), ci = re => H.findIndex(x => re.test(x)), cD = ci(/출하일자/), cC = ci(/차량번호|호차/), cS = ci(/현장/), cN = ci(/회전/);
+    for (let i = 0; i < hr; i++) { const m = T(i).join(" ").match(/(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})/); if (m) { from = m[1]; to = m[2]; } }
+    let mn = "", mx = "";
+    for (let i = hr + 1; i < A.length; i++) { const r = A[i] || [], d = tuxDate(r[cD]), c = String(r[cC] == null ? "" : r[cC]).replace(/\D/g, ""), sn = String(r[cS] == null ? "" : r[cS]);
+      if (!d || !/^\d{3}$/.test(c)) continue; if (!mn || d < mn) mn = d; if (!mx || d > mx) mx = d;
+      if (!tunSite(sn)) continue; const st = force || tunShort(sn); const n = cN >= 0 ? (+r[cN] || 0) : 1; if (n > 0) add(d, c, st, n); }
+    if (!from) { from = mn; to = mx; } }
+  else {
+    // ① 호수 × 날짜 표
+    let dr = -1, cols = {}; for (let i = 0; i < Math.min(A.length, 15) && dr < 0; i++) { const c = {}; (A[i] || []).forEach((v, j) => { if (j < 1) return; const d = tuxDate(v); if (d) c[j] = d; }); if (Object.keys(c).length >= 2) { dr = i; cols = c; } }
+    if (dr < 0) return { err: "날짜 머리줄(예: 10월 15일)이나 '출하일자·차량번호' 머리줄을 찾지 못했습니다. 관리팀 터널 엑셀이 맞는지 확인해 주세요." };
+    form = "grid"; let st = force; if (!st) for (let i = 0; i < dr && !st; i++) { const h = T(i).find(x => x && tunSite(x)); if (h) st = tunShort(h); }
+    if (!st && tunSite(name)) st = tunShort(name);
+    if (!st) return { err: "어느 터널 현장 표인지 찾지 못했습니다. 위 '어느 터널 표인가요'에서 현장을 고른 뒤 다시 올려 주세요." };
+    const ds = Object.values(cols).sort(); from = ds[0]; to = ds[ds.length - 1]; sites.add(st);
+    for (let i = dr + 1; i < A.length; i++) { const r = A[i] || [], c = String(r[0] == null ? "" : r[0]).replace(/\D/g, ""); if (!/^\d{3}$/.test(c)) continue;
+      Object.keys(cols).forEach(j => { const n = parseFloat(String(r[j] == null ? "" : r[j]).replace(/[,\s]/g, "")); if (isFinite(n) && n > 0) add(cols[j], c, st, Math.round(n)); }); } }
+  if (!sites.size) return { err: form === "list" ? "이 파일에는 터널 현장 출하가 없습니다. (단가 설정의 터널 현장과 이름이 맞는지 확인해 주세요)" : "표에서 호수 줄을 찾지 못했습니다." };
+  return { cnt, other: [...other].sort(), sites: [...sites], from, to, form };
+}
+function tuxBuild() { const P = TUX.P, items = [], okL = [], from = P.from > REC_START ? P.from : REC_START, to = P.to < TODAY ? P.to : TODAY;
+  ALLD.filter(d => d >= from && d <= to).forEach(d => P.sites.forEach(st => CARS.forEach(c => {
+    const a = P.cnt[d + "|" + c + "|" + st] || 0, r = rec(c, d), b = r.st === "work" ? baseSites(c, d, "lift").filter(n => tunShort(n) === st).length : 0;
+    if (!a && !b) return; if (a === b) { okL.push([d, c, st, a]); return; }
+    const kind = r.st === "work" ? "fix" : (r.st === "none" || r.st === "pending") ? "norec" : "off";
+    items.push({ d, no: c, st, a, b, kind, on: kind === "fix", lab: kind === "off" ? stLab0(r).replace(/<[^>]+>/g, "") : "" }); })));
+  return { items, okL, from, to };
+}
+function tuxDraw() { const B = TUX.B = tuxBuild(), { items, okL } = B, can = items.filter(x => x.kind === "fix"), on = items.filter(x => x.on).length;
+  const lab = x => x.kind === "norec" ? '<span class="kfx-st bad">일보 미입력</span>' : x.kind === "off" ? '<span class="kfx-st zero">그날 일 안 함 · ' + esc(x.lab) + '</span>' : !x.a ? '<span class="kfx-st zero">엑셀에 없음 → 0회로</span>' : '<span class="kfx-st ok">' + (x.b ? '일보 터널 고침' : '일보에 터널 넣음') + '</span>';
+  $("tux-b").innerHTML = '<p class="note" style="margin:0 0 6px">' + esc(TUX.P.sites.join(" · ")) + ' · ' + md(B.from) + ' ~ ' + md(B.to) + ' · 파일: ' + esc(TUX.name) + '</p>' +
+    '<div class="sh-sum"><div class="ok"><small>맞음</small><b>' + okL.length + '</b>건</div><div class="bad"><small>틀림·안 적힘</small><b>' + items.length + '</b>건</div><div><small>고를 것</small><b id="tux-n">' + on + '</b>건</div></div>' +
+    (items.length ? '<div class="tw"><table class="t kfx-t fux-t"><tr><th><input type="checkbox" id="tux-all"' + (on && on === can.length ? ' checked' : '') + ' aria-label="모두 고르기"></th><th class="l">날짜</th><th>호차</th><th class="l">현장</th><th>일보</th><th>관리팀</th><th class="l">고치면</th></tr>' +
+      items.map((x, i) => '<tr class="' + (x.kind !== "fix" ? 'dis' : '') + '"><td class="ck"><input type="checkbox" data-tux="' + i + '"' + (x.on ? ' checked' : '') + (x.kind !== "fix" ? ' disabled' : '') + '></td><td class="l">' + md(x.d) + '</td><td>' + x.no + '</td><td class="l">' + esc(x.st) + '</td><td class="v' + (x.b ? '' : ' x') + '">' + (x.b ? x.b + '회' : '안 적음') + '</td><td class="v">' + (x.a ? x.a + '회' : '없음') + '</td><td class="l">' + lab(x) + '</td></tr>').join("") + '</table></div>'
+      : '<div class="fux-ok-list">모든 차량의 터널 횟수가 관리팀 엑셀과 맞습니다.</div>') +
+    (items.some(x => x.kind === "norec") ? '<div class="kfx-skip">일보 미입력: 기사님이 그날 일보를 아직 안 써서 고칠 수 없습니다. 일보가 들어온 뒤 다시 올려 주세요.</div>' : '') +
+    (items.some(x => x.kind === "off") ? '<div class="kfx-skip">그날 일 안 함: 앱에는 휴가·결근·휴무로 되어 있는데 관리팀 표에는 터널이 있습니다. 어느 쪽이 맞는지 확인해 주세요 (여기서는 고칠 수 없습니다).</div>' : '') +
+    (items.some(x => x.kind === "fix" && !x.a) ? '<div class="kfx-skip">엑셀에 없음: 기사님은 적었는데 관리팀 표에는 없는 것입니다. 관리팀 표가 맞을 때만 골라 주세요 (그 현장 터널이 0회로 바뀝니다).</div>' : '') +
+    (TUX.P.other.length ? '<div class="kfx-skip">우리 차량 목록에 없는 호수 (건너뜀): ' + TUX.P.other.map(esc).join(", ") + '</div>' : '');
+  tuxCount(); }
+function tuxCount() { const n = TUX.B.items.filter(x => x.on).length; if ($("tux-n")) $("tux-n").textContent = n; $("tux-ok").textContent = n ? n + "건 반영하기" : "고른 것 없음"; $("tux-ok").disabled = !n; }
+function tuxRead(f) { if (!window.XLSX) return toast("엑셀 읽기 도구를 불러오는 중입니다. 잠시 뒤 다시 올려 주세요.", true);
+  const fr = new FileReader(); fr.onload = () => { try { const wb = XLSX.read(new Uint8Array(fr.result), { type: "array" }); let P = null;
+      for (const sn of wb.SheetNames) { const A = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: "" }); if (!A.length) continue; P = tuxParse(A, f.name, $("tux-s").value); if (!P.err) break; }
+      if (!P || P.err) { $("tux-msg").textContent = P ? P.err : "빈 파일입니다."; return; }
+      TUX = { P, name: f.name }; $("tux-in").hidden = true; $("tux-pv").hidden = false; tuxDraw(); $("tux").querySelector(".box").scrollTop = 0;
+    } catch (e) { $("tux-msg").textContent = "엑셀을 읽지 못했습니다. 파일이 맞는지 확인해 주세요."; } };
+  fr.readAsArrayBuffer(f); }
+function tuxOpen() { $("tux-msg").textContent = ""; $("tux-in").hidden = false; $("tux-pv").hidden = true; TUX = null;
+  $("tux-s").innerHTML = '<option value="">파일에서 찾기</option>' + TUN_SITES.map(t => '<option value="' + esc(t[2] || t[0]) + '">' + esc(t[2] || t[0]) + '</option>').join(""); showSheet("tux"); }
+function fuxOpen() { $("fux-msg").textContent = ""; $("fux-in").hidden = false; $("fux-pv").hidden = true; FUX = null; if (!$("fux-m").value) $("fux-m").value = TODAY.slice(0, 7); showSheet("fux"); }
+document.addEventListener("change", e => { const t = e.target;
+  if (t.id === "tux-f" && t.files && t.files[0]) { tuxRead(t.files[0]); t.value = ""; return; }
+  if (t.dataset && t.dataset.tux !== undefined && TUX && TUX.B) { TUX.B.items[+t.dataset.tux].on = t.checked; tuxCount(); return; }
+  if (t.id === "tux-all" && TUX && TUX.B) { TUX.B.items.forEach(x => { if (x.kind === "fix") x.on = t.checked; }); document.querySelectorAll("[data-tux]").forEach(i => { if (!i.disabled) i.checked = t.checked; }); tuxCount(); } });
+document.addEventListener("click", async e => { const t = e.target;
+  if (t.closest("#tux-back")) { $("tux-in").hidden = false; $("tux-pv").hidden = true; $("tux-msg").textContent = ""; return; }
+  if (t.closest("#tux-ok") && TUX && TUX.B) { const b = $("tux-ok"); if (b.disabled) return; const go = TUX.B.items.filter(x => x.on && x.kind === "fix"); if (!go.length) return;
+    b.disabled = true; b.textContent = "반영 중…";
+    const r = await api("adminTunFix", { items: go.map(x => ({ d: x.d, no: x.no, site: x.st, from: x.b, to: x.a })), notify: $("tux-ntf").checked });
+    if (!r || !r.ok) { b.disabled = false; tuxCount(); return toast(r && r.msg ? r.msg : "반영하지 못했습니다. 잠시 후 다시 시도해 주세요.", true); }
+    let ok = 0; (r.items || []).forEach(x => { if (x.st !== "ok") return; ok++; (REAL[x.d] = REAL[x.d] || {})[x.no] = x.rec; (REAL_SITES[x.d] = REAL_SITES[x.d] || {})[x.no] = x.S || {}; if (x.tun) TUN[x.no] = x.tun;
+      if (x.edits) { const E = convEdits({ [x.d]: { [x.no]: x.edits } }); (EDITS[x.d] = EDITS[x.d] || {})[x.no] = E[x.d][x.no]; } if (CHK[x.d]) delete CHK[x.d][x.no]; });
+    const miss = (r.items || []).filter(x => x.st !== "ok" && x.st !== "same");
+    hideSheet("tux"); TUX = null; draw(); syncNow();
+    return toast(ok + "건 반영했습니다." + (miss.length ? " " + miss.length + "건은 건너뛰었습니다 (" + esc(miss[0].msg || "") + ")." : ""), !!miss.length); } });
 function kfxYear(m, d) { const y = +TODAY.slice(0, 4); let k = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"); if (k > TODAY) k = (y - 1) + k.slice(4); return k; }
 function kfxParse(txt) { const items = [], skip = []; let day = "";
   String(txt || "").replace(/\r/g, "").split("\n").forEach(raw => { const l = raw.trim(); if (!l) return;
@@ -789,7 +881,7 @@ function kfxDraw() { const { items, skip } = KFX; items.forEach(it => { [it.st, 
     (skip.length ? '<div class="kfx-skip"><b>읽지 못한 줄 ' + skip.length + '개 (반영 안 함 · 필요하면 일일기록에서 직접 고쳐 주세요)</b><br>' + skip.map(esc).join("<br>") + '</div>' : '');
   $("kfx-ok").textContent = n ? n + "건 반영하기" : "반영할 것 없음"; $("kfx-ok").disabled = !n; }
 document.addEventListener("click", async e => { const t = e.target;
-  if (t.closest("#fux-open")) { $("fux-msg").textContent = ""; $("fux-in").hidden = false; $("fux-pv").hidden = true; FUX = null; if (!$("fux-m").value) $("fux-m").value = TODAY.slice(0, 7); showSheet("fux"); return; }
+  if (t.closest("#fux-open")) { fuxOpen(); return; }
   if (t.closest("#fux-back")) { $("fux-in").hidden = false; $("fux-pv").hidden = true; return; }
   if (t.closest("#fux-ok") && FUX && FUX.B) { const b = $("fux-ok"); if (b.disabled) return; const go = FUX.B.items.filter(x => x.on && x.kind !== "norec"); if (!go.length) return;
     b.disabled = true; b.textContent = "반영 중…";
@@ -1035,7 +1127,7 @@ function resync(S) { const before = planOf(TODAY); applySync(S); calcAll(); DIST
   if ($("rd").classList.contains("show") && !$("rd").classList.contains("closing") && RD) openRec(RD.c, RD.k);
   const L = diffPlan(before, planOf(TODAY), TODAY, CHG_AT[TODAY]);
   if (L.length && D === TODAY) showChg("지금 들어온 오늘 신청 " + L.length + "건", "오늘 " + mdL(TODAY) + " 근무 중에 새로 들어온 결근·조퇴·지각입니다. 화면에 바로 반영했습니다.", L); }
-return { resync, today: () => TODAY };
+return { resync, today: () => TODAY, xopen: k => { ["fux", "tux", "kfx"].forEach(id => { if (id !== k && $(id).classList.contains("show")) hideSheet(id); }); if (k === "fux") fuxOpen(); else if (k === "tux") tuxOpen(); } };
 }
 </script>
 <script>// ===== 관리자 페이지(admin.html) 안의 프레임: ready → boot(D) → data(D) · api(action, p) → apiResult =====
@@ -1048,10 +1140,12 @@ function api(action, p) {
 const authP = p => p || {};
 async function syncNow() { try { parent.postMessage({ reload: 1 }, "*"); } catch (e) {} return { ok: true }; }
 function officeOut() {}
+let XOPEN = "";   // 관리자 '교차 검증' 메뉴에서 연 창 (자료가 오기 전이면 기다렸다가 엶)
 addEventListener("message", e => { const m = e.data || {};
+  if (m.xopen) { if (APP) APP.xopen(m.xopen); else XOPEN = m.xopen; return; }
   if (m.apiResult && FRAME_P[m.apiResult.id]) { const f = FRAME_P[m.apiResult.id]; delete FRAME_P[m.apiResult.id]; return f(m.apiResult.res || { ok: false, msg: "서버 응답이 없습니다." }); }
   const S = m.boot || m.data; if (!S || !S.ok) return;
-  if (!APP) { APP = appMain(S); document.getElementById("boot").hidden = true; }
+  if (!APP) { APP = appMain(S); document.getElementById("boot").hidden = true; if (XOPEN) { const k = XOPEN; XOPEN = ""; setTimeout(() => APP.xopen(k), 80); } }
   else if (S.today !== APP.today()) location.reload();
   else APP.resync(S);
 });

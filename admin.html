@@ -347,7 +347,7 @@
     .side .grp { margin-top: 12px; padding: 12px 12px 6px !important; border-top: 1px solid var(--line); font-size: 14px !important; font-weight: 900 !important; color: var(--text) !important; letter-spacing: 0 !important; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
     .side .grp::before { content: ""; width: 4px; height: 15px; border-radius: 2px; background: var(--accent); }
     .side .grp.side-fav-t::before { background: #f5b301; } .side .grp.side-fav-t small { flex-basis: 100%; padding-left: 11px; color: var(--muted); }
-    .side button[data-side], .side button[data-ops], #side-fav button { padding-left: 23px !important; font-size: 14.5px; }
+    .side button[data-side], .side button[data-ops], .side button[data-x], #side-fav button { padding-left: 23px !important; font-size: 14.5px; }
   }
   .am-grp { font-size: 13px; font-weight: 800; color: var(--muted); margin: 16px 2px 8px; }
   .am-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -616,6 +616,9 @@
     <button data-ops="staff">입퇴사 관리</button>
     <button data-ops="set">단가 설정</button>
     <button data-ops="noti">알림 설정</button>
+    <div class="grp">교차 검증</div>
+    <button data-x="fux">주유량 (관리팀 엑셀)</button>
+    <button data-x="tux">터널 (관리팀 엑셀)</button>
     <div class="grp">인쇄</div>
     <button data-side="v-print">출하실 일보 인쇄</button>
     <button data-side="v-tprint">출하예정 집계표 인쇄</button>
@@ -4012,6 +4015,7 @@ function frameLoad(id) { const f = $(id); if (!PW) return f; if (!f.getAttribute
 function frameIdOf(win) { for (const id in FRAME_SRC) { const f = $(id); if (f && f.contentWindow === win) return id; } return ""; }
 addEventListener("message", async e => { const m = e.data || {}, id = frameIdOf(e.source); if (!id || !PW) return;
   if (m.ready) { const D = await admData(); if (!D.ok) return; FRAME_ON[id] = 1; try { e.source.postMessage({ boot: D }, "*"); e.source.postMessage({ runLock: D.runMode !== 1, runMode: D.runMode, vacLock: D.vacMode !== 1, vacMode: D.vacMode }, "*"); } catch (x) {}
+    if (id === "sheet-frame" && XQ) { try { e.source.postMessage({ xopen: XQ }, "*"); } catch (x) {} XQ = ""; }
     if (id === "ops-frame") { opsReady = true; if (SHEET_CAR) { const q = SHEET_CAR; SHEET_CAR = null; setTimeout(q, 50); } if (opsQueue) try { e.source.postMessage({ go: opsQueue }, "*"); } catch (x) {} } return; }
   if (m.api) { let res; try { res = await call(m.api.action, Object.assign({}, m.api.p || {}, { dev: devId() })); } catch (x) { res = { ok: false, msg: "서버 오류 " + x.message }; }
     try { e.source.postMessage({ apiResult: { id: m.api.id, res } }, "*"); } catch (x) {} return; }
@@ -4026,6 +4030,8 @@ const AM_IC = {
   "v-yong": '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
   "v-pw": '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
   "v-sheet": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
+  "x:fux": '<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M3 21h14M15 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/><path d="M8 13l2 2 3-4"/>',
+  "x:tux": '<path d="M3 20V12a9 9 0 0 1 18 0v8"/><path d="M7 20v-7a5 5 0 0 1 10 0v7"/><path d="M10 17l1.5 1.5L15 15"/>',
   "o:today": '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M9 3v4M15 3v4M8 13h3v3H8z"/>',
   "o:duty": '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 9l2 2 4-4"/>',
   "o:wk": '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M9 3v4M15 3v4M8 16l2.5-3 2 2 3.5-4"/>',
@@ -4060,13 +4066,14 @@ const AM_IC = {
 };
 const AM_GROUPS = [
   ["운행기록", [["o:today", "입력 현황"], ["v-sheet", "운행 기록표"], ["v-avg", "평균 합 검사"], ["v-pri", "선배차·평균"], ["o:ga", "가탕 및 정비"], ["o:duty", "집대기·퇴근"], ["o:jo", "조출"], ["o:tn", "터널"], ["o:wk", "공휴일 출근"], ["o:spc", "특이사항 현장"], ["v-yong", "용차 출하"], ["o:ilbo", "일보·엑셀"], ["o:staff", "입퇴사 관리"], ["o:set", "단가 설정"], ["o:noti", "알림 설정"]]],
+  ["교차 검증", [["x:fux", "주유량 (관리팀 엑셀)"], ["x:tux", "터널 (관리팀 엑셀)"]]],
   ["인쇄 · 이미지", [["v-print", "출하실 일보 인쇄"], ["v-tprint", "출하예정 집계표 인쇄"], ["v-ilbo", "운행일보 (엑셀 양식)"]]],
   ["휴가", [["v-month", "휴가·결근 달력"], ["v-day", "날짜별"], ["v-add", "휴가 입력"], ["v-cars", "차량 휴가관리"], ["v-list", "전체 신청 목록"], ["v-lim", "연차 제한"], ["v-hol", "공휴일·휴무일"], ["v-bulk", "새해 일괄 수정"], ["v-set", "휴가 규칙"]]],
   ["현장", [["v-today", "금일 물량"], ["v-sites", "현장 운행거리"], ["v-reps", "영업사원 연락처"]]],
   ["알림 · 기록 · 관리", [["v-open", "기사 탭 잠금"], ["v-noti", "알림 · 내 휴대폰 알림"], ["v-logs", "기록"], ["v-backup", "백업"], ["v-apw", "관리자 비밀번호"], ["v-pw", "계정 및 권한"], ["v-dev", "로그인 기기"], ["v-audit", "관리자 작업 기록"]]],
 ];
 const AM_NAME = Object.fromEntries(AM_GROUPS.flatMap(g => g[1]).concat([["v-more", "전체 메뉴"]]));
-const AM_SHORT = { "v-avg": "평균 합", "v-ilbo": "운행일보", "v-tprint": "집계표 인쇄", "v-print": "일보 인쇄", "o:ga": "가탕·정비", "v-pri": "선배차", "v-yong": "용차", "v-pw": "계정·권한", "v-sheet": "기록표", "v-open": "탭 잠금", "v-dev": "로그인 기기", "v-audit": "작업 기록", "o:today": "입력 현황", "o:duty": "집대기·퇴근", "o:wk": "공휴일", "o:ilbo": "일보", "o:set": "단가설정", "o:staff": "입퇴사", "o:spc": "특이사항", "o:noti": "알림설정", "v-month": "휴가·결근 달력", "v-day": "날짜별", "v-add": "휴가 입력", "v-cars": "차량 휴가", "v-list": "신청 목록", "v-lim": "연차 막기", "v-hol": "휴무일", "v-set": "휴가 규칙", "v-bulk": "일괄 수정", "v-today": "금일 물량", "v-sites": "운행거리", "v-reps": "연락처", "v-noti": "알림", "v-backup": "백업", "v-apw": "비밀번호" };
+const AM_SHORT = { "x:fux": "주유 검증", "x:tux": "터널 검증", "v-avg": "평균 합", "v-ilbo": "운행일보", "v-tprint": "집계표 인쇄", "v-print": "일보 인쇄", "o:ga": "가탕·정비", "v-pri": "선배차", "v-yong": "용차", "v-pw": "계정·권한", "v-sheet": "기록표", "v-open": "탭 잠금", "v-dev": "로그인 기기", "v-audit": "작업 기록", "o:today": "입력 현황", "o:duty": "집대기·퇴근", "o:wk": "공휴일", "o:ilbo": "일보", "o:set": "단가설정", "o:staff": "입퇴사", "o:spc": "특이사항", "o:noti": "알림설정", "v-month": "휴가·결근 달력", "v-day": "날짜별", "v-add": "휴가 입력", "v-cars": "차량 휴가", "v-list": "신청 목록", "v-lim": "연차 막기", "v-hol": "휴무일", "v-set": "휴가 규칙", "v-bulk": "일괄 수정", "v-today": "금일 물량", "v-sites": "운행거리", "v-reps": "연락처", "v-noti": "알림", "v-backup": "백업", "v-apw": "비밀번호" };
 const AM_DEF = ["o:today", "v-month", "v-add", "o:ga"];
 let TABS = AM_DEF.slice();
 try { const t = JSON.parse(localStorage.getItem("admTabsAll") || "null"); if (Array.isArray(t) && t.every(k => AM_NAME[k])) TABS = t.slice(0, 4); } catch (e) {}
@@ -4080,11 +4087,16 @@ function amDraw() {
   $("am-groups").innerHTML = AM_GROUPS.map(([g, L]) => '<section class="am-sec"><div class="am-grp"><span>' + g + '</span><small>' + L.length + '개</small></div><div class="am-grid">' + L.map(([k, n]) => '<button data-k="' + k + '"' + (TABS.includes(k) ? ' class="in"' : '') + '>' + amSvg(k) + '<span>' + n + '</span></button>').join("") + '</div></section>').join("");
   favDraw();
   document.querySelectorAll("#side [data-ops]").forEach(b => b.classList.toggle("on", CUR === "o:" + b.dataset.ops));
+  document.querySelectorAll("#side [data-x]").forEach(b => b.classList.toggle("on", CUR === "x:" + b.dataset.x));
 }
 let opsReady = false, opsQueue = "";
 function opsFrame() { return frameLoad("ops-frame"); }
 function opsTop() { const t = document.querySelector("#app > .top"); const h = t && getComputedStyle(t).display !== "none" ? t.getBoundingClientRect().bottom : 0; document.body.style.setProperty("--ops-top", Math.max(0, h) + "px"); }
+let XQ = "";   // 운행 기록표가 아직 안 떴을 때 열어 둘 교차 검증 창
 function navGo(k) {
+  if (k.startsWith("x:")) { const p = k.slice(2) === "fux" ? "fux" : "tux"; showView("v-sheet"); CUR = k; const f = sheetFrame();
+    if (FRAME_ON["sheet-frame"]) { try { f.contentWindow.postMessage({ xopen: p }, "*"); } catch (e) {} } else XQ = p;
+    document.querySelectorAll("#side [data-side]").forEach(b => b.classList.remove("on")); amDraw(); return; }
   if (k.startsWith("o:")) { const p = k.slice(2); showView("v-ops"); CUR = k; OPS_CUR = p; document.body.classList.add("ops-on"); opsTop();
     const f = opsFrame(); opsQueue = p; if (opsReady) f.contentWindow.postMessage({ go: p }, "*"); amDraw(); return; }
   showView(k);
@@ -4164,6 +4176,7 @@ document.addEventListener("click", e => { const t = e.target;
   const sf = t.closest("#side [data-fk]"); if (sf) return navGo(sf.dataset.fk);
   const k = t.closest("#v-more [data-k]"); if (k) return navGo(k.dataset.k);
   const so = t.closest("#side [data-ops]"); if (so) return navGo("o:" + so.dataset.ops);
+  const sx = t.closest("#side [data-x]"); if (sx) return navGo("x:" + sx.dataset.x);
   const u = t.closest("[data-amu]"), d = t.closest("[data-amd]");
   if (u || d) { const key = u ? u.dataset.amu : d.dataset.amd, i = TABS.indexOf(key), j = i + (u ? -1 : 1); [TABS[i], TABS[j]] = [TABS[j], TABS[i]]; amSave(); amDraw(); return; }
 });
@@ -4175,7 +4188,7 @@ document.addEventListener("change", e => { const c = e.target.closest("[data-amt
 let FAV_ED = false;
 const X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const STAR = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4L2.8 9.5l6.4-.8z"/></svg>';
-const sideKey = b => b.dataset.ops ? "o:" + b.dataset.ops : b.dataset.side;
+const sideKey = b => b.dataset.ops ? "o:" + b.dataset.ops : b.dataset.x ? "x:" + b.dataset.x : b.dataset.side;
 function favDraw() {
   document.body.classList.toggle("fav-ed", FAV_ED);
   $("fav-edit").textContent = FAV_ED ? "완료" : "편집"; $("fav-note").hidden = !FAV_ED;
@@ -4186,7 +4199,7 @@ function favDraw() {
   $("fav-grid").innerHTML = h;
   // PC 왼쪽
   $("side-fav").innerHTML = TABS.map(k => '<button type="button" class="has-st' + (k === CUR ? ' on' : '') + '" data-fk="' + k + '">' + AM_NAME[k] + '<span class="st on" data-star="' + k + '" title="즐겨찾기에서 빼기">' + STAR + '</span></button>').join("") || '<div class="sf-empty">별을 눌러 자주 쓰는 메뉴를 고정하세요</div>';
-  document.querySelectorAll("#side [data-ops], #side [data-side]").forEach(b => { const k = sideKey(b); if (!AM_NAME[k]) return;
+  document.querySelectorAll("#side [data-ops], #side [data-side], #side [data-x]").forEach(b => { const k = sideKey(b); if (!AM_NAME[k]) return;
     if (!b.querySelector(".st")) { b.classList.add("has-st"); b.insertAdjacentHTML("beforeend", '<span class="st" data-star="' + k + '" title="즐겨찾기">' + STAR + '</span>'); }
     const st = b.querySelector(".st"), on = TABS.includes(k); st.classList.toggle("on", on); st.title = on ? "즐겨찾기에서 빼기" : "즐겨찾기에 고정"; });
 }

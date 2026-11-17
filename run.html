@@ -136,6 +136,20 @@
   .av-pri .h small { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
   .av-pri .ns { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin-top: 6px; }
   .av-pri .ns span { text-align: center; font-size: 17px; font-weight: 800; background: var(--bg); border-radius: 8px; padding: 4px 0; }
+  .av-pri .h .nd { display: inline-flex; align-items: center; gap: 5px; }
+  .nd-tag { font-style: normal; font-size: 12px; font-weight: 800; color: #fff; background: #e8590c; border-radius: 6px; padding: 2px 7px; }
+  .av-pri .nd-note { margin-top: 7px; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+  .av-pri .nd-note b { color: #e8590c; }
+  .av-nxt { border: 3px solid #e8590c; background: linear-gradient(180deg, color-mix(in srgb, #e8590c 14%, var(--bg)), color-mix(in srgb, #e8590c 5%, var(--bg))); padding: 10px 12px 11px; box-shadow: 0 6px 18px -8px rgba(232, 89, 12, .55); animation: nx-in .35s ease both; }
+  @keyframes nx-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .av-nxt .nx-h { display: flex; align-items: center; gap: 10px; }
+  .av-nxt .nx-big { font-size: 28px; font-weight: 900; line-height: 1; color: #fff; background: #e8590c; border-radius: 10px; padding: 6px 12px 7px; letter-spacing: 1px; }
+  .av-nxt .nx-sub { font-size: 16px; font-weight: 800; color: #c2410c; }
+  .av-nxt .nx-sub em { font-style: normal; font-size: 12px; font-weight: 800; color: #e8590c; background: var(--bg); border: 1.5px solid #e8590c; border-radius: 6px; padding: 1px 6px; margin-left: 4px; vertical-align: 2px; }
+  .av-nxt .ns { margin-top: 9px; } .av-nxt .ns span { font-size: 19px; }
+  .av-pri .ns span.me { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); }
+  .av-tdy { border-color: #f6b26b; background: color-mix(in srgb, #f08c00 4%, var(--bg)); }
+  .av-tdy .h b { color: #b45309; }
   .av-pri .ns span.none { grid-column: 1 / -1; font-weight: 600; color: var(--muted); font-size: 15px; }
   .av-me.pri { border-color: #f08c00; }
   /* 내 평균 숫자 바로 아래: 전 근무일 대비 변동 (작게) */
@@ -3052,6 +3066,27 @@ function drawAvg() {
   if (FC.state === "writing" && avgDay === FC.d) return drawAvgStatus(FC, days, k);
   // 가탕 대기 중이면 예측값으로 본 목록
   const F = fleetUpTo(avgDay), PRI = avgDay === FC.d && FC.est ? FC.est : priorityCars(F.acc, avgDay), G = groupOf;
+  // 이 목록은 avgDay까지의 평균으로 정한 '다음 근무일' 선배차 → 날짜와 '내일'을 분명히 보여 줌
+  const ND = nextWork(avgDay), NDL = (+ND.slice(5, 7)) + '/' + (+ND.slice(8)) + '(' + W[wd(ND)] + ')', ADL = (+avgDay.slice(5, 7)) + '/' + (+avgDay.slice(8)),
+    TMR = (t => (t.setUTCDate(t.getUTCDate() + 1), t.toISOString().slice(0, 10)))(new Date(TODAY + "T00:00:00Z")),
+    NDREL = ND === TMR ? "내일" : ND === TODAY ? "오늘" : ND > TODAY ? "다음 근무일" : "";
+  const dl = x => (+x.slice(5, 7)) + '/' + (+x.slice(8)) + '(' + W[wd(x)] + ')', ds = x => (+x.slice(5, 7)) + '/' + (+x.slice(8));
+  const nsHtml = L => '<div class="ns">' + (L.length ? L.map(c => '<span' + (c === ME ? ' class="me"' : '') + '>' + c + '</span>').join('') : '<span class="none">없음</span>') + '</div>';
+  const skHtml = (acc, d) => { const sk = prioritySkipped(acc, d), nd = nextWork(d); return sk.length ? '<div class="pri-skip">' + ds(nd) + ' 출근 안 함·지각: ' + sk.map(c => c + '호').join(', ') + ' → 빼고 다음 순번</div>' : ''; };
+  // 선배차 칸: 다음 근무일이 아직 안 왔으면 (오늘까지 모두 입력 끝) → 맨 위 '내일 선배차 예상' 상자 + 그 아래 '오늘 선배차' 상자
+  function priBoxes() {
+    if (ND > TODAY) {
+      const big = NDREL === "내일" ? "내일" : "다음 근무일";
+      const tm = '<div class="av-pri av-nxt"><div class="nx-h"><b class="nx-big">' + big + '</b><span class="nx-sub">' + dl(ND) + ' 선배차 <em>예상</em></span></div>' + nsHtml(PRI) + skHtml(F.acc, avgDay) +
+        '<div class="nd-note">' + ds(avgDay) + ' 기록까지의 평균으로 미리 본 <b>' + big + '(' + dl(ND) + ')</b> 선배차입니다. ' + big + ' 아침까지 휴가·결근·지각이 새로 생기면 빼고 다음 순번이 들어가 바뀔 수 있습니다. (누적 −3 이하 중 낮은 순 5대)</div></div>';
+      const pd = k > 0 ? days[k - 1] : "";
+      if (!pd || nextWork(pd) !== avgDay) return tm;
+      const PA = fleetUpTo(pd).acc, PT = priorityCars(PA, pd), lab = avgDay === TODAY ? '오늘 ' + dl(avgDay) : dl(avgDay);
+      return tm + '<div class="av-pri av-tdy"><div class="h"><b>' + lab + ' 선배차</b></div>' + nsHtml(PT) + skHtml(PA, pd) + '<div class="nd-note">' + ds(pd) + ' 기록까지의 평균으로 정한 ' + (avgDay === TODAY ? '오늘' : dl(avgDay)) + ' 선배차입니다.</div></div>';
+    }
+    return '<div class="av-pri"><div class="h"><b class="nd">' + NDL + ' 선배차' + (NDREL ? '<em class="nd-tag">' + NDREL + '</em>' : '') + (isLast && FC.part ? '<em class="pend-tag">예상</em>' : '') + '</b></div>' + nsHtml(PRI) + skHtml(F.acc, avgDay) +
+      '<div class="nd-note">' + ADL + ' 기록까지의 평균으로 정한 ' + NDL + ' 선배차입니다 (누적 −3 이하 중 낮은 순 5대). 그날 출근 안 하거나 지각한 차량은 빼고 다음 순번.</div></div>';
+  }
   // 그날 내 운행: 회전수, 일 안 한 날은 사유
   const mr = F.day[ME] || {}, mlv = LEAVE[avgDay];
   const myDay = mr.st === "work" ? '<em class="me-day">' + fmt(mr.real) + '회' + (mr.yard ? ' 영' + mr.yard : '') + (mr.ga ? ' <i>가' + mr.ga + '</i>' : '') + '</em>'
@@ -3090,12 +3125,12 @@ function drawAvg() {
     '<div class="av-nav"><button id="av-prev"' + (k > 0 ? '' : ' disabled') + ' aria-label="전날">◀</button>' +
     '<div><b>' + (+avgDay.slice(5, 7)) + '/' + (+avgDay.slice(8)) + '(' + W[wd(avgDay)] + ')</b><small>까지 전체 누적 (' + (+REC_START.slice(5, 7)) + '/' + (+REC_START.slice(8)) + ' 기록 시작부터)</small></div>' +
     '<button id="av-next"' + (k < days.length - 1 ? '' : ' disabled') + ' aria-label="다음날">▶</button></div>' +
-    '<div data-stk="' + ME + '" class="av-me' + (PRI.includes(ME) ? ' pri' : '') + '"><span class="me-l"><span class="me-no">' + ME + '호</span>' + myDay + (PRI.includes(ME) ? '<em class="pri-tag">우선배차</em>' : '') + '</span><b class="' + cls(F.acc[ME]) + '">' + spark + '<span class="av-n">' + sgn(F.acc[ME]) + '</span></b>' + chgTxt + '</div>' +
+    '<div data-stk="' + ME + '" class="av-me' + (PRI.includes(ME) ? ' pri' : '') + '"><span class="me-l"><span class="me-no">' + ME + '호</span>' + myDay + (PRI.includes(ME) ? '<em class="pri-tag">' + (NDREL === "내일" ? '내일 선배차' : NDREL === "다음 근무일" ? NDL + ' 선배차' : '우선배차') + '</em>' : '') + '</span><b class="' + cls(F.acc[ME]) + '">' + spark + '<span class="av-n">' + sgn(F.acc[ME]) + '</span></b>' + chgTxt + '</div>' +
     '</div>' +
     (isLast && (FC.state === "sure" || FC.state === "maybe") ? '<div class="fc fc-' + FC.state + '"><b>' + (+nextWork(FC.d).slice(5, 7)) + '/' + (+nextWork(FC.d).slice(8)) + '(' + W[wd(nextWork(FC.d))] + ') 선배차 ' + (FC.state === "sure" ? "확정" : "예상") + '</b><small>' +
       (FC.part ? '조퇴·지각 가탕 입력 대기 ' + FC.part + '대 (예측 포함)<br>' + (FC.state === "sure" ? '가탕이 어떻게 들어와도 내 차는 우선배차에 듭니다' : '가탕이 들어오면 우선배차에서 빠질 수 있습니다') : '그날 운행한 모든 차량 기록 작성 완료') + '</small></div>' : '') +
     (isLast && FC.state === "writing" ? '<div class="ib-warn" style="margin:0 0 10px"><div class="wr-big">' + (+FC.d.slice(5, 7)) + '/' + (+FC.d.slice(8)) + ' 기록 작성 중 <span>' + writeStat(FC.d).done + ' / ' + writeStat(FC.d).total + '대</span></div>지금 평균은 <b>' + (+avgDay.slice(5, 7)) + '/' + (+avgDay.slice(8)) + ' 기준</b>입니다.<br>모두 작성하면 평균이 반영되고 다음 근무일 선배차가 정해집니다.</div>' : '') +
-    '<div class="av-pri"><div class="h"><b>우선배차 대상' + (isLast && FC.part ? ' <em class="pend-tag">예상</em>' : '') + '</b><small>누적 −3 이하 중 낮은 순 5대 · 다음 근무일에 출근 안 하거나 지각하는 차량은 빼고 다음 순번</small></div><div class="ns">' + (PRI.length ? PRI.map(c => '<span>' + c + '</span>').join('') : '<span class="none">없음</span>') + '</div>' + (() => { const sk = prioritySkipped(F.acc, avgDay), nd = nextWork(avgDay); return sk.length ? '<div class="pri-skip">' + (+nd.slice(5, 7)) + '/' + (+nd.slice(8)) + ' 출근 안 함·지각: ' + sk.map(c => c + '호').join(', ') + ' → 빼고 다음 순번</div>' : ''; })() + '</div>' +
+    priBoxes() +
     groups +
     '<div class="av-base" style="margin:12px 0 0">그날 평균 ' + fmt2(F.avgD) + '회 (' + CARS_ALL.length + '대 기준)' + (F.nAb ? '<br>결근 가탕: 상차 ' + F.nW + '대 상차 평균 ' + fmt2(F.base) + '회 → <b>' + F.gaAbs + '회</b>' : '') + '</div>' +
     '<div class="rc-foot">그날 평균 = ' + CARS_ALL.length + '대 전체 (실탕 + 영내 + 가탕) ÷ ' + CARS_ALL.length + '<br>결근 가탕 = 그날 1회라도 상차한 차량들의 상차 횟수 평균을 사사오입<br>(영내작업도 1상차로 셈, 가탕은 넣지 않음)<br><b style="color:#e8590c">주황 테두리</b> = 우선배차 대상 (누적 −3 이하 중 가장 낮은 5대, 숫자는 순위)<br>큰 숫자 = 기록을 처음 시작한 날부터 그날까지<br>(내 회전 − 그날 전체 평균)을 모두 더한 값<br>매달·매년 초기화되지 않고 계속 이어집니다</div>';
