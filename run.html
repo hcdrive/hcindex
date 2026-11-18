@@ -2444,7 +2444,7 @@ function ilboHTML(d) {
 }
 // ===== 이번 달 합계 운행일보: 그달 확정된 근무일 기록을 차량별로 모두 더한 일보 =====
 let IB_MON = "";
-const MEMO_AB = { "연차": "연", "결근": "결", "조퇴": "조", "지각": "지", "정비": "정", "집대기": "집", "여름휴가": "여", "특별휴가": "특" };   // 월 합계 메모는 칸이 좁아 한 글자로
+const MEMO_AB = { "연차": "연", "결근": "결", "조퇴": "조", "지각": "지", "정비": "정", "집대기": "집", "여름휴가": "여", "특별휴가": "경" };   // 월 합계 메모는 칸이 좁아 한 글자로
 const ilboMonths = () => [...new Set(ilboDays().map(x => x.slice(0, 7)))];
 // 회사 '운행일보(누적)' 엑셀 양식 그대로 (메모 칸 · 평균 블록 · 운행 기준 댓수는 사용자 요청으로 뺌)
 function ilboMonHTML(M) {
@@ -3317,6 +3317,17 @@ addEventListener("message", e => { const m = e.data || {}; if (m.bellN !== undef
   var t = 0; function scan() { clearTimeout(t); t = setTimeout(function () { var L = document.querySelectorAll(".mp-row .why"); for (var i = 0; i < L.length; i++) { var r = L[i].closest(".mp-row"); if (r && r.classList.contains("sel")) start(L[i]); else stop(L[i]); } }, 40); }
   try { new MutationObserver(scan).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] }); } catch (e) {}
   document.addEventListener("click", function (e) { var el = e.target.closest && e.target.closest(TAP); if (!el) return; if (el.classList.contains("mq-on")) stop(el); else start(el, 4); });
+})();
+</script>
+<script>
+// 화면에 보이는 '특별휴가'는 모두 '경조·공무'로 (저장된 구분 값은 그대로 · 글자만 바꿔 보여 줌)
+(function () { var A = "특별휴가", B = "경조·공무";
+  function fx(t) { if (t.nodeValue && t.nodeValue.indexOf(A) >= 0) t.nodeValue = t.nodeValue.split(A).join(B); }
+  function fix(n) { if (!n) return; if (n.nodeType === 3) return fx(n); if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.tagName)) return;
+    var w = document.createTreeWalker(n, 4, { acceptNode: function (t) { return t.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(t.parentNode.nodeName) ? 2 : 1; } }), t; while ((t = w.nextNode())) fx(t);
+    if (n.tagName === "TITLE") document.title = document.title.split(A).join(B); }
+  function go() { fix(document.body); try { new MutationObserver(function (L) { L.forEach(function (m) { if (m.type === "characterData") fx(m.target); else for (var i = 0; i < m.addedNodes.length; i++) fix(m.addedNodes[i]); }); }).observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (e) {} }
+  if (document.body) go(); else document.addEventListener("DOMContentLoaded", go);
 })();
 </script>
 </body>

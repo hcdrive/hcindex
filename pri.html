@@ -722,4 +722,15 @@ try { if (parent !== window) parent.postMessage({ ready: 1 }, "*"); } catch (e) 
   new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(check); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
 })();
 </script>
+<script>
+// 화면에 보이는 '특별휴가'는 모두 '경조·공무'로 (저장된 구분 값은 그대로 · 글자만 바꿔 보여 줌)
+(function () { var A = "특별휴가", B = "경조·공무";
+  function fx(t) { if (t.nodeValue && t.nodeValue.indexOf(A) >= 0) t.nodeValue = t.nodeValue.split(A).join(B); }
+  function fix(n) { if (!n) return; if (n.nodeType === 3) return fx(n); if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.tagName)) return;
+    var w = document.createTreeWalker(n, 4, { acceptNode: function (t) { return t.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(t.parentNode.nodeName) ? 2 : 1; } }), t; while ((t = w.nextNode())) fx(t);
+    if (n.tagName === "TITLE") document.title = document.title.split(A).join(B); }
+  function go() { fix(document.body); try { new MutationObserver(function (L) { L.forEach(function (m) { if (m.type === "characterData") fx(m.target); else for (var i = 0; i < m.addedNodes.length; i++) fix(m.addedNodes[i]); }); }).observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (e) {} }
+  if (document.body) go(); else document.addEventListener("DOMContentLoaded", go);
+})();
+</script>
 </body></html>

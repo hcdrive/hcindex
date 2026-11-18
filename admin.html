@@ -666,7 +666,7 @@
         <button class="btn" id="m-this">이번 달</button>
       </div>
       <div class="cal" id="cal"></div>
-      <p class="info m-legend"><span class="sp-key"></span>노란 테두리로 강조된 날짜는 우선순위날입니다 · 최대N = 그날만 연차 N명 · 연 = 연차 · 여 = 여름휴가 · 조 = 조퇴 · 지 = 지각 · 결 = 결근 · 특 = 특별휴가 · 대 = 대기. 날짜를 누르면 그날 누구인지 보이고, [날짜별 관리로 가기]로 넘어갑니다.</p>
+      <p class="info m-legend"><span class="sp-key"></span>노란 테두리로 강조된 날짜는 우선순위날입니다 · 최대N = 그날만 연차 N명 · 연 = 연차 · 여 = 여름휴가 · 조 = 조퇴 · 지 = 지각 · 결 = 결근 · 경 = 경조·공무 · 대 = 대기. 날짜를 누르면 그날 누구인지 보이고, [날짜별 관리로 가기]로 넘어갑니다.</p>
      </div>
       <div class="month-list pc-r">
         <div class="sum-head"><h2 style="margin:0">이 달 휴가표 (목록)</h2><button class="btn small" id="m-copy">글자로 복사</button></div>
@@ -2912,7 +2912,7 @@ async function loadMonth(m) {
       (d.early.filter(x => x.type === "지각").length ? '<span class="ln t">' + LB("지", "지각") + ' ' + d.early.filter(x => x.type === "지각").length + '</span>' : '') +
       (d.early.filter(x => x.type === "정비").length ? '<span class="ln m">' + LB("정", "정비") + ' ' + d.early.filter(x => x.type === "정비").length + '</span>' : '') +
       (d.absent && d.absent.length ? '<span class="ln a">' + LB("결", "결근") + ' ' + d.absent.length + '</span>' : '') +
-      (d.extra && d.extra.length ? '<span class="ln x">' + LB("특", "특별휴가") + ' ' + d.extra.length + '</span>' : '') +
+      (d.extra && d.extra.length ? '<span class="ln x">' + LB("경", "경조·공무") + ' ' + d.extra.length + '</span>' : '') +
       (d.waiting ? '<span class="ln w">' + LB("대", "대기") + ' ' + d.waiting + '</span>' : '') + '</button>';
   });
   $("cal").innerHTML = html;
@@ -2923,7 +2923,7 @@ async function loadMonth(m) {
      d.early.filter(x => x.type === "지각").length ? '<b>지각</b> ' + d.early.filter(x => x.type === "지각").map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(" ") : "",
      d.early.filter(x => x.type === "정비").length ? '<b>정비</b> ' + d.early.filter(x => x.type === "정비").map(x => x.no).join(" ") : "",
      d.absent.length ? '<b>결근</b> ' + d.absent.join(" ") : "",
-     (d.extra || []).length ? '<b>특별</b> ' + d.extra.join(" ") : "",
+     (d.extra || []).length ? '<b>경조·공무</b> ' + d.extra.join(" ") : "",
      d.waiting ? '<span class="muted">대기 ' + d.waiting + '명</span>' : ""].filter(Boolean).join(" · ") + '</li>').join("")
     : '<li><span class="empty">이 달에는 휴가가 없습니다</span></li>';
 }
@@ -2968,7 +2968,7 @@ async function copyMonth() {
   const text = MONTH.days.filter(d => d.leave.length || d.summer.length || d.early.length || d.absent.length || (d.extra || []).length).map(d => md(d.date) + " " +
     [d.leave.length ? "연차 " + d.leave.join(",") : "", d.summer.length ? "여름 " + d.summer.join(",") : "",
      d.early.length ? "조퇴·지각·정비 " + d.early.map(x => x.no + (x.time ? "(" + x.time + ")" : "")).join(",") : "",
-     d.absent.length ? "결근 " + d.absent.join(",") : "", (d.extra || []).length ? "특별휴가 " + d.extra.join(",") : ""].filter(Boolean).join(" / ")).join("\n");
+     d.absent.length ? "결근 " + d.absent.join(",") : "", (d.extra || []).length ? "경조·공무 " + d.extra.join(",") : ""].filter(Boolean).join(" / ")).join("\n");
   try { await navigator.clipboard.writeText(text); toast("이 달 휴가표를 복사했습니다. 카톡이나 엑셀에 붙여넣으세요.", true); }
   catch (e) { await copyText(text || "이 달에는 휴가가 없습니다", "이 달 휴가표를 복사했습니다. 카톡이나 엑셀에 붙여넣으세요."); }
 }
@@ -4776,6 +4776,17 @@ document.addEventListener("click", e => { const t = e.target;
     if (on) { y = window.scrollY; document.body.style.top = (-y) + "px"; H.classList.add("pop-lock"); }
     else { H.classList.remove("pop-lock"); document.body.style.top = ""; window.scrollTo(0, y); } }
   new MutationObserver(() => { if (!raf) raf = requestAnimationFrame(check); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
+})();
+</script>
+<script>
+// 화면에 보이는 '특별휴가'는 모두 '경조·공무'로 (저장된 구분 값은 그대로 · 글자만 바꿔 보여 줌)
+(function () { var A = "특별휴가", B = "경조·공무";
+  function fx(t) { if (t.nodeValue && t.nodeValue.indexOf(A) >= 0) t.nodeValue = t.nodeValue.split(A).join(B); }
+  function fix(n) { if (!n) return; if (n.nodeType === 3) return fx(n); if (n.nodeType !== 1 || /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.tagName)) return;
+    var w = document.createTreeWalker(n, 4, { acceptNode: function (t) { return t.parentNode && /^(SCRIPT|STYLE|TEXTAREA)$/.test(t.parentNode.nodeName) ? 2 : 1; } }), t; while ((t = w.nextNode())) fx(t);
+    if (n.tagName === "TITLE") document.title = document.title.split(A).join(B); }
+  function go() { fix(document.body); try { new MutationObserver(function (L) { L.forEach(function (m) { if (m.type === "characterData") fx(m.target); else for (var i = 0; i < m.addedNodes.length; i++) fix(m.addedNodes[i]); }); }).observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (e) {} }
+  if (document.body) go(); else document.addEventListener("DOMContentLoaded", go);
 })();
 </script>
 </body>
