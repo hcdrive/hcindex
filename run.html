@@ -563,6 +563,23 @@
   /* 우선배차 대상 강조 */
   .pri-banner { display: flex; align-items: center; gap: 12px; background: #fff3e0; border: 2px solid #f08c00; border-radius: 16px; padding: 12px 14px; margin: 0 0 12px; cursor: pointer; animation: priIn .4s ease; }
   .pri-banner[hidden] { display: none; }
+  /* 오늘의 선배차 (제목 바로 아래) */
+  .tp-box { background: var(--card); border: 2px solid #f08c00; border-radius: 16px; padding: 11px 12px 12px; margin: 0 0 12px; cursor: pointer; animation: priIn .4s ease; }
+  .tp-box[hidden] { display: none; }
+  .tp-h { display: flex; align-items: center; gap: 8px; }
+  .tp-h b { font-size: 17px; font-weight: 900; color: #c25e00; }
+  .tp-h .tp-d { font-size: 13px; font-weight: 800; color: #fff; background: #f08c00; border-radius: 7px; padding: 2px 8px; }
+  .tp-h .tp-est { font-size: 12px; font-weight: 800; color: #f08c00; border: 1.5px solid #f08c00; border-radius: 6px; padding: 0 5px; }
+  .tp-h .tp-go { margin-left: auto; font-size: 22px; line-height: 1; color: #f08c00; font-weight: 800; }
+  .tp-ns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 9px; }
+  .tp-ns span { height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: #fff3e0; color: #8a4a00; font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .tp-ns span.me { background: #f08c00; color: #fff; }
+  .tp-ns span.em { background: transparent; border: 1.5px dashed #f6c38a; }
+  .tp-sub { margin-top: 7px; font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+  .tp-sub b { color: #c25e00; }
+  .tp-box.eve { border-color: #e8590c; background: color-mix(in srgb, #e8590c 6%, var(--card)); }
+  .tp-box.eve .tp-h b { color: #c2410c; } .tp-box.eve .tp-h .tp-d { background: #e8590c; }
+  .tp-wait { margin-top: 8px; font-size: 14px; font-weight: 700; color: #8a5a1a; background: #fff3e0; border-radius: 10px; padding: 9px 10px; }
   .pb-ic { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #f08c00; color: #fff; font-size: 24px; font-weight: 900; display: flex; align-items: center; justify-content: center; }
   .pb-tx { flex: 1; min-width: 0; }
   .pb-tx b { display: block; font-size: 19px; font-weight: 900; color: #c25e00; }
@@ -1099,6 +1116,7 @@
 </div>
 <div id="scr"><div class="wrap" id="ptr-page">
   <h1>운행기록</h1>
+  <div class="tp-box" id="tp-box" hidden role="button" tabindex="0" aria-label="선배차 · 누르면 평균 자세히"></div>
 
   <div class="pri-banner" id="pri-banner" hidden role="button" tabindex="0"></div>
   <div class="du-next" id="du-next" hidden></div>
@@ -1514,6 +1532,7 @@ function render() {
   if (typeof drawJtBtns === "function") try { drawJtBtns(); } catch (e) {}
   { const nx = nextWork(TODAY), du = dutyMe(ME, nx), el = $("du-next"); el.hidden = !du;
     if (du) el.className = "du-next " + du, el.innerHTML = '<b>' + (+nx.slice(5, 7)) + '/' + (+nx.slice(8)) + '(' + W[wd(nx)] + ') ' + ME + '호 ' + (du === "home" ? '집대기' : '퇴근조') + '</b><span>' + (du === "home" ? '출근하지 않으셔도 됩니다' : '정해진 만큼 운행 후 일찍 퇴근합니다') + '</span>'; }
+  drawTodayPri();
   const pb = $("pri-banner");
   pb.hidden = true;   // 위쪽 안내 상자는 쓰지 않음 (내 평균 칸 강조만)
   if (rank) pb.innerHTML = '<div class="pb-ic">!</div><div class="pb-tx"><b>우선배차 대상입니다</b><small>내 평균 ' + av.textContent + '회 · 5대 중 ' + rank + '번째</small><small>출하관리실에서 배차를 먼저 챙깁니다</small></div><div class="pb-go">›</div>';
@@ -1689,6 +1708,31 @@ function recOf(no, d) {
 }
 // 평균은 매달·매년 초기화하지 않음: 기록을 처음 시작한 날부터 오늘까지 전부 누적
 const REC_START = String(D.from || TODAY.slice(0, 8) + "01");   // 기록 시작일 (서버 from · 그 전은 이월 CARRY)
+// 오늘의 선배차 (제목 아래 상자)
+//  · 오후 5시 전: 오늘 순번 = 바로 전 근무일까지의 평균 (오늘이 휴무일이면 숨김)
+//  · 오후 5시부터: '내일의 예상 선배차' = 오늘(휴무일이면 그 전 근무일)까지의 평균으로 본 다음 근무일 순번
+//  기준 날 일보가 다 안 들어왔으면 '모두 들어오면 정해집니다' · 가탕 입력 대기가 남았으면 '예상'
+let TP_EVE = null;
+function drawTodayPri() {
+  const el = $("tp-box"); if (!el) return;
+  const eve = afterClose(); TP_EVE = eve;
+  const W2 = workDays().filter(d => !isOff(d)), dl = x => (+x.slice(5, 7)) + '/' + (+x.slice(8)) + '(' + W[wd(x)] + ')';
+  let base, tgt;
+  if (eve) { tgt = nextWork(TODAY); const L0 = W2.filter(d => d <= TODAY); base = L0[L0.length - 1]; if (!base || nextWork(base) !== tgt) { el.hidden = true; return; } }
+  else { if (isOff(TODAY)) { el.hidden = true; return; } const L0 = W2.filter(d => d < TODAY); base = L0[L0.length - 1]; tgt = TODAY; if (!base || nextWork(base) !== tgt) { el.hidden = true; return; } }
+  const TMR = (t => (t.setUTCDate(t.getUTCDate() + 1), t.toISOString().slice(0, 10)))(new Date(TODAY + "T00:00:00Z"));
+  const ttl = !eve ? '오늘 선배차' : tgt === TMR ? '내일 선배차 예상' : '다음 근무일 선배차 예상', who = !eve ? '오늘' : tgt === TMR ? '내일' : dl(tgt);
+  el.classList.toggle("eve", eve);
+  const head = est => '<div class="tp-h"><b>' + ttl + '</b><span class="tp-d">' + dl(tgt) + '</span>' + (est && !eve ? '<span class="tp-est">예상</span>' : '') + '<span class="tp-go">›</span></div>';
+  const cd = confirmedDay(), hd = holdDay();
+  if (!cd || cd < base) { const wd0 = hd && hd < base ? hd : base, n = pendingCars(wd0).length;
+    el.innerHTML = head(false) + '<div class="tp-wait">' + (wd0 === TODAY ? '오늘' : dl(wd0)) + ' 일보 ' + (wd0 === TODAY ? '입력 중 · 남은 ' : '미입력 ') + n + '대 · 모두 들어오면 정해집니다</div>'; el.hidden = false; return; }
+  const acc = fleetUpTo(base).acc, L = priorityCars(acc, base), sk = prioritySkipped(acc, base), est = pendGaRun(base).n > 0;
+  const cells = L.map(c => '<span' + (c === ME ? ' class="me"' : '') + '>' + c + '</span>').concat(Array.from({ length: Math.max(0, 5 - L.length) }, () => '<span class="em"></span>')).join("");
+  el.innerHTML = head(est) + '<div class="tp-ns">' + cells + '</div>';   // 아래 설명 줄은 넣지 않음
+  el.hidden = false;
+}
+setInterval(() => { try { if (TP_EVE !== null && afterClose() !== TP_EVE) drawTodayPri(); } catch (e) {} }, 60000);   // 켜 둔 채로 오후 5시가 되면 바로 바뀜
 function workDays() {   // 기록 시작일 ~ 오늘의 근무일 전부
   const out = []; let t = Date.UTC(+REC_START.slice(0, 4), +REC_START.slice(5, 7) - 1, +REC_START.slice(8));
   for (;;) { const d = new Date(t).toISOString().slice(0, 10); if (d > TODAY) break; if (!isOff(d) || (WEEKEND_WORK[d] || []).length) out.push(d); t += 864e5; }
@@ -2872,6 +2916,8 @@ document.addEventListener("click", e => {
 });
 $("km-tile").onclick = openFuel;
 $("pri-banner").onclick = () => openAvg();
+$("tp-box").onclick = () => openAvg();
+$("tp-box").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openAvg(); } };
 $("lp-close").onclick = () => $("leave-pop").classList.remove("show");
 $("leave-pop").addEventListener("click", e => { if (e.target.id === "leave-pop") $("leave-pop").classList.remove("show"); });
 $("fp-close").onclick = () => $("fuel-pop").classList.remove("show");
