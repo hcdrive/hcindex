@@ -4788,7 +4788,8 @@ function prHtml(R, memo) {
   let rows = ""; for (let g = 1; g <= 6; g++) { const L = (grp[g] || []).slice(0, 10); while (L.length < 10) L.push("");
     rows += '<tr class="h"><th rowspan="2" class="g" style="background:' + GC[g] + ';color:' + (GT[g] || "#000") + '">' + g + '조</th>' + L.map(c => '<th style="background:' + GC[g] + ';color:' + (GT[g] || "#000") + '">' + c + '</th>').join("") + '<th class="sum">' + (g === 1 ? "조별합계" : "") + '</th></tr>' +
       '<tr class="v">' + L.map(c => { if (!c) return '<td></td>'; const v = rn(R.cum[c]); return '<td' + (v <= -3 ? ' class="neg"' : '') + '>' + v + '</td>'; }).join("") + '<td class="sum">' + (grp[g] ? rn(R.grp[g] || 0) : "") + '</td></tr>'; }
-  const lst = A => A.map(x => esc(x.no) + (x.site || x.why ? "(" + esc(x.site || x.why) + ")" : "")).join(" ");
+  // 인쇄하는 일보에는 '연차'를 '정비'로 적음 (요청)
+  const lst = A => A.map(x => { const w = x.site || (x.why === "연차" ? "정비" : x.why); return esc(x.no) + (w ? "(" + esc(w) + ")" : ""); }).join(" ");
   const sec = d => '<tr class="dh"><td colspan="2">' + prDay(d) + '</td></tr>', ln = (k, v, cls) => '<tr' + (cls ? ' class="' + cls + '"' : '') + '><th>' + k + '</th><td>' + (v || "") + '</td></tr>';
   const low = sec(R.date) + ln("결&#12288;&#12288;근", lst(R.on.off)) + ln("조퇴/지각", lst(R.on.part)) + ln("선 배 차", R.pick.map(esc).join(" / "), "pick") +
     sec(R.next) + ln("결근예정", lst(R.nx.off)) + ln("조퇴/지각예정", lst(R.nx.part));
