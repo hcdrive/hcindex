@@ -1441,7 +1441,9 @@ function rotDates(kind) { const out = {}; for (let g = 1; g <= 6; g++) out[g] = 
   Object.keys(DUTY).forEach(d => { if ((kind === "home" && DUTY[d].homeCancel) || (kind === "go" && DUTY[d].goCancel)) return; (DUTY[d][kind] || []).forEach(g => { if (!out[g].includes(d)) out[g].push(d); }); });
   for (let g = 1; g <= 6; g++) out[g].sort(); return out; }
 const rotOrder = (kind, skipD) => { const R = rotDates(kind); if (skipD) for (let g = 1; g <= 6; g++) R[g] = R[g].filter(x => x !== skipD);
-  if (kind === "home") { let lastD = "", lastG = 0; for (let g = 1; g <= 6; g++) { const l = R[g].slice(-1)[0] || ""; if (l > lastD || (l === lastD && g > lastG)) { lastD = l; lastG = g; } }
+  // 집대기 순번: 날짜 순서대로 따라가며 '마지막으로 맡은 조'를 찾음 · 하루에 두 조(예: 6·1조)면 앞 순번에서 이어지는 쪽이 나중 (5 다음 6·1 → 마지막 1 → 다음 2조)
+  if (kind === "home") { const byD = {}; for (let g = 1; g <= 6; g++) R[g].forEach(x => { (byD[x] = byD[x] || []).includes(g) || byD[x].push(g); });
+    let lastG = 0; Object.keys(byD).sort().forEach(x => { const S = byD[x]; lastG = lastG ? S.reduce((b, g) => (g - lastG + 5) % 6 > (b - lastG + 5) % 6 ? g : b, S[0]) : (S.find(g => !S.includes(g % 6 + 1)) || Math.max.apply(null, S)); });
     return [1, 2, 3, 4, 5, 6].map(i => ((lastG + i - 1) % 6) + 1).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); }
   return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || (R[a].slice(-1)[0] || "").localeCompare(R[b].slice(-1)[0] || "") || a - b).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); };
 
@@ -1827,7 +1829,9 @@ const saveDuty = (d, label, okMsg) => api("adminKvSet", { kind: "duty", key: d, 
 const dutyLabel = d => { const D = DUTY[d] || { go: [], home: [] }; return [D.go.length ? "퇴근조 " + D.go.join("·") + "조" : "", D.home.length ? "집대기 " + D.home.join("·") + "조" : ""].filter(Boolean).join(" · ") || "지정 없음"; };
 // 순번은 고른 날 '이전'까지 맡은 횟수로 계산
 function rotBefore(kind, d) { const R = rotDates(kind); for (let g = 1; g <= 6; g++) R[g] = R[g].filter(x => x < d);
-  if (kind === "home") { let lastD = "", lastG = 0; for (let g = 1; g <= 6; g++) { const l = R[g].slice(-1)[0] || ""; if (l > lastD || (l === lastD && g > lastG)) { lastD = l; lastG = g; } }
+  // 집대기 순번: 날짜 순서대로 따라가며 '마지막으로 맡은 조'를 찾음 · 하루에 두 조(예: 6·1조)면 앞 순번에서 이어지는 쪽이 나중 (5 다음 6·1 → 마지막 1 → 다음 2조)
+  if (kind === "home") { const byD = {}; for (let g = 1; g <= 6; g++) R[g].forEach(x => { (byD[x] = byD[x] || []).includes(g) || byD[x].push(g); });
+    let lastG = 0; Object.keys(byD).sort().forEach(x => { const S = byD[x]; lastG = lastG ? S.reduce((b, g) => (g - lastG + 5) % 6 > (b - lastG + 5) % 6 ? g : b, S[0]) : (S.find(g => !S.includes(g % 6 + 1)) || Math.max.apply(null, S)); });
     return [1, 2, 3, 4, 5, 6].map(i => ((lastG + i - 1) % 6) + 1); }
   return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || (R[a].slice(-1)[0] || "").localeCompare(R[b].slice(-1)[0] || "") || a - b); }
 function suggest(home, d) { d = d || DSD; return { home, go: [rotBefore("go", d).find(g => !home.includes(g))] }; }

@@ -1049,6 +1049,8 @@
   .rot-row:nth-child(2) .rot-c.next { background: #fff3c4; border-color: #f0c94a; }
   .rot-c.next i { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-style: normal; font-size: 10px; font-weight: 800; color: #fff; background: #191f28; border-radius: 999px; padding: 0 6px; line-height: 15px; white-space: nowrap; }
   .rot-c.me { box-shadow: 0 0 0 2px var(--accent); }
+  .rot-c.hm { background: #eceef1; border-color: #d5d9de; } .rot-c.hm b { color: #9aa1aa; } .rot-c.hm small { color: #9aa1aa; font-weight: 700; }   /* 오늘 집대기 하는 조 (퇴근 순번에서 회색) */
+  @media (prefers-color-scheme: dark) { .rot-c.hm { background: #2a2e34; border-color: #3a3f46; } .rot-c.hm b, .rot-c.hm small { color: #6b737d; } }
   .rp-rule { background: var(--card); border-radius: 12px; padding: 10px 12px; margin: 4px 0 6px; } .rp-rule b { font-size: 13.5px; } .rp-rule p { font-size: 13px; color: var(--muted); margin: 6px 0 0; line-height: 1.55; } .rp-rule p.w { color: #8a4b00; font-weight: 700; }
   .rot-warn { font-size: 12.5px; font-weight: 700; color: #8a4b00; background: #fff1e0; border: 1px solid #f5c58a; border-radius: 10px; padding: 6px 10px; margin: 0 0 8px; line-height: 1.5; }
   .rot-note { line-height: 1.5; font-size: 12px; color: var(--muted); margin: 2px 2px 8px; }
@@ -2313,7 +2315,9 @@ function rotDates(kind) {   // {조: [날짜...]} (오늘 이후 지정분 포�
 //          → 건너뛴 조는 차례가 그대로 남아 다음에 먼저 함 (그래서 드물게 같은 조가 연달아 퇴근할 수 있음)
 //          = 맡은 횟수가 적은 조 먼저, 같으면 마지막으로 맡은 날이 오래된 조 먼저
 const rotOrder = kind => { const R = rotDates(kind);
-  if (kind === "home") { let lastD = "", lastG = 0; for (let g = 1; g <= 6; g++) { const l = R[g].slice(-1)[0] || ""; if (l > lastD || (l === lastD && g > lastG)) { lastD = l; lastG = g; } }
+  // 집대기 순번: 날짜 순서대로 따라가며 '마지막으로 맡은 조'를 찾음 · 하루에 두 조(예: 6·1조)면 앞 순번에서 이어지는 쪽이 나중 (5 다음 6·1 → 마지막 1 → 다음 2조)
+  if (kind === "home") { const byD = {}; for (let g = 1; g <= 6; g++) R[g].forEach(x => { (byD[x] = byD[x] || []).includes(g) || byD[x].push(g); });
+    let lastG = 0; Object.keys(byD).sort().forEach(x => { const S = byD[x]; lastG = lastG ? S.reduce((b, g) => (g - lastG + 5) % 6 > (b - lastG + 5) % 6 ? g : b, S[0]) : (S.find(g => !S.includes(g % 6 + 1)) || Math.max.apply(null, S)); });
     return [1, 2, 3, 4, 5, 6].map(i => ((lastG + i - 1) % 6) + 1).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); }
   return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || (R[a].slice(-1)[0] || "").localeCompare(R[b].slice(-1)[0] || "") || a - b).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); };
 const sd = d => (+d.slice(5, 7)) + "/" + (+d.slice(8));
@@ -2325,8 +2329,11 @@ function suggestDuty(homeGroups, homeCancel) {
   return { home: homeGroups, go: rotOrder("go").map(x => x.g).find(g => !off.includes(g)) };
 }
 function drawRot() {
-  const myG = groupOf(ME), row = (kind, title) => '<div class="rot-row"><div class="rot-t ' + kind + '">' + title + ' 순번</div><div class="rot-chips">' +
-    rotOrder(kind).map((x, i) => '<div class="rot-c' + (i === 0 ? ' next' : '') + (x.g === myG ? ' me' : '') + '">' + (i === 0 ? '<i>다음</i>' : '') + '<b>' + x.g + '조</b><small>' + (x.last ? sd(x.last) : '-') + '</small></div>').join("") + '</div></div>';
+  // 오늘 집대기 하는 조: 퇴근 순번에서 회색으로 ('오늘 집대기') · '다음'은 회색이 아닌 첫 조에
+  const TD = DUTY[TODAY], HM = TD && !TD.homeCancel ? (TD.home || []) : [];
+  const myG = groupOf(ME), row = (kind, title) => { const L = rotOrder(kind), hm = x => kind === "go" && HM.includes(x.g), nx = (L.find(x => !hm(x)) || L[0]).g;
+    return '<div class="rot-row"><div class="rot-t ' + kind + '">' + title + ' 순번</div><div class="rot-chips">' +
+    L.map(x => '<div class="rot-c' + (x.g === nx ? ' next' : '') + (hm(x) ? ' hm' : '') + (x.g === myG ? ' me' : '') + '">' + (x.g === nx ? '<i>다음</i>' : '') + '<b>' + x.g + '조</b><small>' + (hm(x) ? '집대기' : x.last ? sd(x.last) : '-') + '</small></div>').join("") + '</div></div>'; };
   $("rot").innerHTML = row("go", "퇴근") + row("home", "집대기") +
     '<button type="button" class="rot-my" id="rot-my">나의 교대 이력 보기 ›</button>';
 }
