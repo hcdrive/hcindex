@@ -2314,12 +2314,13 @@ function rotDates(kind) {   // {조: [날짜...]} (오늘 이후 지정분 포�
 //  · 퇴근: 원래는 순서대로지만, 차례인 조가 그날 집대기면 그 조는 건너뛰고 다음 조가 퇴근
 //          → 건너뛴 조는 차례가 그대로 남아 다음에 먼저 함 (그래서 드물게 같은 조가 연달아 퇴근할 수 있음)
 //          = 맡은 횟수가 적은 조 먼저, 같으면 마지막으로 맡은 날이 오래된 조 먼저
+// 퇴근 순번: 횟수가 적은 조부터 · 같으면 조 번호 순 (한 바퀴는 늘 1→6조 · 집대기로 건너뛴 조는 다음에 먼저)
 const rotOrder = kind => { const R = rotDates(kind);
   // 집대기 순번: 날짜 순서대로 따라가며 '마지막으로 맡은 조'를 찾음 · 하루에 두 조(예: 6·1조)면 앞 순번에서 이어지는 쪽이 나중 (5 다음 6·1 → 마지막 1 → 다음 2조)
   if (kind === "home") { const byD = {}; for (let g = 1; g <= 6; g++) R[g].forEach(x => { (byD[x] = byD[x] || []).includes(g) || byD[x].push(g); });
     let lastG = 0; Object.keys(byD).sort().forEach(x => { const S = byD[x]; lastG = lastG ? S.reduce((b, g) => (g - lastG + 5) % 6 > (b - lastG + 5) % 6 ? g : b, S[0]) : (S.find(g => !S.includes(g % 6 + 1)) || Math.max.apply(null, S)); });
     return [1, 2, 3, 4, 5, 6].map(i => ((lastG + i - 1) % 6) + 1).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); }
-  return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || (R[a].slice(-1)[0] || "").localeCompare(R[b].slice(-1)[0] || "") || a - b).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); };
+  return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || a - b).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); };
 const sd = d => (+d.slice(5, 7)) + "/" + (+d.slice(8));
 // 그날 추천 (관리자 화면용): 집대기는 순번 맨 앞 조, 퇴근은 그날 '실제로 집대기 하는 조'만 건너뛰고 순번 맨 앞 조
 //  · 퇴근·집대기는 항상 조 단위
@@ -2329,11 +2330,11 @@ function suggestDuty(homeGroups, homeCancel) {
   return { home: homeGroups, go: rotOrder("go").map(x => x.g).find(g => !off.includes(g)) };
 }
 function drawRot() {
-  // 오늘 집대기 하는 조: 퇴근 순번에서 회색으로 ('오늘 집대기') · '다음'은 회색이 아닌 첫 조에
-  const TD = DUTY[TODAY], HM = TD && !TD.homeCancel ? (TD.home || []) : [];
-  const myG = groupOf(ME), row = (kind, title) => { const L = rotOrder(kind), hm = x => kind === "go" && HM.includes(x.g), nx = (L.find(x => !hm(x)) || L[0]).g;
+  // 오늘 집대기 하는 조 · 오늘 퇴근조: 퇴근 순번에서 회색으로 ('집대기' / '퇴근') ('오늘 집대기') · '다음'은 회색이 아닌 첫 조에
+  const TD = DUTY[TODAY], HM = TD && !TD.homeCancel ? (TD.home || []) : [], GO = TD && !TD.goCancel ? (TD.go || []) : [];   // 오늘 퇴근조도 회색 ('퇴근')
+  const myG = groupOf(ME), row = (kind, title) => { const L = rotOrder(kind), hm = x => kind === "go" && (HM.includes(x.g) || GO.includes(x.g)), nx = (L.find(x => !hm(x)) || L[0]).g;
     return '<div class="rot-row"><div class="rot-t ' + kind + '">' + title + ' 순번</div><div class="rot-chips">' +
-    L.map(x => '<div class="rot-c' + (x.g === nx ? ' next' : '') + (hm(x) ? ' hm' : '') + (x.g === myG ? ' me' : '') + '">' + (x.g === nx ? '<i>다음</i>' : '') + '<b>' + x.g + '조</b><small>' + (hm(x) ? '집대기' : x.last ? sd(x.last) : '-') + '</small></div>').join("") + '</div></div>'; };
+    L.map(x => '<div class="rot-c' + (x.g === nx ? ' next' : '') + (hm(x) ? ' hm' : '') + (x.g === myG ? ' me' : '') + '">' + (x.g === nx ? '<i>다음</i>' : '') + '<b>' + x.g + '조</b><small>' + (hm(x) ? (GO.includes(x.g) ? '퇴근' : '집대기') : x.last ? sd(x.last) : '-') + '</small></div>').join("") + '</div></div>'; };
   $("rot").innerHTML = row("go", "퇴근") + row("home", "집대기") +
     '<button type="button" class="rot-my" id="rot-my">나의 교대 이력 보기 ›</button>';
 }

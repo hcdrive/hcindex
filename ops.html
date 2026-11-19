@@ -1445,7 +1445,7 @@ const rotOrder = (kind, skipD) => { const R = rotDates(kind); if (skipD) for (le
   if (kind === "home") { const byD = {}; for (let g = 1; g <= 6; g++) R[g].forEach(x => { (byD[x] = byD[x] || []).includes(g) || byD[x].push(g); });
     let lastG = 0; Object.keys(byD).sort().forEach(x => { const S = byD[x]; lastG = lastG ? S.reduce((b, g) => (g - lastG + 5) % 6 > (b - lastG + 5) % 6 ? g : b, S[0]) : (S.find(g => !S.includes(g % 6 + 1)) || Math.max.apply(null, S)); });
     return [1, 2, 3, 4, 5, 6].map(i => ((lastG + i - 1) % 6) + 1).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); }
-  return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || (R[a].slice(-1)[0] || "").localeCompare(R[b].slice(-1)[0] || "") || a - b).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); };
+  return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || a - b).map(g => ({ g, n: R[g].length, last: R[g].slice(-1)[0] })); };
 
 /* ---------- 휴가·결근 (운행기록 D.real의 leave·absent에서 만듦 · 표시용) ---------- */
 let LV = {};
@@ -1833,7 +1833,7 @@ function rotBefore(kind, d) { const R = rotDates(kind); for (let g = 1; g <= 6; 
   if (kind === "home") { const byD = {}; for (let g = 1; g <= 6; g++) R[g].forEach(x => { (byD[x] = byD[x] || []).includes(g) || byD[x].push(g); });
     let lastG = 0; Object.keys(byD).sort().forEach(x => { const S = byD[x]; lastG = lastG ? S.reduce((b, g) => (g - lastG + 5) % 6 > (b - lastG + 5) % 6 ? g : b, S[0]) : (S.find(g => !S.includes(g % 6 + 1)) || Math.max.apply(null, S)); });
     return [1, 2, 3, 4, 5, 6].map(i => ((lastG + i - 1) % 6) + 1); }
-  return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || (R[a].slice(-1)[0] || "").localeCompare(R[b].slice(-1)[0] || "") || a - b); }
+  return [1, 2, 3, 4, 5, 6].sort((a, b) => R[a].length - R[b].length || a - b); }
 function suggest(home, d) { d = d || DSD; return { home, go: [rotBefore("go", d).find(g => !home.includes(g))] }; }
 function drawDCal() {
   const m = DCM, first = wd(m + "-01"), last = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 0)).getUTCDate();
