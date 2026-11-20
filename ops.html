@@ -1545,9 +1545,11 @@ document.addEventListener("click", e => { const t = e.target;
 window.opsGaChanged = (d, c) => { const L = (window.gaList ? window.gaList() : []).filter(g => g.d === d && g.car === c), v = L.filter(g => g.why !== "연차").reduce((t, g) => t + (+(g.manual !== undefined ? g.manual : g._now) || 0), 0);
   const why = []; L.forEach(g => { const w = String(g.why || "").indexOf("정비") === 0 ? "정비" : g.why; if (w && !why.includes(w)) why.push(w); });
   const x = (REAL[d] || {})[c];
-  if (x && x.st === "work") { x.ga = v; x.gaWhy = why.join(","); }
+  if (x && x.st === "work" && x.gaOnly && !v) delete REAL[d][c];   // 가탕만 있던 날에 가탕을 지우면 다시 기록 없음
+  else if (x && x.st === "work") { x.ga = v; x.gaWhy = why.join(","); }
   else if (x && x.st === "absent") { x.ga = v; x.gaAuto = !v; x.gaWhy = why.join(","); }
   else if (!x && v && why.includes("결근")) (REAL[d] = REAL[d] || {})[c] = { st: "absent", lv: "결근", ga: v, gaWhy: why.join(",") };
+  else if (!x && v) (REAL[d] = REAL[d] || {})[c] = { st: "work", real: 0, yard: 0, km: 0, toll: 0, jan: 0, early: 0, lift: 0, fuel: 0, wait: 0, late: 0, part: why[0] || "", ga: v, gaWhy: why.join(","), gaOnly: 1 };   // 기록 없이 가탕만 (예: 지각 0회)
   if (PG === "today") drawToday(); else if (PG === "ilbo") drawIlbo(); };
 // 가탕 계산기 차량 고르기용: 그날 차량별 상태 · 상차 수
 window.gaDay = d => { const S = dayStat(d), o = {}, loaded = CARS.filter(x => S.R[x].st === "work" && abTrips(S.R[x], d) > 0);

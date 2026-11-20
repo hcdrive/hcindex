@@ -1583,7 +1583,8 @@ function render() {
     const one = r && (+r.wait || +r.late), half = r && (+r.jan || +r.early || +r.yard), lift = r && (r.lifts || []).some(x => x.n > 0);
     // 0회 퇴근 날: 다른 퇴근조 날처럼 초록 칸에 '0회' (계산에서는 집대기처럼 빠짐)
     const wr = wkRest(d), du = dutyMe(ME, d), lv = wr ? "비번" : du === "home" ? "집대기" : LEAVE[d], lk = wr ? "off lv-wk" : du === "home" ? "home" : lvKind(lv), full = wr || (lk === "off" && !r) || lk === "ab" || lk === "home";
-    const gaN = lk === "ab" ? ((fleetUpTo(d).day[ME] || {}).ga || 0) : (r && +r.ga) || 0;   // 그날 가탕 (결근은 자동)
+    const gx = !r && REAL[d] && REAL[d][ME] && REAL[d][ME].gaOnly ? REAL[d][ME] : null;   // 가탕만 있는 날 (기록 없음)
+    const gaN = lk === "ab" ? ((fleetUpTo(d).day[ME] || {}).ga || 0) : gx ? +gx.ga || 0 : (r && +r.ga) || 0;   // 그날 가탕 (결근은 자동)
     h += '<button class="d' + (isOff(d) ? ' red' : '') + (r ? ' has' : '') + (lk ? ' lv-' + lk : '') + (lv === "정비" ? ' lv-mnt' : '') + (d === TODAY ? ' today' : '') + (du === "go" || (r && r.part === "go0" && !(+r.real) && !(+r.yard)) ? ' go' : '') + '" data-d="' + d + '"' + (fut && !lv && !du ? ' disabled' : '') + '>' +
       '<span class="n">' + i + (gaN ? '<b class="ga-n">' + gaN + '</b>' : '') + '</span>' +
       (full ? '<span class="lv-big' + (lv.length > 3 ? ' two' : lv.length === 3 ? ' three' : '') + '">' + (lv.length > 3 ? lv.slice(0, 2) + '<br>' + lv.slice(2) : lv) + '</span>' + (wr ? '<span class="wk-t">공장 가동</span>' : '') : '<span class="v">' + (r ? fmt(realOf(r)) + '<small>회</small>' : '') + '</span>') +
@@ -1714,6 +1715,7 @@ function recOf(no, d) {
     const r = DB[d];   // 상차한 뒤 조퇴·정비 대신 연차를 쓴 날: 실탕은 그대로, 가탕 없음
     return r ? { real: realOf(r), yard: +r.yard || 0, late: +r.late || 0, ga: 0, st: "work", lv: LEAVE[d] } : { st: "leave", lv: LEAVE[d] }; }
   if (no === ME && LEAVE[d] === "결근") { const x = (REAL[d] || {})[ME]; return { st: "absent", gaSet: x && x.st === "absent" && x.ga && !x.gaAuto ? +x.ga : 0 }; }                          // 휴가 탭: 결근 → 가탕 자동
+  if (no === ME && !DB[d] && REAL[d] && REAL[d][ME] && REAL[d][ME].gaOnly) { const x = REAL[d][ME]; return { real: 0, yard: 0, late: 0, ga: +x.ga || 0, st: "work", lv: x.part || "" }; }   // 기록 없이 관리자가 가탕만 넣은 날
   if (no === ME) { const r = DB[d]; if (r && r.part === "go0" && !(+r.real) && !(+r.yard)) return { st: "home", g0: 1 };   // 0회 퇴근 = 계산은 집대기처럼 · 표시는 퇴근 초록
     return r ? { real: realOf(r), yard: +r.yard || 0, late: +r.late || 0, ga: +r.ga || 0, st: r.absent ? "absent" : "work" } : { st: "none" }; }
   return { st: "none" };
@@ -3138,7 +3140,7 @@ function openAvg() { $("rcpt-sheet").classList.add("plain");   // 평균 창은 
 function drawAvg() {
   const days = workDays(), k = days.indexOf(avgDay), cls = n => n > 0 ? "up" : n < 0 ? "down" : "zero";
   if (!avgDay) { $("rcpt").innerHTML = '<div class="rc-title">전체 평균</div><p class="rc-foot">이번 달 근무일 기록이 없습니다.</p>'; return; }
-  const dayTxt = r => r.st === "absent" ? '<small class="ab">결근 가' + r.ga + '</small>' : r.st === "leave" ? '<small class="lv">' + (r.lv || "연차") + '</small>' : r.st === "none" ? '<small class="lv">기록 없음</small>' : r.st === "pending" ? '<small class="pd">작성 전</small>' : r.partw ? '<small class="pd">' + r.real + '+가탕?</small>' : r.st === "zero" ? '<small class="lv">0회 · 제외</small>' : r.st === "off0" ? '<small class="lv">휴무 0회</small>' : r.st === "home" ? '<small class="lv">집대기</small>' :
+  const dayTxt = r => r.st === "absent" ? '<small class="ab">결근 가' + r.ga + '</small>' : r.st === "leave" ? '<small class="lv">' + (r.lv || "연차") + '</small>' : r.st === "none" ? '<small class="lv">기록 없음</small>' : r.st === "pending" ? '<small class="pd">작성 전</small>' : r.partw ? '<small class="pd">' + r.real + '+가탕?</small>' : r.st === "zero" ? '<small class="lv">0회 · 제외</small>' : r.st === "off0" ? '<small class="lv">휴무 0회</small>' : r.st === "home" ? (r.g0 ? '<small>0회</small>' : '<small class="lv">집대기</small>') :
     '<small>' + fmt(r.real) + (r.yard ? ' 영' + r.yard : '') + (r.ga ? ' <em>가' + r.ga + '</em>' : '') + (r.yard || r.ga ? '' : '회') + '</small>';   // 영내·가탕이 붙으면 '회' 생략 (칸이 좁아서)
   const FC = forecast(), isLast = avgDay === confirmedDay() || avgDay === FC.d, FD = FC.d ? fleetUpTo(FC.d) : null;
   if (FC.state === "writing" && avgDay === FC.d) return drawAvgStatus(FC, days, k);
@@ -3173,7 +3175,7 @@ function drawAvg() {
     : mr.st === "pending" ? '<em class="me-day pd">작성 전</em>'
     : mr.st === "zero" ? '<em class="me-day lv">운행 없음</em>'
     : mr.st === "off0" ? '<em class="me-day lv">휴무 0회</em>'
-    : mr.st === "home" ? '<em class="me-day lv">집대기</em>'
+    : mr.st === "home" ? (mr.g0 ? '<em class="me-day">0회 퇴근</em>' : '<em class="me-day lv">집대기</em>')
     : '<em class="me-day lv">기록 없음</em>';
   // 재미 요소: 내 평균 흐름 (최근 근무일 최대 20일) — 주식 창처럼 작은 그래프
   const sDays = days.slice(Math.max(0, k - 19), k + 1), ser = sDays.map(x => x === avgDay ? F.acc[ME] : fleetUpTo(x).acc[ME]);
@@ -3196,7 +3198,7 @@ function drawAvg() {
   for (let g = 1; g <= 6; g++) {
     const cars = CARS_ALL.filter(c => G(c) === g);
     groups += '<div class="av-g"><div class="av-gt">' + g + '조</div><div class="av-cells">' + cars.map(c =>
-      '<div data-stk="' + c + '" class="av-c' + (c === ME ? ' me' : '') + (PRI.includes(c) ? ' pri' : '') + (F.day[c] && F.day[c].st === "absent" ? ' d-ab' : F.day[c] && (F.day[c].st === "leave" || F.day[c].st === "home") ? ' d-lv' : F.day[c] && dutyOf(c, avgDay) === "go" ? ' d-go' : '') + '">' + (PRI.includes(c) ? '<i class="pri-n">' + (PRI.indexOf(c) + 1) + '</i>' : '') + (c === ME ? '<i class="me-n">나</i>' : '') + '<span>' + c + '</span><b class="' + cls(F.acc[c]) + '">' + sgn(F.acc[c]) + '</b>' + dayTxt(F.day[c]) + '</div>').join("") + '</div></div>';
+      '<div data-stk="' + c + '" class="av-c' + (c === ME ? ' me' : '') + (PRI.includes(c) ? ' pri' : '') + (F.day[c] && F.day[c].st === "absent" ? ' d-ab' : F.day[c] && F.day[c].g0 ? ' d-go' : F.day[c] && (F.day[c].st === "leave" || F.day[c].st === "home") ? ' d-lv' : F.day[c] && dutyOf(c, avgDay) === "go" ? ' d-go' : '') + '">' + (PRI.includes(c) ? '<i class="pri-n">' + (PRI.indexOf(c) + 1) + '</i>' : '') + (c === ME ? '<i class="me-n">나</i>' : '') + '<span>' + c + '</span><b class="' + cls(F.acc[c]) + '">' + sgn(F.acc[c]) + '</b>' + dayTxt(F.day[c]) + '</div>').join("") + '</div></div>';
   }
   $("rcpt").innerHTML =
     '<div class="av-top">' +
@@ -3226,7 +3228,7 @@ function drawAvgStatus(FC, days, k) {
   const d = FC.d, G = groupOf, R = {};
   CARS_ALL.forEach(c => { R[c] = recOf(c, d); });
   const PEND = new Set(d < TODAY ? pendingCars(d) : []), past = d < TODAY;   // 지난날 미입력 차량 = '미입력' (휴무 아님)
-  const stOf0 = r => r.st === "work" || r.st === "zero" ? ["ok", "입력"] : r.st === "absent" ? ["ab", "결근"] : r.st === "leave" ? ["lv", r.lv || "연차"] : r.st === "off0" ? ["lv", "휴무"] : r.st === "home" ? ["lv", "집대기"] : (past || afterClose()) ? ["no", "미입력"] : ["run", "운행 중"];
+  const stOf0 = r => r.st === "work" || r.st === "zero" ? ["ok", "입력"] : r.st === "absent" ? ["ab", "결근"] : r.st === "leave" ? ["lv", r.lv || "연차"] : r.st === "off0" ? ["lv", "휴무"] : r.st === "home" && r.g0 ? ["ok", "0회 퇴근"] : r.st === "home" ? ["lv", "집대기"] : (past || afterClose()) ? ["no", "미입력"] : ["run", "운행 중"];
   const stOf = (r, c) => c !== undefined && PEND.has(c) ? ["no", "미입력"] : stOf0(r);
   const target = CARS_ALL.filter(c => ["ok", "no", "run"].includes(stOf(R[c], c)[0])), done = target.filter(c => stOf(R[c], c)[0] === "ok"), miss = target.filter(c => stOf(R[c], c)[0] !== "ok");
   const dl = (+d.slice(5, 7)) + '/' + (+d.slice(8)) + '(' + W[wd(d)] + ')', prev = days[k - 1], pl = prev ? (+prev.slice(5, 7)) + '/' + (+prev.slice(8)) : '';

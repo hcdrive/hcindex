@@ -437,7 +437,7 @@ function baseRec(c, d) {
     if (r.st === "work") { r.part = r.part || ""; r.go = dutyOf(c, d) === "go"; }
     else if (r.st === "leave") { r.lv = r.lv || "연차"; if (r.lv === "특별휴가") r.why = r.why || (SPECIAL_WHY[d] || {})[c] || ""; }
     else if (r.st === "absent") { r.lv = "결근"; r.ga = +r.ga || 0; }
-    else if (r.st === "home") { const lv = leaveOf(c, d); r.was = lv === "연차" || lv === "결근" ? lv : ""; }
+    else if (r.st === "home") { if (r.g0) r.go = true; else { const lv = leaveOf(c, d); r.was = lv === "연차" || lv === "결근" ? lv : ""; } }   // g0: 0회 퇴근 → 퇴근조로 표시 (계산은 운행 차량에서 빠짐)
     return r; }
   if (isOff(d)) return WEEKEND[d] && WEEKEND[d].includes(c) ? { st: "none" } : { st: "rest" };   // 주말 출근 차량이 아니면 비번
   const lv = leaveOf(c, d), du = dutyOf(c, d);
@@ -456,7 +456,7 @@ function dayStat(d) {
   const n = k => CARS.filter(k).length;
   const tot = CARS.reduce((a, c) => a + avgVal(R[c]), 0);
   return { R, run: n(c => R[c].st === "work"), leave: n(c => R[c].st === "leave" && R[c].lv === "연차"), summer: n(c => R[c].st === "leave" && R[c].lv !== "연차"),
-    absent: n(c => R[c].st === "absent"), home: n(c => R[c].st === "home"), go: n(c => R[c].go), early: n(c => R[c].part === "조퇴"), late: n(c => R[c].part === "지각"),
+    absent: n(c => R[c].st === "absent"), home: n(c => R[c].st === "home" && !R[c].g0), go: n(c => R[c].go), early: n(c => R[c].part === "조퇴"), late: n(c => R[c].part === "지각"),
     mnt: n(c => R[c].part === "정비"), rest: n(c => R[c].st === "rest"), none: n(c => R[c].st === "none"), wk: isOff(d), avg: tot / (CARS.length || 1) };
 }
 // 누적 평균 차이 (이월 + 기록 시작일부터) · 우선배차
@@ -502,7 +502,7 @@ const toast = (m, bad) => { const t = $("toast"); t.textContent = m; t.classList
 const COLS = [["real", "회전수"], ["km", "운행거리(km)"], ["toll", "통행료"], ["fuel", "주유량"], ["wait", "2시간"], ["late", "17시 이후"], ["jan", "잔수"], ["early", "조출"], ["yard", "영내"], ["back19", "19시"], ["lift", "터널"]];
 // 관리팀 표시: 운행 · 결근(연차·여름휴가 등 안 나온 날 전부) · 조퇴 · 지각 · 집대기만
 const stLab = r => stLab0(r) + (r.fo && r.st !== "work" ? ' <span class="chip s-fo">주유 ' + (+r.fuel || 0) + 'L</span>' : '');   // 쉬는 날 주유량만
-const stLab0 = r => r.st === "leave" || r.st === "absent" ? '<span class="chip s-ab">결근</span>' : r.st === "home" ? '<span class="chip s-home">집대기</span>'
+const stLab0 = r => r.st === "leave" || r.st === "absent" ? '<span class="chip s-ab">결근</span>' : r.st === "home" ? (r.g0 ? '<span class="chip s-go">0회 퇴근</span>' : '<span class="chip s-home">집대기</span>')
   : r.st === "rest" ? '<span class="chip s-rest">비번</span>' : r.st === "none" ? '<span class="chip s-pend">입력 전</span>'
   : (r.part === "조퇴" ? '<span class="chip s-early">조퇴</span>' : r.part === "지각" ? '<span class="chip s-late">지각</span>' : r.part === "정비" ? '<span class="chip s-mnt">정비</span>' : '<span class="chip s-run">운행</span>');
 const kmOdd = r => r.st === "work" && (r.km > 300 || r.km < 10 || r.km / Math.max(1, r.real) > 90);
@@ -945,7 +945,7 @@ function sumMonth() { const T = { ab: 0, mh: 0, wait: 0, late: 0, jan: 0, yard: 
   CARS.forEach(c => P[c] = { work: 0, mh: 0, sum: 0, ab: 0, home: 0, real: 0, jan: 0, yard: 0, wait: 0, late: 0, early: 0, lift: 0, back19: 0, km: 0, toll: 0, fuel: 0, ga: 0, conv: 0 });
   MD().forEach(d => CARS.forEach(c => { const r = rec(c, d), p = P[c];
     if (r.st === "work") { p.work++; ["real", "jan", "yard", "wait", "late", "early", "lift", "km", "toll", "fuel", "ga"].forEach(k => p[k] += +r[k] || 0); p.back19 += r.back19 ? 1 : 0; p.conv += conv(r); }
-    else if (r.st === "leave") p.ab++; else if (r.st === "absent") { p.ab++; p.ga += r.ga; } else if (r.st === "home") p.home++;
+    else if (r.st === "leave") p.ab++; else if (r.st === "absent") { p.ab++; p.ga += r.ga; } else if (r.st === "home" && !r.g0) p.home++;
     if (r.st !== "work" && r.fo) p.fuel += +r.fuel || 0; }));   // 쉬는 날 주유량만
   CARS.forEach(c => { const p = P[c]; T.ab += p.ab; T.mh += p.mh; ["wait", "late", "jan", "yard", "early", "lift", "back19"].forEach(k => T[k] += p[k]); });
   T.P = P; return T; }
@@ -1025,7 +1025,7 @@ function sheetOpen(c, k) { const r = rec(c, D);
 function openRec(c, k) { const r = rec(c, D), e = r.edited; RD = { c, k };
   $("rd-t").innerHTML = c + "호 · " + mdL(D) + " " + stLab(r); $("rd-s").textContent = "기사님이 입력한 일일기록";
   const off = r.st !== "work"; $("rd-ed").disabled = off; $("rd-ed").hidden = !acctEditOn();
-  if (off) { $("rd-b").innerHTML = '<div class="rd-off">' + (r.st === "none" ? '아직 기사님이 입력하지 않았습니다. 입력하면 바로 여기에 나옵니다.' : '이날 ' + (r.st === "home" ? "집대기" : r.st === "rest" ? "비번" : absWhy(c, D)) + '이라 운행기록이 없습니다.') + '</div>'; return showSheet("rd"); }
+  if (off) { $("rd-b").innerHTML = '<div class="rd-off">' + (r.st === "none" ? '아직 기사님이 입력하지 않았습니다. 입력하면 바로 여기에 나옵니다.' : '이날 ' + (r.st === "home" ? (r.g0 ? "0회 퇴근" : "집대기") : r.st === "rest" ? "비번" : absWhy(c, D)) + '이라 운행기록이 없습니다.') + '</div>'; return showSheet("rd"); }
   const fmtv = (k, v) => k === "back19" ? (v ? "○" : "없음") : k === "toll" ? (+v).toLocaleString("ko-KR") + "원" : k === "km" ? v + "km" : k === "fuel" ? v + "L" : k === "real" ? v + "회" : v + "회";
   // 운행 현장(회차별)은 출하관제 연동이 필요해서 숨김 · 대신 특이사항 현장만 표시
   const sp = [];

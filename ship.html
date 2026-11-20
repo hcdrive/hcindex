@@ -436,7 +436,7 @@ function baseRec(c, d) {
     if (r.st === "work") { r.part = r.part || ""; r.go = dutyOf(c, d) === "go"; }
     else if (r.st === "leave") { r.lv = r.lv || "연차"; if (r.lv === "특별휴가") r.why = r.why || (SPECIAL_WHY[d] || {})[c] || ""; }
     else if (r.st === "absent") { r.lv = "결근"; r.ga = +r.ga || 0; }
-    else if (r.st === "home") { const lv = leaveOf(c, d); r.was = lv === "연차" || lv === "결근" ? lv : ""; }
+    else if (r.st === "home") { if (r.g0) r.go = true; else { const lv = leaveOf(c, d); r.was = lv === "연차" || lv === "결근" ? lv : ""; } }   // g0: 0회 퇴근 → 퇴근조로 표시 (계산은 운행 차량에서 빠짐)
     return r; }
   if (isOff(d)) return WEEKEND[d] && WEEKEND[d].includes(c) ? { st: "none" } : { st: "rest" };   // 주말 출근 차량이 아니면 비번
   const lv = leaveOf(c, d), du = dutyOf(c, d);
@@ -455,7 +455,7 @@ function dayStat(d) {
   const n = k => CARS.filter(k).length;
   const tot = CARS.reduce((a, c) => a + avgVal(R[c]), 0);
   return { R, run: n(c => R[c].st === "work"), leave: n(c => R[c].st === "leave" && R[c].lv === "연차"), summer: n(c => R[c].st === "leave" && R[c].lv !== "연차"),
-    absent: n(c => R[c].st === "absent"), home: n(c => R[c].st === "home"), go: n(c => R[c].go), early: n(c => R[c].part === "조퇴"), late: n(c => R[c].part === "지각"),
+    absent: n(c => R[c].st === "absent"), home: n(c => R[c].st === "home" && !R[c].g0), go: n(c => R[c].go), early: n(c => R[c].part === "조퇴"), late: n(c => R[c].part === "지각"),
     mnt: n(c => R[c].part === "정비"), rest: n(c => R[c].st === "rest"), none: n(c => R[c].st === "none"), wk: isOff(d), avg: tot / (CARS.length || 1) };
 }
 // 가탕 입력 대기 차량의 가탕을 모르는 만큼 누적 평균 차이가 움직일 수 있는 폭 (기준일까지) · up: 그 차량이 오를 수 있는 만큼 · down: 모든 차량이 내려갈 수 있는 만큼
@@ -519,7 +519,7 @@ document.addEventListener("click", e => { const b = e.target.closest("#vtabs [da
   document.querySelectorAll("#vtabs [data-v]").forEach(x => x.classList.toggle("on", x === b)); document.body.classList.toggle("v-site-on", site); $("v-site").hidden = !site; if (site) drawSite(); scrollTo(0, 0); });
 let NAV = DAYS.slice();   // 출하실은 오늘까지만 (다음날로 넘어가지 않음 · 다음 근무일은 아래 박스로)
 let D = TODAY, TN = "lo", AV = "lo";
-const lab = r => r.st === "rest" ? ["비번", "s-rest"] : r.st === "leave" ? (r.lv === "연차" ? ["정비휴무", "s-mh"] : r.lv === "특별휴가" ? [r.why || "특별휴가", "s-sp"] : [r.lv, "s-sum"]) : r.st === "absent" ? ["결근", "s-ab"] : r.st === "home" ? ["집대기", "s-home"]
+const lab = r => r.st === "rest" ? ["비번", "s-rest"] : r.st === "leave" ? (r.lv === "연차" ? ["정비휴무", "s-mh"] : r.lv === "특별휴가" ? [r.why || "특별휴가", "s-sp"] : [r.lv, "s-sum"]) : r.st === "absent" ? ["결근", "s-ab"] : r.st === "home" ? (r.g0 ? ["0회 퇴근", "s-go"] : ["집대기", "s-home"])
   : r.part === "조퇴" ? ["조퇴", "s-early"] : r.part === "지각" ? ["지각", "s-late"] : r.part === "정비" ? ["차량고장", "s-mnt"] : r.go ? ["퇴근조", "s-go"] : null;
 function draw() {
   const S = dayStat(D), R = S.R, i = NAV.indexOf(D), fut = D > TODAY;
@@ -559,7 +559,7 @@ function draw() {
   $("cg-note").innerHTML = '';
   $("cg").innerHTML = [1, 2, 3, 4, 5, 6].map(g => { const L = CARS.filter(c => groupOf(c) === g), du = DUTY[D] || { go: [], home: [] };
     return '<div><div class="gh"><span>' + g + '조</span>' + '' + '</div><ul>' +
-      L.map(c => { const r = R[c], l = lab(r), cls = r.st === "leave" ? (r.lv === "연차" ? "st-leave" : "st-sum") : r.st === "absent" ? "st-ab" : r.st === "home" ? "st-home" : r.st === "rest" ? "st-rest" : r.go ? "st-go" : "";
+      L.map(c => { const r = R[c], l = lab(r), cls = r.st === "leave" ? (r.lv === "연차" ? "st-leave" : "st-sum") : r.st === "absent" ? "st-ab" : r.st === "home" && !r.g0 ? "st-home" : r.st === "rest" ? "st-rest" : r.go ? "st-go" : "";
         const v = acc[c]; return '<li data-stk="' + c + '" class="' + cls + (pri.includes(c) ? ' pri' : '') + '"><div class="cr"><span class="no">' + c + '</span></div><small class="av ' + (v < 0 ? 'neg' : 'pos') + '">' + (v > 0 ? '+' : '') + fmt(v) + '</small><div class="stl">' + (l ? '<span class="chip ' + l[1] + '">' + l[0] + '</span>' : '') + '</div></li>'; }).join("") + '</ul></div>'; }).join("");
   const grp = (f) => CARS.filter(c => f(R[c]));
   const swRow = d => { const L = (DUTY[d] || {}).sw || []; if (!L.length) return '';
@@ -577,7 +577,7 @@ function draw() {
     row("정비휴무", "s-mh", grp(r => r.st === "leave" && r.lv === "연차")) + row("여름휴가", "s-sum", grp(r => r.st === "leave" && r.lv === "여름휴가")) +
     row("결근", "s-ab", grp(r => r.st === "absent")) +
     ((L => !L.length ? '' : '<div class="lv-row"><span class="k"><span class="chip s-sp">그 외</span> <b>' + L.length + '대</b></span><span class="cars">' + (L.length ? L.map(c => '<b>' + c + ' <i class="spw">' + esc(R[c].why || "특별휴가") + '</i>' + (NEWC.has(c) ? ' <i class="nw">신규</i>' : '') + '</b>').join("") : '<span class="none">없음</span>') + '</span></div>')(grp(r => r.st === "leave" && r.lv === "특별휴가"))) +
-    ((L => L.length ? '<div class="lv-row lv-chg"><span class="k"><span class="chip s-home">집대기로 바뀜</span> <b>' + L.length + '대</b></span><span class="cars">' + L.map(c => '<b>' + c + ' <i class="wast">' + SHOW_LV(R[c].was) + (tookFrom(c, D, "home") ? ' · 교대' : '') + '</i></b>').join("") + '</span><small class="chg-n">신청했지만 집대기가 되어 결근 차량에서 빠짐 · 차감 안 됨</small></div>' : '')(grp(r => r.st === "home" && r.was))) + '</div>' + row("집대기", "s-home", grp(r => r.st === "home")) + row("조퇴", "s-early", grp(r => r.part === "조퇴")) + row("지각", "s-late", grp(r => r.part === "지각")) +
+    ((L => L.length ? '<div class="lv-row lv-chg"><span class="k"><span class="chip s-home">집대기로 바뀜</span> <b>' + L.length + '대</b></span><span class="cars">' + L.map(c => '<b>' + c + ' <i class="wast">' + SHOW_LV(R[c].was) + (tookFrom(c, D, "home") ? ' · 교대' : '') + '</i></b>').join("") + '</span><small class="chg-n">신청했지만 집대기가 되어 결근 차량에서 빠짐 · 차감 안 됨</small></div>' : '')(grp(r => r.st === "home" && r.was))) + '</div>' + row("집대기", "s-home", grp(r => r.st === "home" && !r.g0)) + row("조퇴", "s-early", grp(r => r.part === "조퇴")) + row("지각", "s-late", grp(r => r.part === "지각")) +
     row("퇴근조", "s-go", grp(r => r.go)) + swRow(D) + row("차량고장", "s-mnt", grp(r => r.part === "정비"));
   // 평균
   const dayH = (k, d) => { const t = d === TODAY, f = d > TODAY; return '<span class="db' + (t ? '' : f ? ' fut' : ' past') + '">' + (t ? "오늘" : f ? "예정" : "지난 날") + '</span><span class="dt">' + mdL(d) + '</span><span class="dk">' + k + '</span>'; };
