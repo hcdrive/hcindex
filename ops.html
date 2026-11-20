@@ -1545,7 +1545,9 @@ document.addEventListener("click", e => { const t = e.target;
 window.opsGaChanged = (d, c) => { const L = (window.gaList ? window.gaList() : []).filter(g => g.d === d && g.car === c), v = L.filter(g => g.why !== "연차").reduce((t, g) => t + (+(g.manual !== undefined ? g.manual : g._now) || 0), 0);
   const why = []; L.forEach(g => { const w = String(g.why || "").indexOf("정비") === 0 ? "정비" : g.why; if (w && !why.includes(w)) why.push(w); });
   const x = (REAL[d] || {})[c];
-  if (x && x.st === "work" && x.gaOnly && !v) delete REAL[d][c];   // 가탕만 있던 날에 가탕을 지우면 다시 기록 없음
+  if (x && x.st === "work" && x.gaOnly && x.g0 && !v) REAL[d][c] = { st: "home", g0: 1 };   // 0회 퇴근 날 가탕을 지우면 다시 0회 퇴근
+  else if (x && x.st === "home" && x.g0 && v && !why.includes("결근")) REAL[d][c] = { st: "work", real: 0, yard: 0, km: 0, toll: 0, jan: 0, early: 0, lift: 0, fuel: 0, wait: 0, late: 0, part: "go0", ga: v, gaWhy: why.join(","), gaOnly: 1, g0: 1 };   // 0회 퇴근 + 지각 가탕
+  else if (x && x.st === "work" && x.gaOnly && !v) delete REAL[d][c];   // 가탕만 있던 날에 가탕을 지우면 다시 기록 없음
   else if (x && x.st === "work") { x.ga = v; x.gaWhy = why.join(","); }
   else if (x && x.st === "absent") { x.ga = v; x.gaAuto = !v; x.gaWhy = why.join(","); }
   else if (!x && v && why.includes("결근")) (REAL[d] = REAL[d] || {})[c] = { st: "absent", lv: "결근", ga: v, gaWhy: why.join(",") };

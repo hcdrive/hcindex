@@ -1583,7 +1583,7 @@ function render() {
     const one = r && (+r.wait || +r.late), half = r && (+r.jan || +r.early || +r.yard), lift = r && (r.lifts || []).some(x => x.n > 0);
     // 0회 퇴근 날: 다른 퇴근조 날처럼 초록 칸에 '0회' (계산에서는 집대기처럼 빠짐)
     const wr = wkRest(d), du = dutyMe(ME, d), lv = wr ? "비번" : du === "home" ? "집대기" : LEAVE[d], lk = wr ? "off lv-wk" : du === "home" ? "home" : lvKind(lv), full = wr || (lk === "off" && !r) || lk === "ab" || lk === "home";
-    const gx = !r && REAL[d] && REAL[d][ME] && REAL[d][ME].gaOnly ? REAL[d][ME] : null;   // 가탕만 있는 날 (기록 없음)
+    const gx = (!r || r.part === "go0") && REAL[d] && REAL[d][ME] && REAL[d][ME].gaOnly ? REAL[d][ME] : null;   // 가탕만 있는 날 (기록 없음)
     const gaN = lk === "ab" ? ((fleetUpTo(d).day[ME] || {}).ga || 0) : gx ? +gx.ga || 0 : (r && +r.ga) || 0;   // 그날 가탕 (결근은 자동)
     h += '<button class="d' + (isOff(d) ? ' red' : '') + (r ? ' has' : '') + (lk ? ' lv-' + lk : '') + (lv === "정비" ? ' lv-mnt' : '') + (d === TODAY ? ' today' : '') + (du === "go" || (r && r.part === "go0" && !(+r.real) && !(+r.yard)) ? ' go' : '') + '" data-d="' + d + '"' + (fut && !lv && !du ? ' disabled' : '') + '>' +
       '<span class="n">' + i + (gaN ? '<b class="ga-n">' + gaN + '</b>' : '') + '</span>' +
@@ -1715,7 +1715,7 @@ function recOf(no, d) {
     const r = DB[d];   // 상차한 뒤 조퇴·정비 대신 연차를 쓴 날: 실탕은 그대로, 가탕 없음
     return r ? { real: realOf(r), yard: +r.yard || 0, late: +r.late || 0, ga: 0, st: "work", lv: LEAVE[d] } : { st: "leave", lv: LEAVE[d] }; }
   if (no === ME && LEAVE[d] === "결근") { const x = (REAL[d] || {})[ME]; return { st: "absent", gaSet: x && x.st === "absent" && x.ga && !x.gaAuto ? +x.ga : 0 }; }                          // 휴가 탭: 결근 → 가탕 자동
-  if (no === ME && !DB[d] && REAL[d] && REAL[d][ME] && REAL[d][ME].gaOnly) { const x = REAL[d][ME]; return { real: 0, yard: 0, late: 0, ga: +x.ga || 0, st: "work", lv: x.part || "" }; }   // 기록 없이 관리자가 가탕만 넣은 날
+  if (no === ME && (!DB[d] || DB[d].part === "go0") && REAL[d] && REAL[d][ME] && REAL[d][ME].gaOnly) { const x = REAL[d][ME]; return { real: 0, yard: 0, late: 0, ga: +x.ga || 0, st: "work", lv: x.part || "" }; }   // 기록 없이 관리자가 가탕만 넣은 날
   if (no === ME) { const r = DB[d]; if (r && r.part === "go0" && !(+r.real) && !(+r.yard)) return { st: "home", g0: 1 };   // 0회 퇴근 = 계산은 집대기처럼 · 표시는 퇴근 초록
     return r ? { real: realOf(r), yard: +r.yard || 0, late: +r.late || 0, ga: +r.ga || 0, st: r.absent ? "absent" : "work" } : { st: "none" }; }
   return { st: "none" };
