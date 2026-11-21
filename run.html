@@ -1729,7 +1729,7 @@ const REC_START = String(D.from || TODAY.slice(0, 8) + "01");   // 기록 시작
 let TP_EVE = null;
 function drawTodayPri() {
   const el = $("tp-box"); if (!el) return;
-  const eve = afterClose(); TP_EVE = eve;
+  const eve = afterClose() || isOff(TODAY); TP_EVE = afterClose();   // 쉬는 날(주말·공휴일)은 하루 종일 '다음 근무일 선배차 예상'
   const W2 = workDays().filter(d => !isOff(d)), dl = x => (+x.slice(5, 7)) + '/' + (+x.slice(8)) + '(' + W[wd(x)] + ')';
   let base, tgt;
   if (eve) { tgt = nextWork(TODAY); const L0 = W2.filter(d => d <= TODAY); base = L0[L0.length - 1]; if (!base || nextWork(base) !== tgt) { el.hidden = true; return; } }
