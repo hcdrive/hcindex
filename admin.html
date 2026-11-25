@@ -4750,10 +4750,13 @@ async function sfCheck(D) { if (SF || document.querySelector(".sheet.show")) ret
     if (!r.cand.length) { sfMark(k); continue; }
     if (SF || document.querySelector(".sheet.show")) return;
     return sfOpen(r, true); } }
-async function sfOpenDate(d) { const r = await call("adminShipFill", { date: d, dry: 1 }); if (!r || !r.ok) return toast(r && r.msg ? r.msg : "출하기록을 확인하지 못했습니다.");
-  if (!r.cand.length) return toast(sfLab(d) + " 미입력 차량 중 출하기록에 회전수가 있는 차량이 없습니다."); sfOpen(r, false); }
+async function sfOpenDate(d) { if (TODAY && d >= TODAY) return toast(sfLab(d) + "은 아직 지나지 않은 날이라 채울 수 없습니다. 다음 날부터 할 수 있습니다.");
+  const r = await call("adminShipFill", { date: d, dry: 1 }); if (!r || !r.ok) return toast(r && r.msg ? r.msg : "출하기록을 확인하지 못했습니다.");
+  if (!r.cand.length) return toast(sfLab(d) + " 일보 미입력 차량 중 출하기록에 회전수가 있는 차량이 없습니다. 회전수가 다른 차량은 기사님이 이미 입력한 것이라, 표에서 그 차량을 눌러 직접 고쳐 주세요."); sfOpen(r, false); }
+// 운행 기록표 [출하 기록]의 [회전수 다름] 칸을 누르면 바로 묻기
+addEventListener("message", e => { const m = e.data || {}; if (m.sfAsk && /^\d{4}-\d\d-\d\d$/.test(m.sfAsk)) sfOpenDate(m.sfAsk); });
 function sfOpen(r, auto) { SF = r; SF.auto = auto;
-  $("sf-title").textContent = (r.by === "관리팀" ? "관리팀이 " : "") + sfLab(r.date) + " 출하기록을 올렸습니다";
+  $("sf-title").textContent = auto ? (r.by === "관리팀" ? "관리팀이 " : "") + sfLab(r.date) + " 출하기록을 올렸습니다" : sfLab(r.date) + " 출하기록으로 미입력 채우기";
   $("sf-body").innerHTML = '<p style="margin:4px 0 0;font-size:16px;line-height:1.6">그날 <b>미입력 ' + (r.cand.length + r.none.length) + '대</b> 중 출하기록에 회전수가 있는 차량입니다. 체크한 차량을 <b>출하기록 회전수(실 회전)</b>와 <b>17시 상차</b>(출하시간 17:00부터)로 넣을까요?</p>' +
     '<ul class="sf-l">' + r.cand.map(x => '<li><label><input type="checkbox" data-sf="' + esc(x.no) + '" checked><b>' + esc(x.no) + '호</b><span>' + x.n + '회' + (x.late ? ' <small style="color:var(--muted);font-weight:700">· 17시 ' + x.late + '</small>' : '') + '</span></label></li>').join("") + '</ul>' +
     '<div class="sf-note">운행거리·통행료·주유량·조출 등 다른 칸은 0으로 들어가고, 기사님께 알림이 갑니다. 출하기록은 영내작업을 따로 나누지 않아 영내작업도 실 회전에 들어갑니다. 넣은 뒤에도 운행 기록표에서 고칠 수 있고, 관리자 작업 기록에서 되돌릴 수 있습니다.' +
