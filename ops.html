@@ -270,6 +270,10 @@
   .clist .sa { font-style: normal; font-weight: 900; color: #5b3cc4; } .clist li:has(.sa) { background: #efeaff; border-color: #c4b5f5; }
   .clist .gw { font-style: normal; font-weight: 900; } .clist .gw.jt, .clist .gw.jg { color: #c66a00; } .clist .gw.jb { color: #b0306a; }
   .clist li:has(.gw.jt), .clist li:has(.gw.jg) { background: #fff1d6; border-color: #f5c58a; } .clist li:has(.gw.jb) { background: var(--pink-bg); border-color: #f2a6c8; }
+  .clist li.shx { position: relative; box-shadow: inset 0 0 0 2px #e5484d; } .clist li.shx.dgo { box-shadow: inset 0 0 0 2px #e5484d, inset 0 -4px 0 #92d050; }
+  .clist .sxb { font-style: normal; font-size: 10.5px; font-weight: 900; color: #fff; background: #e5484d; border-radius: 5px; padding: 0 3px; line-height: 15px; }
+  .sxq { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; } .sxq button { display: grid; justify-items: center; gap: 1px; min-width: 74px; padding: 6px 8px; border: 1.5px solid #f2a0a0; border-radius: 10px; background: #fff; color: #b42318; cursor: pointer; font: inherit; }
+  .sxq b { font-size: 16px; font-weight: 900; color: var(--text, #111); } .sxq span { font-size: 12px; font-weight: 700; color: var(--muted); } .sxq small { font-size: 12.5px; font-weight: 900; color: #b42318; }
   .clist li.st-none { border-color: var(--red); background: var(--red-bg); } .clist li.st-none .chip2 { color: var(--red); }
   .clist li.st-run .chip2 { color: var(--muted); }
   .clist li.st-leave, .clist li.st-home { background: #fff6cc; border-color: #f0d36a; } .clist li.st-leave .chip2, .clist li.st-home .chip2 { color: #7a5a00; }
@@ -1506,6 +1510,11 @@ function drawToday() {
   const gaW = Object.keys(GA_WAIT[AD] || {}).filter(c => S.R[c].st === "work" && S.R[c].ga === null);
   const offN = CARS.filter(c => ["leave", "absent", "home"].includes(S.R[c].st) && !S.R[c].g0).length, goN = CARS.filter(c => S.R[c].go).length;
   const done = !S.miss.length && !gaW.length, saN = CARS.filter(c => S.R[c].st === "work" && shipAuto(AD, c)).length;
+  // 관리팀 출하기록(운행 기록표 > 출하 기록에 올린 것)과 회전수가 다른 차량: 기사 입력 실 회전 + 영내작업 ≠ 출하기록 회수
+  let SL = (((window.OPS || {}).D || {}).ship || {})[AD] || null; if (typeof SL === "string") { try { SL = JSON.parse(SL); } catch (e) { SL = null; } }
+  const shN = c => !SL || !Array.isArray(SL.rows) ? null : SL.rows.filter(x => String(x[0]) === c).reduce((a, x) => a + (+x[5] || 0), 0);
+  const shX = c => { const n = shN(c); if (n === null) return null; const r = S.R[c], m = r.st === "work" ? (+r.real || 0) + (+r.yard || 0) : 0; return n !== m && (r.st === "work" || n > 0) ? n : null; };
+  const SX = CARS.filter(c => shX(c) !== null);
   $("a-sum").innerHTML = '<div><small>작성</small><b>' + S.done + '<em>/' + S.need + '대</em></b></div>' +
     '<div class="' + (S.miss.length && missLbl === "미입력" ? 'bad' : '') + '"><small>' + missLbl + '</small><b>' + S.miss.length + '<em>대</em></b></div>' +
     '<div><small>휴가·결근·집대기</small><b>' + offN + '<em>대</em></b></div>' +
@@ -1513,21 +1522,22 @@ function drawToday() {
   let p = "";
   if (S.miss.length && missLbl === "미입력") p += '<div class="alert"><b>미입력 ' + S.miss.length + '대</b> ' + S.miss.join(" · ") + '<div class="btn2" style="margin-top:8px"><button type="button" class="go nl-btn" data-push="miss" data-nl-need="미입력 알림 (관리자가 바로 보냄)" data-nloff="push-off" style="height:46px">지금 알림 보내기</button><button type="button" class="ghost" data-flt="none" style="height:46px">대신 입력하기</button></div><p class="nl-off" id="push-off" hidden>이 알림이 꺼져 있어 보낼 수 없습니다. <button type="button" class="nl-goto" data-nlgo="미입력 알림 (관리자가 바로 보냄)">알림 설정으로 이동하기</button></p><small>' + (window.RUN_LOCK ? '운행기록 탭이 테스트 중이라 밤 8시 자동 알림도 보내지 않습니다. ' : '밤 8시에 자동으로 한 번 더 보냅니다. ') + '밤 12시가 지나면 관리자가 대신 입력해 주세요.</small></div>';
   if (gaW.length) p += '<div class="alert amber"><b>가탕 입력 대기 ' + gaW.length + '대</b> <span style="font-weight:600">· 눌러서 가탕 입력</span><div class="gsq">' + gaW.map(c => '<button type="button" data-gain="' + c + '"><b>' + c + '</b><span class="w-' + GA_WAIT[AD][c] + '">' + GA_WAIT[AD][c] + '</span><small>가탕 입력</small></button>').join("") + '</div></div>';
+  if (SX.length) p += '<div class="alert"><b>출하기록과 회전수 다름 ' + SX.length + '대</b> <span style="font-weight:600">· 관리팀 출하기록 기준 (영내작업 포함 · 8시 전·17시 후 상차 포함) · 눌러서 확인</span><div class="sxq">' + SX.map(c => { const r = S.R[c]; return '<button type="button" data-sxcar="' + c + '"><b>' + c + '</b><span>입력 ' + (r.st === "work" ? (+r.real || 0) + (+r.yard ? '+영' + r.yard : '') : r.st === "none" ? '없음' : (r.g0 ? '0회 퇴근' : STL[r.st])) + '</span><small>출하 ' + shX(c) + '</small></button>'; }).join("") + '</div></div>';
   if (saN) p += '<div class="alert" style="background:#efeaff;border-color:#c4b5f5;color:#3b2690"><b>출하기록으로 대신 입력 ' + saN + '대</b> <span style="font-weight:600">· 기사님이 직접 쓰지 않아 회전수만 있고 운행거리 등은 비어 있습니다</span> <button type="button" data-flt="sa" style="margin-left:6px;height:32px;padding:0 12px;border:1px solid #c4b5f5;border-radius:8px;background:#fff;color:#3b2690;font-weight:800;font-size:14px;cursor:pointer">차량 보기</button></div>';
   const offDay = !workDays().includes(AD);   // 주말·휴무일 (평균 계산에 안 들어감)
   if (offDay) p += '<div class="alert" style="background:#f1f5fd;border-color:#c7d6f7;color:#3b4a63"><b>휴무일</b> · 평균과 운행일보에 들어가지 않는 날입니다. 쉬는 칸을 누르면 그날 주유량만 넣거나 고칠 수 있습니다.</div>';
   else if (done) p += '<div class="ok-done">모든 차량 작성 완료 · 평균과 운행일보가 확정됐습니다.</div>';
   if (past) p += '<p class="note">지난 날짜를 고치면 평균이 다시 계산되고, 순위가 바뀐 차량에 정정 알림이 갑니다.</p>';
   $("a-push").innerHTML = p;
-  const F = [["all", "전체", CARS.length], ["none", missLbl, S.miss.length], ["work", "작성", S.done], ["sa", "출하기록 입력", saN], ["off", "휴가·결근·집대기", offN], ["go", "퇴근조", goN]];
+  const F = [["all", "전체", CARS.length], ["none", missLbl, S.miss.length], ["work", "작성", S.done], ["sa", "출하기록 입력", saN], ["sx", "출하기록 다름", SX.length], ["off", "휴가·결근·집대기", offN], ["go", "퇴근조", goN]];
   $("a-filter").innerHTML = F.filter(x => x[0] === "all" || x[2]).map(([k, n, c]) => '<button type="button" data-flt="' + k + '"' + (AF === k ? ' class="on"' : '') + '>' + n + ' ' + c + '</button>').join("");
-  const show = c => { const r = S.R[c]; return AF === "all" || (AF === "none" && r.st === "none") || (AF === "work" && r.st === "work") || (AF === "sa" && r.st === "work" && shipAuto(AD, c)) || (AF === "off" && ["leave", "absent", "home"].includes(r.st) && !r.g0) || (AF === "go" && r.go); };
+  const show = c => { const r = S.R[c]; return AF === "all" || (AF === "none" && r.st === "none") || (AF === "work" && r.st === "work") || (AF === "sa" && r.st === "work" && shipAuto(AD, c)) || (AF === "sx" && SX.includes(c)) || (AF === "off" && ["leave", "absent", "home"].includes(r.st) && !r.g0) || (AF === "go" && r.go); };
   let lastG = 0;
   $("a-list").innerHTML = CARS.filter(show).map(c => { const g = groupOf(c), gh = g !== lastG ? '<li class="grp">' + g + '조</li>' : ''; lastG = g; const r = S.R[c], st = r.g0 ? "g0" : r.st === "none" ? (missLbl === "운행 중" ? "run" : "none") : r.st;   // g0: 0회 퇴근 → 퇴근조 칸 (초록 줄)
     // 칸 크기를 모두 같게: 호수 · 상태 · 회수 · 덧붙임(영내·가탕) 네 줄을 항상 같은 자리에
     const val = r.st === "work" ? '<b>' + r.real + '<small>회</small></b>' : r.g0 ? '<b>0<small>회</small></b>' : '';
-    const ext = r.st === "work" ? (r.yard ? '<i>영' + r.yard + '</i>' : '') + (r.ga === null ? '<i class="w">가탕대기</i>' : r.ga ? '<i class="r">가' + r.ga + '</i>' : '') : r.st === "absent" ? '<i class="r">가' + (r.ga && !r.gaAuto ? r.ga : S.gaAbs) + '</i>' : '';
-    return gh + '<li data-car="' + c + '" class="st-' + st + (r.go ? ' dgo' : '') + '"><span class="no">' + c + '<small>' + groupOf(c) + '조</small></span><span class="chip2">' + (r.st === "leave" ? r.lv : r.st === "none" ? (missLbl) : r.st === "work" && ((GA_WAIT[AD] || {})[c] || (GA_WHY[AD] || {})[c]) ? '<em class="gw ' + ({ 조퇴: "jt", 지각: "jg", 외출: "jt", 총회지각: "jg", 정비: "jb" }[String((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]).split("·")[0]] || "jt") + '">' + ((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]) + '</em>' : r.st === "work" && shipAuto(AD, c) ? '<em class="sa">출하기록</em>' : r.g0 ? '0회 퇴근' : STL[r.st]) + (r.go && !r.g0 ? ' 퇴근' : '') + '</span><span class="vv">' + val + '</span><span class="ex">' + (r.fo ? '주유 ' + r.fuel + 'L' : ext) + '</span></li>'; }).join("") || '<li class="empty">해당 차량이 없습니다.</li>';
+    const ext = (SX.includes(c) ? '<em class="sxb">출하' + shX(c) + '</em>' : '') + (r.st === "work" ? (r.yard ? '<i>영' + r.yard + '</i>' : '') + (r.ga === null ? '<i class="w">가탕대기</i>' : r.ga ? '<i class="r">가' + r.ga + '</i>' : '') : r.st === "absent" ? '<i class="r">가' + (r.ga && !r.gaAuto ? r.ga : S.gaAbs) + '</i>' : '');
+    return gh + '<li data-car="' + c + '" class="st-' + st + (r.go ? ' dgo' : '') + (SX.includes(c) ? ' shx' : '') + '">' + '<span class="no">' + c + '<small>' + groupOf(c) + '조</small></span><span class="chip2">' + (r.st === "leave" ? r.lv : r.st === "none" ? (missLbl) : r.st === "work" && ((GA_WAIT[AD] || {})[c] || (GA_WHY[AD] || {})[c]) ? '<em class="gw ' + ({ 조퇴: "jt", 지각: "jg", 외출: "jt", 총회지각: "jg", 정비: "jb" }[String((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]).split("·")[0]] || "jt") + '">' + ((GA_WAIT[AD] || {})[c] || GA_WHY[AD][c]) + '</em>' : r.st === "work" && shipAuto(AD, c) ? '<em class="sa">출하기록</em>' : r.g0 ? '0회 퇴근' : STL[r.st]) + (r.go && !r.g0 ? ' 퇴근' : '') + '</span><span class="vv">' + val + '</span><span class="ex">' + (r.fo ? '주유 ' + r.fuel + 'L' : ext) + '</span></li>'; }).join("") || '<li class="empty">해당 차량이 없습니다.</li>';
 }
 document.addEventListener("change", e => { if (e.target.id !== "a-din" || !e.target.value) return; const w = navDays(), v = e.target.value, k = w.filter(x => x <= v).pop() || w[0];   // 주말·공휴일을 고르면 그 앞 근무일
   if (k) { AD = k; AF = "all"; drawToday(); } });
@@ -1538,6 +1548,7 @@ document.addEventListener("click", e => { const t = e.target;
   const ps = t.closest("[data-push]"); if (ps) { (async () => { const S = dayStat(AD); if (!S.miss.length) return;   // 관리자 공지(알림함)로 보냄 · 휴대폰 푸시는 서버 미구현
       const res = await busy(ps, () => api("adminNoticeAdd", { target: S.miss.join(", "), title: "오늘 운행기록을 써 주세요", body: md(AD) + " 운행기록이 아직 없습니다. 운행기록 탭에서 써 주세요.", days: 2 }));
       toast(res.ok ? S.miss.join(", ") + " 기사님께 '오늘 운행기록을 써 주세요' 알림을 보냈습니다." : (res.msg || "알림을 보내지 못했습니다.")); })(); return; }
+  const sxb = t.closest("[data-sxcar]"); if (sxb) { openEd(sxb.dataset.sxcar); return; }
   const li = t.closest("#a-list li[data-car]"); if (li) openEd(li.dataset.car);
 });
 
@@ -1546,7 +1557,7 @@ window.opsGaChanged = (d, c) => { const L = (window.gaList ? window.gaList() : [
   const why = []; L.forEach(g => { const w = String(g.why || "").indexOf("정비") === 0 ? "정비" : g.why; if (w && !why.includes(w)) why.push(w); });
   const x = (REAL[d] || {})[c];
   if (x && x.st === "work" && x.gaOnly && x.g0 && !v) REAL[d][c] = { st: "home", g0: 1 };   // 0회 퇴근 날 가탕을 지우면 다시 0회 퇴근
-  else if (x && x.st === "home" && x.g0 && v && !why.includes("결근")) REAL[d][c] = { st: "work", real: 0, yard: 0, km: 0, toll: 0, jan: 0, early: 0, lift: 0, fuel: 0, wait: 0, late: 0, part: "go0", ga: v, gaWhy: why.join(","), gaOnly: 1, g0: 1 };   // 0회 퇴근 + 지각 가탕
+  else if (x && x.st === "home" && x.g0 && v && !why.includes("결근")) REAL[d][c] = { st: "work", real: 0, yard: 0, km: 0, toll: 0, jan: 0, early: 0, lift: 0, fuel: 0, wait: 0, late: 0, part: why[0] || "", ga: v, gaWhy: why.join(","), gaOnly: 1, g0: 1 };   // 0회 퇴근 + 지각 가탕
   else if (x && x.st === "work" && x.gaOnly && !v) delete REAL[d][c];   // 가탕만 있던 날에 가탕을 지우면 다시 기록 없음
   else if (x && x.st === "work") { x.ga = v; x.gaWhy = why.join(","); }
   else if (x && x.st === "absent") { x.ga = v; x.gaAuto = !v; x.gaWhy = why.join(","); }
