@@ -4752,14 +4752,17 @@ async function sfCheck(D) { if (SF || document.querySelector(".sheet.show")) ret
     return sfOpen(r, true); } }
 async function sfOpenDate(d) { if (TODAY && d >= TODAY) return toast(sfLab(d) + "은 아직 지나지 않은 날이라 채울 수 없습니다. 다음 날부터 할 수 있습니다.");
   const r = await call("adminShipFill", { date: d, dry: 1 }); if (!r || !r.ok) return toast(r && r.msg ? r.msg : "출하기록을 확인하지 못했습니다.");
-  if (!r.cand.length) return toast(sfLab(d) + " 일보 미입력 차량 중 출하기록에 회전수가 있는 차량이 없습니다. 회전수가 다른 차량은 기사님이 이미 입력한 것이라, 표에서 그 차량을 눌러 직접 고쳐 주세요."); sfOpen(r, false); }
+  if (!r.cand.length) return toast(sfLab(d) + " 일보 미입력·휴가 차량 중 출하기록에 회전수가 있는 차량이 없습니다. 회전수가 다른 차량은 기사님이 이미 입력한 것이라, 표에서 그 차량을 눌러 직접 고쳐 주세요."); sfOpen(r, false); }
 // 운행 기록표 [출하 기록]의 [회전수 다름] 칸을 누르면 바로 묻기
 addEventListener("message", e => { const m = e.data || {}; if (m.sfAsk && /^\d{4}-\d\d-\d\d$/.test(m.sfAsk)) sfOpenDate(m.sfAsk); });
 function sfOpen(r, auto) { SF = r; SF.auto = auto;
   $("sf-title").textContent = auto ? (r.by === "관리팀" ? "관리팀이 " : "") + sfLab(r.date) + " 출하기록을 올렸습니다" : sfLab(r.date) + " 출하기록으로 미입력 채우기";
-  $("sf-body").innerHTML = '<p style="margin:4px 0 0;font-size:16px;line-height:1.6">그날 <b>미입력 ' + (r.cand.length + r.none.length) + '대</b> 중 출하기록에 회전수가 있는 차량입니다. 체크한 차량을 <b>출하기록 회전수(실 회전)</b>와 <b>17시 상차</b>(출하시간 17:00부터)로 넣을까요?</p>' +
-    '<ul class="sf-l">' + r.cand.map(x => '<li><label><input type="checkbox" data-sf="' + esc(x.no) + '" checked><b>' + esc(x.no) + '호</b><span>' + x.n + '회' + (x.late ? ' <small style="color:var(--muted);font-weight:700">· 17시 ' + x.late + '</small>' : '') + '</span></label></li>').join("") + '</ul>' +
-    '<div class="sf-note">운행거리·통행료·주유량·조출 등 다른 칸은 0으로 들어가고, 기사님께 알림이 갑니다. 출하기록은 영내작업을 따로 나누지 않아 영내작업도 실 회전에 들어갑니다. 넣은 뒤에도 운행 기록표에서 고칠 수 있고, 관리자 작업 기록에서 되돌릴 수 있습니다.' +
+  const nLv = r.cand.filter(x => x.lv).length;
+  $("sf-body").innerHTML = '<p style="margin:4px 0 0;font-size:16px;line-height:1.6">그날 <b>미입력 ' + (r.cand.length - nLv + r.none.length) + '대</b> 중 출하기록에 회전수가 있는 차량' + (nLv ? '과, <b>휴가인데 출하기록이 있는 차량 ' + nLv + '대</b>' : '') + '입니다. 체크한 차량을 <b>출하기록 회전수(실 회전)</b>와 <b>17시 상차</b>(출하시간 17:00부터)로 넣을까요?</p>' +
+    '<ul class="sf-l">' + r.cand.map(x => '<li><label><input type="checkbox" data-sf="' + esc(x.no) + '" checked><b>' + esc(x.no) + '호</b>' + (x.lv ? '<em style="font-style:normal;font-size:12.5px;font-weight:800;color:#b45309;background:#fff4dc;border-radius:6px;padding:1px 6px;margin-left:4px">' + esc(x.lv) + '</em>' : '') + '<span>' + x.n + '회' + (x.late ? ' <small style="color:var(--muted);font-weight:700">· 17시 ' + x.late + '</small>' : '') + '</span></label></li>').join("") + '</ul>' +
+    '<label style="display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-weight:800;font-size:16px;cursor:pointer"><input type="checkbox" id="sf-push" checked style="width:22px;height:22px">기사님께 알림 보내기<small style="margin-left:auto;color:var(--muted);font-weight:700;font-size:13px">끄면 조용히 넣기만 함</small></label>' +
+    '<div class="sf-note">운행거리·통행료·주유량·조출 등 다른 칸은 0으로 들어갑니다. 출하기록은 영내작업을 따로 나누지 않아 영내작업도 실 회전에 들어갑니다. 넣은 뒤에도 운행 기록표에서 고칠 수 있고, 관리자 작업 기록에서 되돌릴 수 있습니다.' +
+    (nLv ? '<br><b>휴가 차량</b>은 휴가가 그대로 차감되고, 넣은 회전수는 실탕으로 계산됩니다 (가탕 없음).' : '') +
     (r.none.length ? '<br><b>출하기록에도 없는 차량 ' + r.none.length + '대:</b> ' + r.none.map(esc).join(", ") + ' (결근인지 확인해 주세요)' : '') + '</div>';
   $("sf-later").hidden = !auto; $("sf-no").hidden = !auto; sfCount(); $("sf-sheet").classList.add("show"); }
 function sfCount() { const n = document.querySelectorAll("#sf-body [data-sf]:checked").length, b = $("sf-ok"); b.textContent = n ? n + "대 반영하기" : "고른 차량 없음"; b.disabled = !n; }
@@ -4769,7 +4772,7 @@ document.addEventListener("click", async e => { const t = e.target; if (!SF) ret
   if (t.closest("#sf-later") || t.closest('[data-close="sf-sheet"]')) { SF_SNOOZE[sfKey(SF.date, SF.at)] = Date.now() + 3600e3; $("sf-sheet").classList.remove("show"); SF = null; return; }
   if (t.closest("#sf-no")) { sfMark(sfKey(SF.date, SF.at)); toast(sfLab(SF.date) + " 출하기록은 반영하지 않습니다. 필요하면 출하실 일보 인쇄 화면에서 다시 할 수 있습니다."); return close(); }
   if (t.closest("#sf-ok")) { const b = $("sf-ok"); if (b.disabled) return; const cars = [...document.querySelectorAll("#sf-body [data-sf]:checked")].map(x => x.dataset.sf); if (!cars.length) return;
-    b.disabled = true; b.textContent = "넣는 중…"; const r = await call("adminShipFill", { date: SF.date, cars }); b.disabled = false;
+    b.disabled = true; b.textContent = "넣는 중…"; const r = await call("adminShipFill", { date: SF.date, cars, push: $("sf-push") && !$("sf-push").checked ? 0 : 1 }); b.disabled = false;
     if (!r || !r.ok) { sfCount(); return toast(r && r.msg ? r.msg : "넣지 못했습니다."); }
     sfMark(sfKey(SF.date, SF.at)); close(); toast(r.msg, true); admDirty(); if (CUR === "v-print") prLoad(); } });
 

@@ -1586,14 +1586,14 @@ let ED = null;
 const FLD = [["real", "실 회전수", 1], ["yard", "영내작업", 1], ["jan", "잔수", 1], ["wait", "2시간 이상 대기", 1], ["early", "8시 이전 상차 (조출)", 1], ["late", "17시 상차", 1], ["lift", "터널 리프트", 1]];
 function openEd(c) {
   syncGa(AD); const r = rec(c, AD), wasNone = r.st === "none";
-  if (!["work", "none"].includes(r.st)) { if (AD <= TODAY) return foOpen(c, AD, r); toast(c + "호는 " + md(AD) + " " + (r.st === "leave" ? r.lv : STL[r.st]) + "입니다. 바꾸려면 [휴가 입력]·[집대기·퇴근]에서 고치세요."); return; }
+  if (!["work", "none"].includes(r.st)) { if (AD <= TODAY) return openEdWork(c, r.st === "leave" ? r.lv : r.st === "absent" ? "결근" : r.g0 ? "0회 퇴근" : STL[r.st] || "쉬는 날", r); toast(c + "호는 " + md(AD) + " " + (r.st === "leave" ? r.lv : STL[r.st]) + "입니다. 바꾸려면 [휴가 입력]·[집대기·퇴근]에서 고치세요."); return; }
   ED = { c, d: AD, r, v: Object.assign({ real: 0, yard: 0, jan: 0, wait: 0, early: 0, late: 0, lift: 0, km: "", toll: "", fuel: "", back19: false }, r.st === "work" ? r : {}), none: wasNone, mode: wasNone ? "edit" : "view" };
   ED.v.ws = JSON.parse(JSON.stringify((r.st === "work" && r.ws) || { wait: [], early: [], late: [], lift: [] }));
   drawEd(); $("ed").classList.add("show");
 }
 // 휴가·결근 날 회전수 대신 입력 (미입력과 같은 입력 창 · 제목에 휴가 종류 표시)
-function openEdWork(c, lv) { syncGa(AD);
-  ED = { c, d: AD, r: { st: "none" }, v: { real: 0, yard: 0, jan: 0, wait: 0, early: 0, late: 0, lift: 0, km: "", toll: "", fuel: "", back19: false }, none: true, mode: "edit", lv: lv || "" };
+function openEdWork(c, lv, r0) { syncGa(AD);
+  ED = { c, d: AD, r: { st: "none" }, v: { real: 0, yard: 0, jan: 0, wait: 0, early: 0, late: 0, lift: 0, km: "", toll: "", fuel: r0 && r0.fo ? String(r0.fuel || "") : "", back19: false }, none: true, mode: "edit", lv: lv || "", r0: r0 || null };
   ED.v.ws = { wait: [], early: [], late: [], lift: [] }; drawEd(); $("ed").classList.add("show"); }
 // ===== 관리자 '운행 기록표' 탭에서 호수를 누르면 입력 현황과 같은 팝업만 띄움 (닫으면 기록표로 돌아감) =====
 let PENDING_OPEN = null;
@@ -1628,7 +1628,7 @@ document.addEventListener("click", e => { const t = e.target; if (!$("fo-ed").cl
 document.addEventListener("keydown", e => { if (e.target && e.target.id === "fo-v" && e.key === "Enter") { e.preventDefault(); foSave(false); } });
 function soloEnd() { if (!document.documentElement.classList.contains("solo")) return; const t = document.querySelector(".toast.show, #toast.show"); const now = (REAL[AD] || {})[SOLO] || null, changed = JSON.stringify(now) !== SOLO_V;
   setTimeout(() => { document.documentElement.classList.remove("solo"); try { parent.postMessage({ carClosed: true, toast: t ? t.textContent : "", saved: changed ? { c: SOLO, d: AD, v: now, sites: (REAL_SITES[AD] || {})[SOLO] || null } : null }, "*"); } catch (x) {} }, 280); }
-setTimeout(() => new MutationObserver(() => { if (!$("ed").classList.contains("show")) soloEnd(); }).observe($("ed"), { attributes: true, attributeFilter: ["class"] }), 0);
+setTimeout(() => new MutationObserver(() => { if (!$("ed").classList.contains("show") && !$("fo-ed").classList.contains("show")) soloEnd(); }).observe($("ed"), { attributes: true, attributeFilter: ["class"] }), 0);
 // ===== 현장 고르기 (기사 화면 '일일기록'과 같은 검색 방식) =====
 //  그날 물량표 현장(앞부분이 같은 현장은 묶음) · 띄어 쓰면 낱말이 모두 들어간 현장 · 운행거리 목록 전체에서도 찾음 · 없으면 직접 추가
 let DAYT = {};   // D.dayTable: 날짜 → [[이름, 거리, [[제품, 수량, 도착]…], 담당]…]
@@ -1719,7 +1719,7 @@ function drawEd() { const v = ED.v, M = ED.mode;
       : '<button type="button" class="p-del" id="ed-del">삭제</button><button type="button" class="p-main" id="ed-edit">수정</button><button type="button" class="p-close" id="ed-close">닫기</button>') + '</div>';
     navBtns(); return;
   }
-  $("ed-body").innerHTML = FLD.map(([k, n]) => '<div class="stp"><span>' + n + '</span><div><button type="button" data-st="' + k + '" data-dv="-1"' + (v[k] <= 0 ? ' disabled' : '') + '>−</button><b>' + v[k] + '</b><button type="button" data-st="' + k + '" data-dv="1">+</button></div></div>' +
+  $("ed-body").innerHTML = (ED.lv ? '<div style="margin:2px 0 10px;padding:10px 12px;border-radius:12px;background:#fff7e6;border:1px solid #f5c96b;color:#7a4b00;font-size:14px;font-weight:700;line-height:1.45"><b style="display:inline-block;margin-right:6px;padding:1px 8px;border-radius:7px;background:#e08a00;color:#fff">' + esc(ED.lv) + '</b>' + (ED.lv === "결근" ? '결근으로 들어가 있습니다. 회전수를 넣으면 이날은 근무로 계산되니, 결근 기록은 [휴가 입력]에서 지우거나 조퇴 등으로 바꿔 주세요.' : /연차|휴가|경조|공무|정비/.test(ED.lv) ? '휴가는 그대로 차감되고, 넣은 회전수는 실탕으로 계산됩니다 (가탕 없음).' : '이날 일했다면 회전수를 넣으세요.') + '<button type="button" id="ed-fo" style="display:block;width:100%;margin-top:8px;height:40px;border:1px solid #f5c96b;border-radius:10px;background:#fff;color:#7a4b00;font:inherit;font-weight:800;cursor:pointer">운행 없이 기름만 넣었다면: 주유량만 넣기</button></div>' : '') + FLD.map(([k, n]) => '<div class="stp"><span>' + n + '</span><div><button type="button" data-st="' + k + '" data-dv="-1"' + (v[k] <= 0 ? ' disabled' : '') + '>−</button><b>' + v[k] + '</b><button type="button" data-st="' + k + '" data-dv="1">+</button></div></div>' +
     (SITEK[k] && v[k] > 0 ? '<div class="sites2">' + (v.ws[k] || []).map((x, i) => { const L = SITEK[k] === "LIFTS" ? LIFTS : SITES;
       return '<div class="srow"><i>' + (i + 1) + '</i><button type="button" class="spick' + (x ? '' : ' empty') + '" data-spk="' + k + '|' + i + '"><span>' + esc(x ? siteShowA(x) : '현장 검색해서 고르기') + '</span><em>바꾸기</em></button><button type="button" data-sdel="' + k + '|' + i + '" aria-label="이 현장 삭제">삭제</button></div>'; }).join("") + '</div>' : '')).join("") +
     [["km", "운행거리", "km", "numeric"], ["toll", "통행료", "원", "numeric"], ["fuel", "주유량", "L", "decimal"]].map(([k, n, u, im]) => '<div class="stp"><span>' + n + '</span><label class="inu"><input enterkeyhint="done" type="text" class="kp" pattern="[0-9.]*" autocomplete="off" inputmode="' + im + '" data-in="' + k + '" value="' + (v[k] === "" ? "" : v[k]) + '"><em>' + u + '</em></label></div>').join("") +
@@ -1830,6 +1830,7 @@ document.addEventListener("click", e => { const t = e.target; if (!ED) return;
     (async () => { const c = ED.c, d = ED.d; const res = await busy($("ed-delok"), () => api("adminRunSave", { no: c, date: d, del: 1, why }));
       if (!res.ok) return toast(res.msg || "지우지 못했습니다.");
       if (REAL[d]) delete REAL[d][c]; if (REAL_SITES[d]) delete REAL_SITES[d][c]; $("ed").classList.remove("show"); ED = null; redrawRec(); toast(res.msg || (c + "호 기록을 지웠습니다.")); })(); return; }
+  if (t.closest("#ed-fo")) { const c = ED.c, r0 = ED.r0 || rec(c, AD); $("fo-runw").hidden = true; foOpen(c, AD, r0); $("fo-runw").hidden = true; $("ed").classList.remove("show"); ED = null; return; }
   if (t.closest("#ed-go0")) { (async () => { const c = ED.c, d = ED.d;   // 퇴근조라 상차 없이 퇴근: 집대기와 같게 (평균·선배차에서 빠지고 미입력도 아님)
       const res = await busy($("ed-go0"), () => api("adminRunSave", { no: c, date: d, rec: { real: 0, yard: 0, part: "go0" }, sites: {}, why: "0회 퇴근" }));
       if (!res.ok) return toast(res.msg || "저장하지 못했습니다.");
@@ -2166,7 +2167,7 @@ drawNav();
   /* 운행 기록표 탭에서 호수를 누르면: 이 화면은 숨기고 입력 현황과 같은 팝업만 위에 띄움 */
   html.solo, html.solo body { background: transparent !important; }
   html.solo body * { visibility: hidden !important; }
-  html.solo #ed, html.solo #ed *, html.solo .toast, html.solo .toast * { visibility: visible !important; }
+  html.solo #ed, html.solo #ed *, html.solo #fo-ed, html.solo #fo-ed *, html.solo .toast, html.solo .toast * { visibility: visible !important; } html.solo #fo-ed [hidden] { display: none !important; }   /* 휴가·결근 날: 주유량·회전수 대신 입력 창 */
   html.solo #ed #ed-prev, html.solo #ed #ed-next { visibility: hidden !important; }
   /* 현장 고르기 (기사 화면과 같은 검색) */
   #spk { z-index: 60; } .spk-box { height: min(680px, calc(100dvh - 24px)); max-height: none !important; padding: 14px 14px 12px; overflow: hidden; }
