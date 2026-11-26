@@ -2464,7 +2464,7 @@ function ilboHTML(d) {
     const cars = CARS_ALL.filter(c => groupOf(c) === gi + 1), memo = [];
     const cell = []; for (let i = 0; i < 8; i++) cell.push([]);
     cars.forEach(c => {
-      const r = R[c] || {}, e = extraOf(c, d, r), lv = leaveName(c, r), off = r.st === "leave" || r.st === "absent" || r.st === "off0" || (c === ME && lvKind(LEAVE[d]) === "off");   // off0 = 주말·공휴일에 출근 지정 안 된 차량 → 노랑
+      const r = R[c] || {}, e = extraOf(c, d, r), lv = leaveName(c, r), off = r.st === "leave" || r.st === "absent" || r.st === "off0" || (c === ME && lvKind(LEAVE[d]) === "off") || (r.st === "work" && lvKind(r.lv) === "off");   // 휴가 날 일한 차량도 노랑   // off0 = 주말·공휴일에 출근 지정 안 된 차량 → 노랑
       // 엑셀과 같은 색: 휴가·정비 = 노랑 / 결근 = 빨강 / 조퇴·지각 = 주황 (실탕 칸 ~ 잔수 줄까지, 합·평균은 그대로)
       const du = dutyOf(c, d), kind = lvKind(lv), Y = r.g0 ? " xg" : r.st === "absent" || kind === "ab" ? " xr" : off || du === "home" ? " y" : lv === "정비" ? " xp" : kind === "part" ? " xo" : du === "go" ? " xg" : "", sum = FL.mon[c], fsum = Math.round(sum * 10) / 10, av = FL.acc[c];
       if (lv) { (lv === "정비" ? mnts : lvKind(lv) === "part" ? parts : offs).push(c + (lv === "정비" ? "" : "(" + lv + ")")); memo.push(c + "(" + lv + ")"); }
@@ -3141,6 +3141,7 @@ function drawAvg() {
   const days = workDays(), k = days.indexOf(avgDay), cls = n => n > 0 ? "up" : n < 0 ? "down" : "zero";
   if (!avgDay) { $("rcpt").innerHTML = '<div class="rc-title">전체 평균</div><p class="rc-foot">이번 달 근무일 기록이 없습니다.</p>'; return; }
   const dayTxt = r => r.st === "absent" ? '<small class="ab">결근 가' + r.ga + '</small>' : r.st === "leave" ? '<small class="lv">' + (r.lv || "연차") + '</small>' : r.st === "none" ? '<small class="lv">기록 없음</small>' : r.st === "pending" ? '<small class="pd">작성 전</small>' : r.partw ? '<small class="pd">' + r.real + '+가탕?</small>' : r.st === "zero" ? '<small class="lv">0회 · 제외</small>' : r.st === "off0" ? '<small class="lv">휴무 0회</small>' : r.st === "home" ? (r.g0 ? '<small>0회</small>' : '<small class="lv">집대기</small>') :
+    lvKind(r.lv) === "off" ? '<small class="lv">' + fmt(r.real) + '회 ' + (r.lv === "연차" ? "정비휴무" : r.lv) + '</small>' :   // 휴가 날 일한 차량: 회전수 + 휴가 종류
     '<small>' + fmt(r.real) + (r.yard ? ' 영' + r.yard : '') + (r.ga ? ' <em>가' + r.ga + '</em>' : '') + (r.yard || r.ga ? '' : '회') + '</small>';   // 영내·가탕이 붙으면 '회' 생략 (칸이 좁아서)
   const FC = forecast(), isLast = avgDay === confirmedDay() || avgDay === FC.d, FD = FC.d ? fleetUpTo(FC.d) : null;
   if (FC.state === "writing" && avgDay === FC.d) return drawAvgStatus(FC, days, k);
@@ -3198,7 +3199,7 @@ function drawAvg() {
   for (let g = 1; g <= 6; g++) {
     const cars = CARS_ALL.filter(c => G(c) === g);
     groups += '<div class="av-g"><div class="av-gt">' + g + '조</div><div class="av-cells">' + cars.map(c =>
-      '<div data-stk="' + c + '" class="av-c' + (c === ME ? ' me' : '') + (PRI.includes(c) ? ' pri' : '') + (F.day[c] && F.day[c].st === "absent" ? ' d-ab' : F.day[c] && F.day[c].g0 ? ' d-go' : F.day[c] && (F.day[c].st === "leave" || F.day[c].st === "home") ? ' d-lv' : F.day[c] && dutyOf(c, avgDay) === "go" ? ' d-go' : '') + '">' + (PRI.includes(c) ? '<i class="pri-n">' + (PRI.indexOf(c) + 1) + '</i>' : '') + (c === ME ? '<i class="me-n">나</i>' : '') + '<span>' + c + '</span><b class="' + cls(F.acc[c]) + '">' + sgn(F.acc[c]) + '</b>' + dayTxt(F.day[c]) + '</div>').join("") + '</div></div>';
+      '<div data-stk="' + c + '" class="av-c' + (c === ME ? ' me' : '') + (PRI.includes(c) ? ' pri' : '') + (F.day[c] && F.day[c].st === "absent" ? ' d-ab' : F.day[c] && F.day[c].g0 ? ' d-go' : F.day[c] && F.day[c].st === "work" && lvKind(F.day[c].lv) === "off" ? ' d-lv' : F.day[c] && (F.day[c].st === "leave" || F.day[c].st === "home") ? ' d-lv' : F.day[c] && dutyOf(c, avgDay) === "go" ? ' d-go' : '') + '">' + (PRI.includes(c) ? '<i class="pri-n">' + (PRI.indexOf(c) + 1) + '</i>' : '') + (c === ME ? '<i class="me-n">나</i>' : '') + '<span>' + c + '</span><b class="' + cls(F.acc[c]) + '">' + sgn(F.acc[c]) + '</b>' + dayTxt(F.day[c]) + '</div>').join("") + '</div></div>';
   }
   $("rcpt").innerHTML =
     '<div class="av-top">' +
