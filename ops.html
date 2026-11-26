@@ -830,6 +830,7 @@
   <div class="sht-h"><b id="fo-t"></b><small id="fo-s"></small></div>
   <div class="sht-b" style="padding:16px 18px"><p class="note" id="fo-n" style="margin:0 0 12px"></p><label class="fo-row"><span>주유량</span><input id="fo-v" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="0"><b>L</b></label></div>
   <div class="sht-f"><button type="button" class="ghost" id="fo-x" style="height:52px">닫기</button><button type="button" class="ghost danger" id="fo-del" style="height:52px">주유 기록 지우기</button><button type="button" class="go" id="fo-ok">저장하기</button></div>
+  <div style="padding:0 18px 16px" id="fo-runw" hidden><button type="button" class="go" id="fo-run" style="width:100%;height:52px;background:#1a56db">이날 회전수 대신 입력하기</button><p class="note" id="fo-rn" style="margin:8px 0 0"></p></div>
 </div></div>
 <div class="sht" id="ed"><div class="sht-in">
   <div class="sht-h ed-h"><button type="button" class="nb" id="ed-prev" aria-label="이전 차량">‹</button><div><b id="ed-t"></b><small id="ed-s"></small></div><button type="button" class="nb" id="ed-next" aria-label="다음 차량">›</button></div>
@@ -1590,6 +1591,10 @@ function openEd(c) {
   ED.v.ws = JSON.parse(JSON.stringify((r.st === "work" && r.ws) || { wait: [], early: [], late: [], lift: [] }));
   drawEd(); $("ed").classList.add("show");
 }
+// 휴가·결근 날 회전수 대신 입력 (미입력과 같은 입력 창 · 제목에 휴가 종류 표시)
+function openEdWork(c, lv) { syncGa(AD);
+  ED = { c, d: AD, r: { st: "none" }, v: { real: 0, yard: 0, jan: 0, wait: 0, early: 0, late: 0, lift: 0, km: "", toll: "", fuel: "", back19: false }, none: true, mode: "edit", lv: lv || "" };
+  ED.v.ws = { wait: [], early: [], late: [], lift: [] }; drawEd(); $("ed").classList.add("show"); }
 // ===== 관리자 '운행 기록표' 탭에서 호수를 누르면 입력 현황과 같은 팝업만 띄움 (닫으면 기록표로 돌아감) =====
 let PENDING_OPEN = null;
 addEventListener("message", e => { const m = e.data || {}; if (!m.openCar) return; if (!window.OPS.booted) { PENDING_OPEN = m; return; } openCarMsg(m); });
@@ -1605,7 +1610,11 @@ let FO_ED = null;
 function foOpen(c, d, r) { const x = (REAL[d] || {})[c], had = !!(x && x.fo && x.st !== "work"); FO_ED = { c, d, from: had ? +x.fuel || 0 : 0 };
   $("fo-t").textContent = c + "호 · " + md(d); $("fo-s").textContent = (r.st === "leave" ? r.lv : STL[r.st] || "쉬는 날") + " · 운행 없음";
   $("fo-n").textContent = had ? "이날 주유량만 적힌 날입니다. 고치거나 지울 수 있습니다." : "이날은 쉬는 날이라 일보는 없습니다. 기름을 넣었다면 주유량만 넣을 수 있습니다.";
-  $("fo-v").value = had ? String(+x.fuel || 0) : ""; $("fo-del").hidden = !had; $("fo-ed").classList.add("show"); setTimeout(() => { try { $("fo-v").focus(); } catch (e) {} }, 200); }
+  $("fo-v").value = had ? String(+x.fuel || 0) : ""; $("fo-del").hidden = !had;
+  // 연차·여름휴가·결근 날 일을 했다면 회전수도 넣을 수 있게 (실탕 그대로 · 휴가는 그대로 차감 · 가탕 없음)
+  const canRun = r.st === "leave" || r.st === "absent"; $("fo-runw").hidden = !canRun; FO_ED.lv = canRun ? (r.st === "leave" ? r.lv : "결근") : "";
+  if (canRun) $("fo-rn").textContent = r.st === "leave" ? r.lv + "는 그대로 차감되고, 넣은 회전수는 실탕으로 계산됩니다 (가탕 없음)." : "결근으로 들어가 있습니다. 회전수를 넣으면 이날은 근무로 계산되니, 결근 기록은 [휴가 입력]에서 지우거나 조퇴 등으로 바꿔 주세요.";
+  $("fo-ed").classList.add("show"); setTimeout(() => { try { $("fo-v").focus(); } catch (e) {} }, 200); }
 function foClose() { $("fo-ed").classList.remove("show"); FO_ED = null; if (document.documentElement.classList.contains("solo")) soloEnd(); }
 async function foSave(del) { if (!FO_ED) return; const F = FO_ED, v = del ? 0 : Math.round((+String($("fo-v").value).replace(/[^0-9.]/g, "") || 0) * 100) / 100;
   if (!del && !(v > 0 && v <= 999)) return toast("주유량을 0보다 크고 999L 이하로 적어 주세요.");
@@ -1614,6 +1623,7 @@ async function foSave(del) { if (!FO_ED) return; const F = FO_ED, v = del ? 0 : 
   const R = REAL[F.d] = REAL[F.d] || {}; if (it.rec) R[F.c] = it.rec; else delete R[F.c];
   toast(F.c + "호 " + sd(F.d) + (del ? " 주유 기록을 지웠습니다." : " 주유량 " + v + "L를 저장했습니다.")); foClose(); redrawRec(); }
 document.addEventListener("click", e => { const t = e.target; if (!$("fo-ed").classList.contains("show")) return;
+  if (t.closest("#fo-run")) { const F = FO_ED; $("fo-ed").classList.remove("show"); FO_ED = null; return openEdWork(F.c, F.lv); }
   if (t.closest("#fo-x") || t.id === "fo-ed") return foClose(); if (t.closest("#fo-ok")) return foSave(false); if (t.closest("#fo-del")) return foSave(true); });
 document.addEventListener("keydown", e => { if (e.target && e.target.id === "fo-v" && e.key === "Enter") { e.preventDefault(); foSave(false); } });
 function soloEnd() { if (!document.documentElement.classList.contains("solo")) return; const t = document.querySelector(".toast.show, #toast.show"); const now = (REAL[AD] || {})[SOLO] || null, changed = JSON.stringify(now) !== SOLO_V;
@@ -1687,7 +1697,7 @@ const whyBox = (lab, need) => '<label class="why-f"><span>' + lab + (need ? ' <b
 const whyIn = () => { const w = $("ed-why"); if (w) ED.why = w.value; return (ED.why || "").trim(); };
 const whyErr = m => { const e = $("ed-why-e"), w = $("ed-why"); if (e) e.textContent = m; if (w) { w.classList.add("bad"); w.focus(); } };
 function drawEd() { const v = ED.v, M = ED.mode;
-  $("ed-t").textContent = ED.c + "호"; $("ed-s").textContent = M === "del" ? md(ED.d) + " · 이 기록을 지울까요?" : M === "view" ? md(ED.d) : md(ED.d) + (ED.none ? " · 대신 입력" : ED.d < TODAY ? " · 수정 (저장하면 정정 알림)" : " · 수정");
+  $("ed-t").textContent = ED.c + "호"; $("ed-s").textContent = M === "del" ? md(ED.d) + " · 이 기록을 지울까요?" : M === "view" ? md(ED.d) : md(ED.d) + (ED.none ? " · " + (ED.lv ? ED.lv + " 날 " : "") + "대신 입력" : ED.d < TODAY ? " · 수정 (저장하면 정정 알림)" : " · 수정");
   if (M === "view" || M === "del") {
     // 기사 화면 '일일기록 보기'와 같은 순서: 실 회전 · 이날 평균 → 횟수(있는 것만) → 이날 운반비
     const S = dayStat(ED.d), done = !S.miss.length, n = x => +x || 0, cnt = [];
@@ -1716,7 +1726,7 @@ function drawEd() { const v = ED.v, M = ED.mode;
     '<label class="tg"><span><b>19시 이후 공장 복귀</b><small>식권 1장</small></span><input type="checkbox" id="ed-19"' + (v.back19 ? ' checked' : '') + '></label>' +
     (!v.real && !v.yard ? '<p class="note" style="color:var(--red)">실 회전과 영내작업이 모두 0이면 저장할 수 없습니다.</p>' : '') +
     whyBox(ED.none ? "대신 입력 사유" : "수정 사유", !ED.none);
-  $("ed-foot").innerHTML = (ED.none && !v.real && !v.yard ? '<button type="button" class="p-main" id="ed-go0" style="width:100%;margin-bottom:8px;background:#5aa832">0회 퇴근 처리 (퇴근조가 아니어도 됨 · 운행 차량에서 빠짐)</button>' : '') +
+  $("ed-foot").innerHTML = (ED.none && !ED.lv && !v.real && !v.yard ? '<button type="button" class="p-main" id="ed-go0" style="width:100%;margin-bottom:8px;background:#5aa832">0회 퇴근 처리 (퇴근조가 아니어도 됨 · 운행 차량에서 빠짐)</button>' : '') +
     '<div class="pf"><button type="button" class="p-close" id="' + (ED.none ? 'ed-close' : 'ed-back') + '">' + (ED.none ? '닫기' : '취소') + '</button><button type="button" class="p-main" id="ed-save"' + (!v.real && !v.yard ? ' disabled' : '') + '>' + (ED.none ? '대신 입력 저장' : '저장') + '</button></div>';
   navBtns();
 }

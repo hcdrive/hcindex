@@ -4157,7 +4157,7 @@ document.addEventListener("click", async e => { const b = e.target.closest("[dat
 stvDraw();
 // 운행 기록표에서 호수를 누르면 → '입력 현황'과 같은 차량 팝업(보기·수정·삭제)을 그 위에 띄움
 let SHEET_CAR = null;
-function sheetCarOpen(c, d, rec) { document.body.classList.add("ops-pop"); const f = opsFrame(); const send = () => { try { f.contentWindow.postMessage({ openCar: c, date: d, rec: rec }, "*"); } catch (e) {} };
+function sheetCarOpen(c, d, rec) { document.body.classList.add("ops-pop"); const f = opsFrame(); const send = () => { try { const m = { openCar: c, date: d }; if (rec !== undefined) m.rec = rec; f.contentWindow.postMessage(m, "*"); } catch (e) {} };   // rec 없으면 보내지 않음 (입력 현황의 그 차량 기록을 지우지 않게)
   if (opsReady) send(); else SHEET_CAR = send; }
 addEventListener("message", e => { const m = e.data || {};
   if (m.sheetCar) return sheetCarOpen(m.sheetCar, m.date, m.rec);

@@ -1023,7 +1023,7 @@ let RD = null;
 const acctEditOn = () => false;
 function editLockNote() { const el = $("edit-lock"); if (el) el.hidden = acctEditOn(); }
 function sheetOpen(c, k) { const r = rec(c, D);
-  if (r.st === "work" || r.st === "none") { try { parent.postMessage({ sheetCar: c, date: D }, "*"); return; } catch (e) {} }
+  if (r.st === "work" || r.st === "none" || r.st === "leave" || r.st === "absent") { try { if (parent !== window) { parent.postMessage({ sheetCar: c, date: D }, "*"); return; } } catch (e) {} }   // 휴가·결근 날도 관리자 창에서 회전수 대신 입력 가능
   return openRec(c, k); }
 function openRec(c, k) { const r = rec(c, D), e = r.edited; RD = { c, k };
   $("rd-t").innerHTML = c + "호 · " + mdL(D) + " " + stLab(r); $("rd-s").textContent = "기사님이 입력한 일일기록";
